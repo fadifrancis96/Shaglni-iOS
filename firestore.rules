@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Jobs collection
+    match /jobs/{jobId} {
+      // Anyone authenticated can read jobs
+      allow read: if request.auth != null;
+      
+      // Only authenticated users can create jobs
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
+      
+      // Only the job creator can update/delete their jobs
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+      
+      // Offers subcollection
+      match /offers/{offerId} {
+        // Job poster can read all offers for their job
+        // Contractor can read their own offers
+        allow read: if request.auth != null && (
+          request.auth.uid == get(/databases/$(database)/documents/jobs/$(jobId)).data.createdBy ||
+          request.auth.uid == resource.data.contractorId
+        );
+        
+        // Contractors can create offers
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.contractorId;
+        
+        // Job poster can update offer status (accept/reject/counter)
+        allow update: if request.auth != null && 
+          request.auth.uid == get(/databases/$(database)/documents/jobs/$(jobId)).data.createdBy;
+      }
+    }
+    
+    // Contractor profiles
+    match /contractorProfiles/{userId} {
+      // Anyone authenticated can read contractor profiles
+      allow read: if request.auth != null;
+      
+      // Only the contractor can write their own profile
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Completed jobs
+    match /completedJobs/{jobId} {
+      // Anyone authenticated can read completed jobs
+      allow read: if request.auth != null;
+      
+      // Only job poster or contractor involved can create completed job records
+      allow create: if request.auth != null;
+    }
+    
+    // Pending notifications queue
+    match /pendingNotifications/{notificationId} {
+      // Authenticated users can create notification requests
+      allow create: if request.auth != null;
+      
+      // Only system (Cloud Functions) should read/delete
+      allow read, delete: if false;
+    }
+    
+    // Collection group queries for offers
+    match /{path=**}/offers/{offerId} {
+      // Allow contractors to query their own offers across all jobs
+      allow read: if request.auth != null && resource.data.contractorId == request.auth.uid;
+    }
+  }
+}
+
