@@ -21,6 +21,10 @@ struct OfferDetailView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     
+    // Counter offer response
+    @State private var showAcceptCounterConfirmation = false
+    @State private var showDeclineCounterConfirmation = false
+    
     // Negotiation fields
     @State private var counterPrice = ""
     @State private var negotiationMessage = ""
@@ -188,8 +192,9 @@ struct OfferDetailView: View {
                             .padding(.horizontal)
                     }
                     
-                    // Action Buttons (Only for job poster and pending offers)
+                    // Action Buttons
                     if authViewModel.isJobPoster && offer.status == .pending {
+                        // Job Poster Actions for Pending Offers
                         VStack(spacing: 12) {
                             // Accept Button
                             Button(action: { showAcceptConfirmation = true }) {
@@ -224,6 +229,68 @@ struct OfferDetailView: View {
                                 HStack {
                                     Image(systemName: "xmark.circle.fill")
                                     Text("Decline Offer")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .foregroundColor(.red)
+                                .cornerRadius(12)
+                            }
+                        }
+                        .padding()
+                    } else if !authViewModel.isJobPoster && offer.status == .counterOffer {
+                        // Contractor Actions for Counter Offers
+                        VStack(spacing: 12) {
+                            // Counter Offer Info
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Counter Offer Received")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.orange)
+                                
+                                if let counterPrice = offer.counterPrice {
+                                    HStack {
+                                        Text("Job Poster's Price:")
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Text("₪\(String(format: "%.0f", counterPrice))")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.orange)
+                                    }
+                                }
+                                
+                                if let negotiationMsg = offer.negotiationMessage {
+                                    Text(negotiationMsg)
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                        .padding(.top, 4)
+                                }
+                            }
+                            .padding()
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(12)
+                            
+                            // Accept Counter Offer Button
+                            Button(action: { showAcceptCounterConfirmation = true }) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("Accept Counter Offer")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                            
+                            // Decline Counter Offer Button
+                            Button(action: { showDeclineCounterConfirmation = true }) {
+                                HStack {
+                                    Image(systemName: "xmark.circle.fill")
+                                    Text("Decline Counter Offer")
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -269,6 +336,26 @@ struct OfferDetailView: View {
                 }
             } message: {
                 Text("Are you sure you want to decline this offer?")
+            }
+            .alert("Accept Counter Offer", isPresented: $showAcceptCounterConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Accept") {
+                    acceptCounterOffer()
+                }
+            } message: {
+                if let counterPrice = offer.counterPrice {
+                    Text("Accept the job poster's counter offer of ₪\(String(format: "%.0f", counterPrice))?")
+                } else {
+                    Text("Accept this counter offer?")
+                }
+            }
+            .alert("Decline Counter Offer", isPresented: $showDeclineCounterConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Decline", role: .destructive) {
+                    declineCounterOffer()
+                }
+            } message: {
+                Text("Are you sure you want to decline this counter offer? This will remove your offer completely.")
             }
             .overlay {
                 if isLoading {
@@ -423,6 +510,36 @@ struct OfferDetailView: View {
             counterPrice: price,
             message: negotiationMessage
         ) { result in
+            isLoading = false
+            switch result {
+            case .success:
+                dismiss()
+            case .failure(let error):
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    private func acceptCounterOffer() {
+        guard let offerId = offer.id else { return }
+        
+        isLoading = true
+        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: true) { result in
+            isLoading = false
+            switch result {
+            case .success:
+                dismiss()
+            case .failure(let error):
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    private func declineCounterOffer() {
+        guard let offerId = offer.id else { return }
+        
+        isLoading = true
+        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: false) { result in
             isLoading = false
             switch result {
             case .success:
