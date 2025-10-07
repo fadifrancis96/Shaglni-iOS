@@ -29,6 +29,9 @@
 		5D1699F52E929FFE00AC53B4 /* OfferCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CD2E929FFE00AC53B4 /* OfferCardView.swift */; };
 		5DA4C08B2E93FF9900AC53B4 /* OfferDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */; };
 		5D1699F62E929FFE00AC53B4 /* JobCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CC2E929FFE00AC53B4 /* JobCardView.swift */; };
+		5DA4C08D2E93FF9900AC53B4 /* PhotoUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C08E2E93FF9900AC53B4 /* PhotoUploadService.swift */; };
+		5DA4C08F2E93FF9900AC53B4 /* PhotoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C0902E93FF9900AC53B4 /* PhotoPickerView.swift */; };
+		5DA4C0912E93FF9900AC53B4 /* PhotoGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C0922E93FF9900AC53B4 /* PhotoGalleryView.swift */; };
 		5D1699F72E929FFE00AC53B4 /* ShaglniApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C52E929FFE00AC53B4 /* ShaglniApp.swift */; };
 		5D1699F82E929FFE00AC53B4 /* JobPosterDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D42E929FFE00AC53B4 /* JobPosterDashboardView.swift */; };
 		5D1699F92E929FFE00AC53B4 /* JobFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D72E929FFE00AC53B4 /* JobFormView.swift */; };
@@ -91,6 +94,9 @@
 		5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyOffersView.swift; sourceTree = "<group>"; };
 		5D1699DC2E929FFE00AC53B4 /* OfferFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferFormView.swift; sourceTree = "<group>"; };
 		5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferDetailView.swift; sourceTree = "<group>"; };
+		5DA4C08E2E93FF9900AC53B4 /* PhotoUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoUploadService.swift; sourceTree = "<group>"; };
+		5DA4C0902E93FF9900AC53B4 /* PhotoPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPickerView.swift; sourceTree = "<group>"; };
+		5DA4C0922E93FF9900AC53B4 /* PhotoGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGalleryView.swift; sourceTree = "<group>"; };
 		5D1699DE2E929FFE00AC53B4 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		5D1699DF2E929FFE00AC53B4 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5D169A012E92A36A00AC53B4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -201,6 +207,7 @@
 			children = (
 				5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */,
 				5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */,
+				5DA4C08E2E93FF9900AC53B4 /* PhotoUploadService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -228,6 +235,8 @@
 			children = (
 				5D1699CC2E929FFE00AC53B4 /* JobCardView.swift */,
 				5D1699CD2E929FFE00AC53B4 /* OfferCardView.swift */,
+				5DA4C0902E93FF9900AC53B4 /* PhotoPickerView.swift */,
+				5DA4C0922E93FF9900AC53B4 /* PhotoGalleryView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -469,6 +478,9 @@
 				5D1699F52E929FFE00AC53B4 /* OfferCardView.swift in Sources */,
 				5DA4C08B2E93FF9900AC53B4 /* OfferDetailView.swift in Sources */,
 				5D1699F62E929FFE00AC53B4 /* JobCardView.swift in Sources */,
+				5DA4C08D2E93FF9900AC53B4 /* PhotoUploadService.swift in Sources */,
+				5DA4C08F2E93FF9900AC53B4 /* PhotoPickerView.swift in Sources */,
+				5DA4C0912E93FF9900AC53B4 /* PhotoGalleryView.swift in Sources */,
 				5D1699F72E929FFE00AC53B4 /* ShaglniApp.swift in Sources */,
 				5D1699F82E929FFE00AC53B4 /* JobPosterDashboardView.swift in Sources */,
 				5D1699F92E929FFE00AC53B4 /* JobFormView.swift in Sources */,

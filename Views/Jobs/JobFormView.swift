@@ -25,6 +25,11 @@ struct JobFormView: View {
     @State private var isSubmitting = false
     @State private var errorMessage: String?
     
+    // Photo upload
+    @State private var selectedImages: [UIImage] = []
+    @State private var showPhotoPicker = false
+    @State private var uploadedPhotoURLs: [String] = []
+    
     @StateObject private var locationSearchService = LocationSearchService()
     
     var body: some View {
@@ -77,6 +82,45 @@ struct JobFormView: View {
                         .keyboardType(.decimalPad)
                 }
                 
+                // Photo Upload Section
+                Section(header: Text("Job Requirements Photos")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Button(action: { showPhotoPicker = true }) {
+                            HStack {
+                                Image(systemName: "photo.badge.plus")
+                                    .foregroundColor(.blue)
+                                Text("Add Photos")
+                                    .foregroundColor(.blue)
+                                Spacer()
+                                if !selectedImages.isEmpty {
+                                    Text("(\(selectedImages.count))")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        
+                        if !selectedImages.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
+                                        PhotoPreviewCard(
+                                            image: image,
+                                            onRemove: {
+                                                selectedImages.remove(at: index)
+                                            }
+                                        )
+                                    }
+                                }
+                                .padding(.horizontal, 0)
+                            }
+                        }
+                        
+                        Text("Add photos to help contractors understand the job requirements")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 if let errorMessage = errorMessage {
                     Section {
                         Text(errorMessage)
@@ -113,6 +157,14 @@ struct JobFormView: View {
                     selectedCoordinate: $selectedCoordinate
                 )
             }
+            .sheet(isPresented: $showPhotoPicker) {
+                PhotoPickerView(
+                    selectedImages: $selectedImages,
+                    isPresented: $showPhotoPicker,
+                    maxPhotos: 5,
+                    title: "Job Requirements"
+                )
+            }
         }
     }
     
@@ -129,6 +181,31 @@ struct JobFormView: View {
         
         let budgetValue = Double(budget)
         
+        // First upload photos if any are selected
+        if !selectedImages.isEmpty {
+            uploadPhotosAndCreateJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue)
+        } else {
+            createJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue, photoURLs: [])
+        }
+    }
+    
+    private func uploadPhotosAndCreateJob(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
+        // Create a temporary job ID for photo upload path
+        let tempJobId = UUID().uuidString
+        
+        PhotoUploadService.shared.uploadJobRequirementPhotos(jobId: tempJobId, photos: selectedImages) { result in
+            
+            switch result {
+            case .success(let photoURLs):
+                self.createJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue, photoURLs: photoURLs)
+            case .failure(let error):
+                self.isSubmitting = false
+                self.errorMessage = "Failed to upload photos: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func createJob(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?, photoURLs: [String]) {
         let job = Job(
             title: title,
             description: description,
@@ -139,17 +216,19 @@ struct JobFormView: View {
             createdBy: userId,
             status: .open,
             category: selectedCategory,
-            budget: budgetValue
+            budget: budgetValue,
+            photoURLs: photoURLs
         )
         
         FirestoreService.shared.createJob(job) { result in
-            isSubmitting = false
+            
+            self.isSubmitting = false
             
             switch result {
             case .success:
-                dismiss()
+                self.dismiss()
             case .failure(let error):
-                errorMessage = error.localizedDescription
+                self.errorMessage = error.localizedDescription
             }
         }
     }

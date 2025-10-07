@@ -52,6 +52,14 @@ struct JobDetailView: View {
                 }
                 .padding(.horizontal)
                 
+                // Photos
+                if !job.photoURLs.isEmpty {
+                    PhotoGalleryView(
+                        photoURLs: job.photoURLs,
+                        title: "Job Requirements"
+                    )
+                }
+                
                 // Location
                 VStack(alignment: .leading, spacing: 8) {
                     Text(localization.localized("location"))
