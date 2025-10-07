@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import FirebaseFirestore
 
 struct JobFormView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -190,17 +191,53 @@ struct JobFormView: View {
     }
     
     private func uploadPhotosAndCreateJob(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
-        // Create a temporary job ID for photo upload path
-        let tempJobId = UUID().uuidString
+        // First create the job to get the actual job ID
+        let job = Job(
+            title: title,
+            description: description,
+            location: selectedLocationName,
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude,
+            datePosted: Date(),
+            createdBy: userId,
+            status: .open,
+            category: selectedCategory,
+            budget: budgetValue,
+            photoURLs: [] // Will be updated after photo upload
+        )
         
-        PhotoUploadService.shared.uploadJobRequirementPhotos(jobId: tempJobId, photos: selectedImages) { result in
-            
+        FirestoreService.shared.createJob(job) { result in
             switch result {
-            case .success(let photoURLs):
-                self.createJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue, photoURLs: photoURLs)
+            case .success(let jobId):
+                // Now upload photos with the actual job ID
+                PhotoUploadService.shared.uploadJobRequirementPhotos(jobId: jobId, photos: self.selectedImages) { photoResult in
+                    switch photoResult {
+                    case .success(let photoURLs):
+                        // Update the job with photo URLs
+                        self.updateJobWithPhotos(jobId: jobId, photoURLs: photoURLs)
+                    case .failure(let error):
+                        self.isSubmitting = false
+                        self.errorMessage = "Failed to upload photos: \(error.localizedDescription)"
+                    }
+                }
             case .failure(let error):
                 self.isSubmitting = false
-                self.errorMessage = "Failed to upload photos: \(error.localizedDescription)"
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    private func updateJobWithPhotos(jobId: String, photoURLs: [String]) {
+        // Update the job document with photo URLs
+        let db = Firestore.firestore()
+        db.collection("jobs").document(jobId).updateData([
+            "photoURLs": photoURLs
+        ]) { error in
+            self.isSubmitting = false
+            if let error = error {
+                self.errorMessage = "Failed to update job with photos: \(error.localizedDescription)"
+            } else {
+                self.dismiss()
             }
         }
     }

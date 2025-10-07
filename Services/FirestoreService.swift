@@ -36,36 +36,61 @@ class FirestoreService {
         query.order(by: "datePosted", descending: true)
             .getDocuments { snapshot, error in
                 if let error = error {
+                    print("❌ Error fetching jobs: \(error.localizedDescription)")
                     completion(.failure(error))
                     return
                 }
                 
                 guard let documents = snapshot?.documents else {
+                    print("⚠️ No documents found in jobs collection")
                     completion(.success([]))
                     return
                 }
                 
-                let jobs = documents.compactMap { try? $0.data(as: Job.self) }
+                print("📄 Found \(documents.count) job documents")
+                let jobs = documents.compactMap { doc in
+                    do {
+                        let job = try doc.data(as: Job.self)
+                        return job
+                    } catch {
+                        print("❌ Failed to parse job document \(doc.documentID): \(error.localizedDescription)")
+                        return nil
+                    }
+                }
+                print("✅ Successfully parsed \(jobs.count) jobs")
                 completion(.success(jobs))
             }
     }
     
     func fetchJobsByUser(userId: String, completion: @escaping (Result<[Job], Error>) -> Void) {
+        print("🔍 Fetching jobs for user: \(userId)")
         db.collection("jobs")
             .whereField("createdBy", isEqualTo: userId)
             .order(by: "datePosted", descending: true)
             .getDocuments { snapshot, error in
                 if let error = error {
+                    print("❌ Error fetching user jobs: \(error.localizedDescription)")
                     completion(.failure(error))
                     return
                 }
                 
                 guard let documents = snapshot?.documents else {
+                    print("⚠️ No documents found for user \(userId)")
                     completion(.success([]))
                     return
                 }
                 
-                let jobs = documents.compactMap { try? $0.data(as: Job.self) }
+                print("📄 Found \(documents.count) job documents for user")
+                let jobs = documents.compactMap { doc in
+                    do {
+                        let job = try doc.data(as: Job.self)
+                        return job
+                    } catch {
+                        print("❌ Failed to parse job document \(doc.documentID): \(error.localizedDescription)")
+                        return nil
+                    }
+                }
+                print("✅ Successfully parsed \(jobs.count) user jobs")
                 completion(.success(jobs))
             }
     }
