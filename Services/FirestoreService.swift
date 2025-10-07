@@ -258,6 +258,41 @@ class FirestoreService {
             }
     }
     
+    func respondToCounterOffer(jobId: String, offerId: String, accept: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("🔄 Responding to counter offer: \(accept ? "Accept" : "Decline")")
+        
+        if accept {
+            // Accept the counter offer - update status to accepted
+            db.collection("jobs").document(jobId)
+                .collection("offers").document(offerId)
+                .updateData([
+                    "status": OfferStatus.accepted.rawValue,
+                    "respondedAt": Date()
+                ]) { error in
+                    if let error = error {
+                        print("❌ Error accepting counter offer: \(error.localizedDescription)")
+                        completion(.failure(error))
+                    } else {
+                        print("✅ Counter offer accepted successfully")
+                        completion(.success(()))
+                    }
+                }
+        } else {
+            // Decline the counter offer - delete the offer entirely
+            db.collection("jobs").document(jobId)
+                .collection("offers").document(offerId)
+                .delete { error in
+                    if let error = error {
+                        print("❌ Error declining counter offer: \(error.localizedDescription)")
+                        completion(.failure(error))
+                    } else {
+                        print("✅ Counter offer declined and deleted successfully")
+                        completion(.success(()))
+                    }
+                }
+        }
+    }
+    
     // MARK: - Contractor Profiles
     
     func fetchContractorProfile(userId: String, completion: @escaping (Result<ContractorProfile, Error>) -> Void) {
