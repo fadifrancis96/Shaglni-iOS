@@ -6,6 +6,43 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5D1699E12E929FFE00AC53B4 /* FirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */; };
+		5D1699E22E929FFE00AC53B4 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C82E929FFE00AC53B4 /* LandingView.swift */; };
+		5D1699E32E929FFE00AC53B4 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C92E929FFE00AC53B4 /* LoginView.swift */; };
+		5D1699E42E929FFE00AC53B4 /* ManageProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D12E929FFE00AC53B4 /* ManageProfileView.swift */; };
+		5D1699E52E929FFE00AC53B4 /* ContractorListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CF2E929FFE00AC53B4 /* ContractorListView.swift */; };
+		5D1699E62E929FFE00AC53B4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699BA2E929FFE00AC53B4 /* ContentView.swift */; };
+		5D1699E72E929FFE00AC53B4 /* OfferFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699DC2E929FFE00AC53B4 /* OfferFormView.swift */; };
+		5D1699E82E929FFE00AC53B4 /* JobListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D82E929FFE00AC53B4 /* JobListView.swift */; };
+		5D1699E92E929FFE00AC53B4 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699DE2E929FFE00AC53B4 /* MainTabView.swift */; };
+		5D1699EA2E929FFE00AC53B4 /* ContractorProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699BC2E929FFE00AC53B4 /* ContractorProfile.swift */; };
+		5D1699EB2E929FFE00AC53B4 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CA2E929FFE00AC53B4 /* RegisterView.swift */; };
+		5D1699EC2E929FFE00AC53B4 /* ContractorDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D32E929FFE00AC53B4 /* ContractorDashboardView.swift */; };
+		5D1699ED2E929FFE00AC53B4 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699BF2E929FFE00AC53B4 /* User.swift */; };
+		5D1699EE2E929FFE00AC53B4 /* ContractorProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D02E929FFE00AC53B4 /* ContractorProfileView.swift */; };
+		5D1699EF2E929FFE00AC53B4 /* Job.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699BD2E929FFE00AC53B4 /* Job.swift */; };
+		5D1699F02E929FFE00AC53B4 /* JobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D62E929FFE00AC53B4 /* JobDetailView.swift */; };
+		5D1699F22E929FFE00AC53B4 /* Offer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699BE2E929FFE00AC53B4 /* Offer.swift */; };
+		5D1699F32E929FFE00AC53B4 /* JobMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D92E929FFE00AC53B4 /* JobMapView.swift */; };
+		5D1699F42E929FFE00AC53B4 /* MyOffersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */; };
+		5D1699F52E929FFE00AC53B4 /* OfferCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CD2E929FFE00AC53B4 /* OfferCardView.swift */; };
+		5DA4C08B2E93FF9900AC53B4 /* OfferDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */; };
+		5D1699F62E929FFE00AC53B4 /* JobCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CC2E929FFE00AC53B4 /* JobCardView.swift */; };
+		5D1699F72E929FFE00AC53B4 /* ShaglniApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C52E929FFE00AC53B4 /* ShaglniApp.swift */; };
+		5D1699F82E929FFE00AC53B4 /* JobPosterDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D42E929FFE00AC53B4 /* JobPosterDashboardView.swift */; };
+		5D1699F92E929FFE00AC53B4 /* JobFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D72E929FFE00AC53B4 /* JobFormView.swift */; };
+		5D1699FA2E929FFE00AC53B4 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */; };
+		5D1699FB2E929FFE00AC53B4 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C62E929FFE00AC53B4 /* AuthViewModel.swift */; };
+		5D1699FC2E929FFE00AC53B4 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699DF2E929FFE00AC53B4 /* ProfileView.swift */; };
+		5D1699FD2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 5D1699BB2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md */; };
+		5D169A022E92A36A00AC53B4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5D169A012E92A36A00AC53B4 /* GoogleService-Info.plist */; };
+		5D169A052E92A3EB00AC53B4 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5D169A042E92A3EB00AC53B4 /* FirebaseAuth */; };
+		5D169A072E92A3FC00AC53B4 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5D169A062E92A3FC00AC53B4 /* FirebaseFirestore */; };
+		5D169A092E92A40300AC53B4 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5D169A082E92A40300AC53B4 /* FirebaseStorage */; };
+		5DA4C0872E93FCAC0044B045 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 5DA4C0862E93FCAC0044B045 /* FirebaseMessaging */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5D16999E2E929FCF00AC53B4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,11 +64,54 @@
 		5D1699902E929FCA00AC53B4 /* Shaglni.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Shaglni.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D16999D2E929FCF00AC53B4 /* ShaglniTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShaglniTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D1699A72E929FCF00AC53B4 /* ShaglniUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShaglniUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D1699BA2E929FFE00AC53B4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		5D1699BB2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = IMPLEMENTATION_GUIDE.md; sourceTree = "<group>"; };
+		5D1699BC2E929FFE00AC53B4 /* ContractorProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractorProfile.swift; sourceTree = "<group>"; };
+		5D1699BD2E929FFE00AC53B4 /* Job.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Job.swift; sourceTree = "<group>"; };
+		5D1699BE2E929FFE00AC53B4 /* Offer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Offer.swift; sourceTree = "<group>"; };
+		5D1699BF2E929FFE00AC53B4 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
+		5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		5D1699C52E929FFE00AC53B4 /* ShaglniApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShaglniApp.swift; sourceTree = "<group>"; };
+		5D1699C62E929FFE00AC53B4 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		5D1699C82E929FFE00AC53B4 /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
+		5D1699C92E929FFE00AC53B4 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		5D1699CA2E929FFE00AC53B4 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterView.swift; sourceTree = "<group>"; };
+		5D1699CC2E929FFE00AC53B4 /* JobCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobCardView.swift; sourceTree = "<group>"; };
+		5D1699CD2E929FFE00AC53B4 /* OfferCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCardView.swift; sourceTree = "<group>"; };
+		5D1699CF2E929FFE00AC53B4 /* ContractorListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractorListView.swift; sourceTree = "<group>"; };
+		5D1699D02E929FFE00AC53B4 /* ContractorProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractorProfileView.swift; sourceTree = "<group>"; };
+		5D1699D12E929FFE00AC53B4 /* ManageProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageProfileView.swift; sourceTree = "<group>"; };
+		5D1699D32E929FFE00AC53B4 /* ContractorDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractorDashboardView.swift; sourceTree = "<group>"; };
+		5D1699D42E929FFE00AC53B4 /* JobPosterDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobPosterDashboardView.swift; sourceTree = "<group>"; };
+		5D1699D62E929FFE00AC53B4 /* JobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobDetailView.swift; sourceTree = "<group>"; };
+		5D1699D72E929FFE00AC53B4 /* JobFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobFormView.swift; sourceTree = "<group>"; };
+		5D1699D82E929FFE00AC53B4 /* JobListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobListView.swift; sourceTree = "<group>"; };
+		5D1699D92E929FFE00AC53B4 /* JobMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobMapView.swift; sourceTree = "<group>"; };
+		5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyOffersView.swift; sourceTree = "<group>"; };
+		5D1699DC2E929FFE00AC53B4 /* OfferFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferFormView.swift; sourceTree = "<group>"; };
+		5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferDetailView.swift; sourceTree = "<group>"; };
+		5D1699DE2E929FFE00AC53B4 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		5D1699DF2E929FFE00AC53B4 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		5D169A012E92A36A00AC53B4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5DA4C08A2E93FF020044B045 /* Exceptions for "Shaglni" folder in "Shaglni" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5D16998F2E929FCA00AC53B4 /* Shaglni */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5D1699922E929FCA00AC53B4 /* Shaglni */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5DA4C08A2E93FF020044B045 /* Exceptions for "Shaglni" folder in "Shaglni" target */,
+			);
 			path = Shaglni;
 			sourceTree = "<group>";
 		};
@@ -52,6 +132,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5DA4C0872E93FCAC0044B045 /* FirebaseMessaging in Frameworks */,
+				5D169A052E92A3EB00AC53B4 /* FirebaseAuth in Frameworks */,
+				5D169A072E92A3FC00AC53B4 /* FirebaseFirestore in Frameworks */,
+				5D169A092E92A40300AC53B4 /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,9 +159,18 @@
 		5D1699872E929FCA00AC53B4 = {
 			isa = PBXGroup;
 			children = (
+				5D1699BA2E929FFE00AC53B4 /* ContentView.swift */,
+				5D1699BB2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md */,
+				5D169A012E92A36A00AC53B4 /* GoogleService-Info.plist */,
+				5D1699C02E929FFE00AC53B4 /* Models */,
+				5D1699C42E929FFE00AC53B4 /* Services */,
+				5D1699C52E929FFE00AC53B4 /* ShaglniApp.swift */,
+				5D1699C72E929FFE00AC53B4 /* ViewModels */,
+				5D1699E02E929FFE00AC53B4 /* Views */,
 				5D1699922E929FCA00AC53B4 /* Shaglni */,
 				5D1699A02E929FCF00AC53B4 /* ShaglniTests */,
 				5D1699AA2E929FCF00AC53B4 /* ShaglniUITests */,
+				5D169A032E92A3EB00AC53B4 /* Frameworks */,
 				5D1699912E929FCA00AC53B4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +183,115 @@
 				5D1699A72E929FCF00AC53B4 /* ShaglniUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5D1699C02E929FFE00AC53B4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699BC2E929FFE00AC53B4 /* ContractorProfile.swift */,
+				5D1699BD2E929FFE00AC53B4 /* Job.swift */,
+				5D1699BE2E929FFE00AC53B4 /* Offer.swift */,
+				5D1699BF2E929FFE00AC53B4 /* User.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		5D1699C42E929FFE00AC53B4 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */,
+				5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		5D1699C72E929FFE00AC53B4 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699C62E929FFE00AC53B4 /* AuthViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		5D1699CB2E929FFE00AC53B4 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699C82E929FFE00AC53B4 /* LandingView.swift */,
+				5D1699C92E929FFE00AC53B4 /* LoginView.swift */,
+				5D1699CA2E929FFE00AC53B4 /* RegisterView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		5D1699CE2E929FFE00AC53B4 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699CC2E929FFE00AC53B4 /* JobCardView.swift */,
+				5D1699CD2E929FFE00AC53B4 /* OfferCardView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		5D1699D22E929FFE00AC53B4 /* Contractors */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699CF2E929FFE00AC53B4 /* ContractorListView.swift */,
+				5D1699D02E929FFE00AC53B4 /* ContractorProfileView.swift */,
+				5D1699D12E929FFE00AC53B4 /* ManageProfileView.swift */,
+			);
+			path = Contractors;
+			sourceTree = "<group>";
+		};
+		5D1699D52E929FFE00AC53B4 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699D32E929FFE00AC53B4 /* ContractorDashboardView.swift */,
+				5D1699D42E929FFE00AC53B4 /* JobPosterDashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		5D1699DA2E929FFE00AC53B4 /* Jobs */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699D62E929FFE00AC53B4 /* JobDetailView.swift */,
+				5D1699D72E929FFE00AC53B4 /* JobFormView.swift */,
+				5D1699D82E929FFE00AC53B4 /* JobListView.swift */,
+				5D1699D92E929FFE00AC53B4 /* JobMapView.swift */,
+			);
+			path = Jobs;
+			sourceTree = "<group>";
+		};
+		5D1699DD2E929FFE00AC53B4 /* Offers */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */,
+				5D1699DC2E929FFE00AC53B4 /* OfferFormView.swift */,
+				5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */,
+			);
+			path = Offers;
+			sourceTree = "<group>";
+		};
+		5D1699E02E929FFE00AC53B4 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5D1699CB2E929FFE00AC53B4 /* Auth */,
+				5D1699CE2E929FFE00AC53B4 /* Components */,
+				5D1699D22E929FFE00AC53B4 /* Contractors */,
+				5D1699D52E929FFE00AC53B4 /* Dashboard */,
+				5D1699DA2E929FFE00AC53B4 /* Jobs */,
+				5D1699DD2E929FFE00AC53B4 /* Offers */,
+				5D1699DE2E929FFE00AC53B4 /* MainTabView.swift */,
+				5D1699DF2E929FFE00AC53B4 /* ProfileView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		5D169A032E92A3EB00AC53B4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +314,10 @@
 			);
 			name = Shaglni;
 			packageProductDependencies = (
+				5D169A042E92A3EB00AC53B4 /* FirebaseAuth */,
+				5D169A062E92A3FC00AC53B4 /* FirebaseFirestore */,
+				5D169A082E92A40300AC53B4 /* FirebaseStorage */,
+				5DA4C0862E93FCAC0044B045 /* FirebaseMessaging */,
 			);
 			productName = Shaglni;
 			productReference = 5D1699902E929FCA00AC53B4 /* Shaglni.app */;
@@ -195,6 +401,9 @@
 			);
 			mainGroup = 5D1699872E929FCA00AC53B4;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5D1699912E929FCA00AC53B4 /* Products */;
 			projectDirPath = "";
@@ -212,6 +421,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D169A022E92A36A00AC53B4 /* GoogleService-Info.plist in Resources */,
+				5D1699FD2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,6 +447,34 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D1699E12E929FFE00AC53B4 /* FirestoreService.swift in Sources */,
+				5D1699E22E929FFE00AC53B4 /* LandingView.swift in Sources */,
+				5D1699E32E929FFE00AC53B4 /* LoginView.swift in Sources */,
+				5D1699E42E929FFE00AC53B4 /* ManageProfileView.swift in Sources */,
+				5D1699E52E929FFE00AC53B4 /* ContractorListView.swift in Sources */,
+				5D1699E62E929FFE00AC53B4 /* ContentView.swift in Sources */,
+				5D1699E72E929FFE00AC53B4 /* OfferFormView.swift in Sources */,
+				5D1699E82E929FFE00AC53B4 /* JobListView.swift in Sources */,
+				5D1699E92E929FFE00AC53B4 /* MainTabView.swift in Sources */,
+				5D1699EA2E929FFE00AC53B4 /* ContractorProfile.swift in Sources */,
+				5D1699EB2E929FFE00AC53B4 /* RegisterView.swift in Sources */,
+				5D1699EC2E929FFE00AC53B4 /* ContractorDashboardView.swift in Sources */,
+				5D1699ED2E929FFE00AC53B4 /* User.swift in Sources */,
+				5D1699EE2E929FFE00AC53B4 /* ContractorProfileView.swift in Sources */,
+				5D1699EF2E929FFE00AC53B4 /* Job.swift in Sources */,
+				5D1699F02E929FFE00AC53B4 /* JobDetailView.swift in Sources */,
+				5D1699F22E929FFE00AC53B4 /* Offer.swift in Sources */,
+				5D1699F32E929FFE00AC53B4 /* JobMapView.swift in Sources */,
+				5D1699F42E929FFE00AC53B4 /* MyOffersView.swift in Sources */,
+				5D1699F52E929FFE00AC53B4 /* OfferCardView.swift in Sources */,
+				5DA4C08B2E93FF9900AC53B4 /* OfferDetailView.swift in Sources */,
+				5D1699F62E929FFE00AC53B4 /* JobCardView.swift in Sources */,
+				5D1699F72E929FFE00AC53B4 /* ShaglniApp.swift in Sources */,
+				5D1699F82E929FFE00AC53B4 /* JobPosterDashboardView.swift in Sources */,
+				5D1699F92E929FFE00AC53B4 /* JobFormView.swift in Sources */,
+				5D1699FA2E929FFE00AC53B4 /* LocalizationManager.swift in Sources */,
+				5D1699FB2E929FFE00AC53B4 /* AuthViewModel.swift in Sources */,
+				5D1699FC2E929FFE00AC53B4 /* ProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,10 +632,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Shaglni/Shaglni.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Shaglni/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -420,10 +661,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Shaglni/Shaglni.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Shaglni/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -550,6 +793,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5D169A042E92A3EB00AC53B4 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		5D169A062E92A3FC00AC53B4 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		5D169A082E92A40300AC53B4 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+		5DA4C0862E93FCAC0044B045 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5D1699882E929FCA00AC53B4 /* Project object */;
 }
