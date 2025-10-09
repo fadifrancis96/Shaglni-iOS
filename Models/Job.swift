@@ -50,7 +50,7 @@ struct Job: Identifiable, Codable, Hashable {
     var status: JobStatus
     var category: JobCategory?
     var budget: Double?
-    var photoURLs: [String] = []
+    var photoURLs: [String]?
     
     var coordinate: CLLocationCoordinate2D? {
         guard let lat = latitude, let lon = longitude else { return nil }

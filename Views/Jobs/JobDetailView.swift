@@ -53,9 +53,9 @@ struct JobDetailView: View {
                 .padding(.horizontal)
                 
                 // Photos
-                if !job.photoURLs.isEmpty {
+                if let photoURLs = job.photoURLs, !photoURLs.isEmpty {
                     PhotoGalleryView(
-                        photoURLs: job.photoURLs,
+                        photoURLs: photoURLs,
                         title: "Job Requirements"
                     )
                 }

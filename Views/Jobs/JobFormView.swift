@@ -203,7 +203,7 @@ struct JobFormView: View {
             status: .open,
             category: selectedCategory,
             budget: budgetValue,
-            photoURLs: [] // Will be updated after photo upload
+            photoURLs: nil // Will be updated after photo upload
         )
         
         FirestoreService.shared.createJob(job) { result in
@@ -230,9 +230,11 @@ struct JobFormView: View {
     private func updateJobWithPhotos(jobId: String, photoURLs: [String]) {
         // Update the job document with photo URLs
         let db = Firestore.firestore()
-        db.collection("jobs").document(jobId).updateData([
-            "photoURLs": photoURLs
-        ]) { error in
+        let updateData: [String: Any] = photoURLs.isEmpty ? 
+            ["photoURLs": NSNull()] : 
+            ["photoURLs": photoURLs]
+        
+        db.collection("jobs").document(jobId).updateData(updateData) { error in
             self.isSubmitting = false
             if let error = error {
                 self.errorMessage = "Failed to update job with photos: \(error.localizedDescription)"
@@ -254,7 +256,7 @@ struct JobFormView: View {
             status: .open,
             category: selectedCategory,
             budget: budgetValue,
-            photoURLs: photoURLs
+            photoURLs: photoURLs.isEmpty ? nil : photoURLs
         )
         
         FirestoreService.shared.createJob(job) { result in
