@@ -29,6 +29,8 @@ struct Offer: Identifiable, Codable {
     var counterPrice: Double?  // Price suggested by job poster
     var negotiationMessage: String?  // Message explaining the counter offer
     var respondedAt: Date?  // When job poster responded
+    var contractorAcceptedCounter: Bool?  // Whether contractor accepted the counter offer
+    var finalPrice: Double?  // Final agreed price (original or counter)
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -42,5 +44,7 @@ struct Offer: Identifiable, Codable {
         case counterPrice
         case negotiationMessage
         case respondedAt
+        case contractorAcceptedCounter
+        case finalPrice
     }
 }

@@ -25,6 +25,10 @@ struct OfferDetailView: View {
     @State private var showAcceptCounterConfirmation = false
     @State private var showDeclineCounterConfirmation = false
     
+    // Job poster final approval
+    @State private var showFinalizeConfirmation = false
+    @State private var showMarkInProgressConfirmation = false
+    
     // Negotiation fields
     @State private var counterPrice = ""
     @State private var negotiationMessage = ""
@@ -301,6 +305,100 @@ struct OfferDetailView: View {
                             }
                         }
                         .padding()
+                    } else if authViewModel.isJobPoster && offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
+                        // Job Poster Final Approval (contractor accepted counter offer)
+                        VStack(spacing: 12) {
+                            // Waiting info
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                    Text("Contractor Accepted Your Counter Offer!")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                                
+                                if let counterPrice = offer.counterPrice {
+                                    HStack {
+                                        Text("Agreed Price:")
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Text("₪\(String(format: "%.0f", counterPrice))")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.green)
+                                    }
+                                    .padding(.top, 4)
+                                }
+                                
+                                Text("Finalize this offer to proceed with the job.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 4)
+                            }
+                            .padding()
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(12)
+                            
+                            // Finalize and Mark In Progress Button
+                            Button(action: { showFinalizeConfirmation = true }) {
+                                HStack {
+                                    Image(systemName: "checkmark.seal.fill")
+                                    Text("Finalize & Mark Job In Progress")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                        }
+                        .padding()
+                    } else if authViewModel.isJobPoster && offer.status == .accepted {
+                        // Job Poster - Offer Accepted, option to mark in progress
+                        VStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .foregroundColor(.green)
+                                    Text("Offer Accepted")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                                
+                                let displayPrice = offer.finalPrice ?? offer.counterPrice ?? offer.price
+                                HStack {
+                                    Text("Final Price:")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text("₪\(String(format: "%.0f", displayPrice))")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                            }
+                            .padding()
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(12)
+                            
+                            // Mark as In Progress Button
+                            Button(action: { showMarkInProgressConfirmation = true }) {
+                                HStack {
+                                    Image(systemName: "hammer.fill")
+                                    Text("Mark Job as In Progress")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                        }
+                        .padding()
                     }
                 }
             }
@@ -356,6 +454,26 @@ struct OfferDetailView: View {
                 }
             } message: {
                 Text("Are you sure you want to decline this counter offer? This will remove your offer completely.")
+            }
+            .alert("Finalize Offer", isPresented: $showFinalizeConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Finalize & Start Job") {
+                    finalizeAndStartJob()
+                }
+            } message: {
+                if let counterPrice = offer.counterPrice {
+                    Text("Finalize this offer for ₪\(String(format: "%.0f", counterPrice)) and mark the job as in progress?")
+                } else {
+                    Text("Finalize this offer and mark the job as in progress?")
+                }
+            }
+            .alert("Mark Job In Progress", isPresented: $showMarkInProgressConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Mark In Progress") {
+                    markJobInProgress()
+                }
+            } message: {
+                Text("This will remove the job from public listings and mark it as in progress. Continue?")
             }
             .overlay {
                 if isLoading {
@@ -524,7 +642,7 @@ struct OfferDetailView: View {
         guard let offerId = offer.id else { return }
         
         isLoading = true
-        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: true) { result in
+        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: true, counterPrice: offer.counterPrice) { result in
             isLoading = false
             switch result {
             case .success:
@@ -539,13 +657,46 @@ struct OfferDetailView: View {
         guard let offerId = offer.id else { return }
         
         isLoading = true
-        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: false) { result in
+        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: false, counterPrice: nil) { result in
             isLoading = false
             switch result {
             case .success:
                 dismiss()
             case .failure(let error):
                 errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    private func finalizeAndStartJob() {
+        guard let offerId = offer.id else { return }
+        let finalPrice = offer.counterPrice ?? offer.price
+        
+        isLoading = true
+        
+        // Step 1: Finalize the offer
+        FirestoreService.shared.finalizeOffer(jobId: jobId, offerId: offerId, finalPrice: finalPrice) { [self] result in
+            switch result {
+            case .success:
+                // Step 2: Mark job as in progress
+                self.markJobInProgress()
+            case .failure(let error):
+                self.isLoading = false
+                self.errorMessage = "Failed to finalize offer: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func markJobInProgress() {
+        isLoading = true
+        
+        FirestoreService.shared.updateJobStatus(jobId: jobId, status: .inProgress) { result in
+            isLoading = false
+            switch result {
+            case .success:
+                dismiss()
+            case .failure(let error):
+                errorMessage = "Failed to mark job in progress: \(error.localizedDescription)"
             }
         }
     }

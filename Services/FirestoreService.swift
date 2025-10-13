@@ -334,22 +334,29 @@ class FirestoreService {
             }
     }
     
-    func respondToCounterOffer(jobId: String, offerId: String, accept: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
+    func respondToCounterOffer(jobId: String, offerId: String, accept: Bool, counterPrice: Double?, completion: @escaping (Result<Void, Error>) -> Void) {
         print("🔄 Responding to counter offer: \(accept ? "Accept" : "Decline")")
         
         if accept {
-            // Accept the counter offer - update status to accepted
+            // Contractor accepts the counter offer - mark as pending for job poster final approval
+            var updateData: [String: Any] = [
+                "contractorAcceptedCounter": true,
+                "respondedAt": Date()
+            ]
+            
+            // Set final price as counter price if available
+            if let counterPrice = counterPrice {
+                updateData["finalPrice"] = counterPrice
+            }
+            
             db.collection("jobs").document(jobId)
                 .collection("offers").document(offerId)
-                .updateData([
-                    "status": OfferStatus.accepted.rawValue,
-                    "respondedAt": Date()
-                ]) { error in
+                .updateData(updateData) { error in
                     if let error = error {
                         print("❌ Error accepting counter offer: \(error.localizedDescription)")
                         completion(.failure(error))
                     } else {
-                        print("✅ Counter offer accepted successfully")
+                        print("✅ Contractor accepted counter offer - awaiting job poster approval")
                         completion(.success(()))
                     }
                 }
@@ -367,6 +374,43 @@ class FirestoreService {
                     }
                 }
         }
+    }
+    
+    func finalizeOffer(jobId: String, offerId: String, finalPrice: Double, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("✅ Finalizing offer with price: ₪\(finalPrice)")
+        
+        db.collection("jobs").document(jobId)
+            .collection("offers").document(offerId)
+            .updateData([
+                "status": OfferStatus.accepted.rawValue,
+                "finalPrice": finalPrice,
+                "respondedAt": Date()
+            ]) { error in
+                if let error = error {
+                    print("❌ Error finalizing offer: \(error.localizedDescription)")
+                    completion(.failure(error))
+                } else {
+                    print("✅ Offer finalized successfully")
+                    completion(.success(()))
+                }
+            }
+    }
+    
+    func updateJobStatus(jobId: String, status: JobStatus, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("🔄 Updating job status to: \(status.rawValue)")
+        
+        db.collection("jobs").document(jobId)
+            .updateData([
+                "status": status.rawValue
+            ]) { error in
+                if let error = error {
+                    print("❌ Error updating job status: \(error.localizedDescription)")
+                    completion(.failure(error))
+                } else {
+                    print("✅ Job status updated successfully to \(status.rawValue)")
+                    completion(.success(()))
+                }
+            }
     }
     
     // MARK: - Contractor Profiles
