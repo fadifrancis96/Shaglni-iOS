@@ -15,6 +15,9 @@ struct JobDetailView: View {
     @State private var showOfferForm = false
     @State private var offers: [Offer] = []
     @State private var isLoadingOffers = false
+    @State private var showDeleteConfirmation = false
+    @State private var isDeleting = false
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         ScrollView {
@@ -154,8 +157,33 @@ struct JobDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // Delete button for job owner
+            if authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(role: .destructive, action: { showDeleteConfirmation = true }) {
+                        if isDeleting {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        } else {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .disabled(isDeleting)
+                }
+            }
+        }
         .sheet(isPresented: $showOfferForm) {
             OfferFormView(job: job)
+        }
+        .alert("Delete Job", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                deleteJob()
+            }
+        } message: {
+            Text("Are you sure you want to delete this job? This will also delete all associated offers. This action cannot be undone.")
         }
         .onAppear(perform: loadOffers)
     }
@@ -172,6 +200,22 @@ struct JobDetailView: View {
                 offers = fetchedOffers
             case .failure(let error):
                 print("Error loading offers: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func deleteJob() {
+        guard let jobId = job.id else { return }
+        
+        isDeleting = true
+        FirestoreService.shared.deleteJob(jobId: jobId) { result in
+            isDeleting = false
+            switch result {
+            case .success:
+                dismiss()
+            case .failure(let error):
+                print("Error deleting job: \(error.localizedDescription)")
+                // Could add an error alert here if needed
             }
         }
     }

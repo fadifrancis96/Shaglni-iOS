@@ -182,11 +182,11 @@ struct JobFormView: View {
         
         let budgetValue = Double(budget)
         
-        // First upload photos if any are selected
+        // Create job with or without photos
         if !selectedImages.isEmpty {
             uploadPhotosAndCreateJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue)
         } else {
-            createJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue, photoURLs: [])
+            createJobWithoutPhotos(userId: userId, coordinate: coordinate, budgetValue: budgetValue)
         }
     }
     
@@ -244,7 +244,7 @@ struct JobFormView: View {
         }
     }
     
-    private func createJob(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?, photoURLs: [String]) {
+    private func createJobWithoutPhotos(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
         let job = Job(
             title: title,
             description: description,
@@ -256,11 +256,10 @@ struct JobFormView: View {
             status: .open,
             category: selectedCategory,
             budget: budgetValue,
-            photoURLs: photoURLs.isEmpty ? nil : photoURLs
+            photoURLs: nil
         )
         
         FirestoreService.shared.createJob(job) { result in
-            
             self.isSubmitting = false
             
             switch result {

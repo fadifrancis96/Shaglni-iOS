@@ -116,6 +116,57 @@ class FirestoreService {
         }
     }
     
+    func deleteJob(jobId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        print("🗑️ Deleting job: \(jobId)")
+        
+        // First, delete all offers associated with this job
+        db.collection("jobs").document(jobId)
+            .collection("offers")
+            .getDocuments { [weak self] snapshot, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("❌ Error fetching offers to delete: \(error.localizedDescription)")
+                    completion(.failure(error))
+                    return
+                }
+                
+                let group = DispatchGroup()
+                var deleteErrors: [Error] = []
+                
+                // Delete all offers
+                snapshot?.documents.forEach { document in
+                    group.enter()
+                    document.reference.delete { error in
+                        if let error = error {
+                            deleteErrors.append(error)
+                        }
+                        group.leave()
+                    }
+                }
+                
+                // After all offers are deleted, delete the job
+                group.notify(queue: .main) {
+                    if !deleteErrors.isEmpty {
+                        print("❌ Error deleting offers: \(deleteErrors.first!.localizedDescription)")
+                        completion(.failure(deleteErrors.first!))
+                        return
+                    }
+                    
+                    // Delete the job document
+                    self.db.collection("jobs").document(jobId).delete { error in
+                        if let error = error {
+                            print("❌ Error deleting job: \(error.localizedDescription)")
+                            completion(.failure(error))
+                        } else {
+                            print("✅ Job deleted successfully")
+                            completion(.success(()))
+                        }
+                    }
+                }
+            }
+    }
+    
     // MARK: - Offers
     
     func submitOffer(_ offer: Offer, jobId: String, completion: @escaping (Result<String, Error>) -> Void) {
