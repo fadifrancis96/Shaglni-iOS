@@ -17,7 +17,13 @@ struct JobDetailView: View {
     @State private var isLoadingOffers = false
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
+    @State private var currentJobStatus: JobStatus
     @Environment(\.dismiss) var dismiss
+    
+    init(job: Job) {
+        self.job = job
+        _currentJobStatus = State(initialValue: job.status)
+    }
     
     var body: some View {
         ScrollView {
@@ -31,7 +37,7 @@ struct JobDetailView: View {
                         
                         Spacer()
                         
-                        StatusBadge(status: job.status)
+                        StatusBadge(status: currentJobStatus)
                     }
                     
                     if let category = job.category {
@@ -185,7 +191,10 @@ struct JobDetailView: View {
         } message: {
             Text("Are you sure you want to delete this job? This will also delete all associated offers. This action cannot be undone.")
         }
-        .onAppear(perform: loadOffers)
+        .onAppear {
+            loadOffers()
+            refreshJobStatus()
+        }
     }
     
     private func loadOffers() {
@@ -200,6 +209,20 @@ struct JobDetailView: View {
                 offers = fetchedOffers
             case .failure(let error):
                 print("Error loading offers: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func refreshJobStatus() {
+        guard let jobId = job.id else { return }
+        
+        FirestoreService.shared.fetchJob(jobId: jobId) { result in
+            switch result {
+            case .success(let updatedJob):
+                currentJobStatus = updatedJob.status
+                print("✅ Job status refreshed: \(updatedJob.status.rawValue)")
+            case .failure(let error):
+                print("❌ Error refreshing job status: \(error.localizedDescription)")
             }
         }
     }

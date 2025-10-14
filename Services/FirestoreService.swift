@@ -26,6 +26,7 @@ class FirestoreService {
         }
     }
     
+    
     func fetchJobs(status: JobStatus? = nil, completion: @escaping (Result<[Job], Error>) -> Void) {
         var query: Query = db.collection("jobs")
         
