@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Info -->
+    <string name="app_name">Shaglni</string>
+    <string name="tagline">Connect contractors with job opportunities</string>
+    
+    <!-- Auth -->
+    <string name="welcome">Welcome</string>
+    <string name="login">Sign In</string>
+    <string name="signup">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="get_started">Get Started</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="welcome_back">Welcome Back</string>
+    <string name="create_your_account">Create your account</string>
+    <string name="i_am_a">I am a:</string>
+    <string name="contractor">Contractor (looking for work)</string>
+    <string name="job_poster">Job Poster (hiring contractors)</string>
+    
+    <!-- Navigation -->
+    <string name="dashboard">Dashboard</string>
+    <string name="jobs">Jobs</string>
+    <string name="map">Map</string>
+    <string name="contractors">Contractors</string>
+    <string name="my_offers">My Offers</string>
+    <string name="profile">Profile</string>
+    
+    <!-- Jobs -->
+    <string name="job_details">Job Details</string>
+    <string name="description">Description</string>
+    <string name="location">Location</string>
+    <string name="date_posted">Date Posted</string>
+    <string name="posted_by">Posted by</string>
+    <string name="submit_offer">Submit Offer</string>
+    <string name="search_jobs">Search jobs...</string>
+    <string name="create_job">Create Job</string>
+    <string name="post_job">Post Job</string>
+    <string name="jobs_map">Jobs Map</string>
+    <string name="no_jobs_on_map">No jobs on map</string>
+    <string name="no_jobs_with_location">No jobs with location data available</string>
+    <string name="tap_to_select_location">Tap to select location</string>
+    <string name="selected_location">Selected Location</string>
+    <string name="show_map">Show Map</string>
+    
+    <!-- Offers -->
+    <string name="offers">Offers</string>
+    <string name="your_offer">Your Offer</string>
+    <string name="price">Price</string>
+    <string name="message">Message</string>
+    <string name="optional">(optional)</string>
+    <string name="pending">Pending</string>
+    <string name="accepted">Accepted</string>
+    <string name="rejected">Rejected</string>
+    <string name="all">All</string>
+    
+    <!-- Status -->
+    <string name="open">Open</string>
+    <string name="in_progress">In Progress</string>
+    <string name="completed">Completed</string>
+    <string name="cancelled">Cancelled</string>
+    
+    <!-- Dashboard -->
+    <string name="total_jobs">Total Jobs</string>
+    <string name="open_jobs">Open Jobs</string>
+    <string name="total_offers">Total Offers</string>
+    <string name="pending_offers">Pending Offers</string>
+    <string name="accepted_offers">Accepted Offers</string>
+    <string name="completed_jobs">Completed Jobs</string>
+    <string name="recent_jobs">Recent Jobs</string>
+    <string name="recent_offers">Recent Offers</string>
+    
+    <!-- Profile -->
+    <string name="settings">Settings</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_out_confirm">Are you sure you want to sign out?</string>
+    <string name="cancel">Cancel</string>
+    <string name="version">Version</string>
+    
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="days_ago">days ago</string>
+    <string name="hours_ago">hours ago</string>
+    <string name="just_now">Just now</string>
+    
+    <!-- Offer Management -->
+    <string name="offer_details">Offer Details</string>
+    <string name="offered_price">Offered Price</string>
+    <string name="counter_offer">Counter Offer</string>
+    <string name="negotiation_note">Negotiation Note</string>
+    <string name="submitted">Submitted</string>
+    <string name="responded">Responded</string>
+    <string name="tap_to_view_profile">Tap to view profile</string>
+    <string name="accept_offer">Accept Offer</string>
+    <string name="negotiate_price">Negotiate Price</string>
+    <string name="decline_offer">Decline Offer</string>
+    <string name="accept_counter_offer">Accept Counter Offer</string>
+    <string name="decline_counter_offer">Decline Counter Offer</string>
+    <string name="counter_offer_received">Counter Offer Received</string>
+    <string name="job_poster_price">Job Poster\'s Price</string>
+    <string name="accept_offer_confirmation">Accept this offer for</string>
+    <string name="decline_offer_confirmation">Are you sure you want to decline this offer?</string>
+    <string name="accept_counter_offer_confirmation">Accept the job poster\'s counter offer of</string>
+    <string name="decline_counter_offer_confirmation">Are you sure you want to decline this counter offer? This will remove your offer completely.</string>
+    <string name="your_price">Your Price</string>
+    <string name="explain_counter_offer">Explain your counter offer...</string>
+    <string name="original_price">Original Price</string>
+    <string name="send">Send</string>
+    <!-- Job Management -->
+    <string name="edit_job">Edit Job</string>
+    <string name="update_job">Update Job</string>
+    <string name="select_location">Select Location</string>
+    <string name="search_location">Search for city, village, or address...</string>
+    <string name="select_category">Select Category</string>
+    <string name="select">Select</string>
+</resources>
+
+

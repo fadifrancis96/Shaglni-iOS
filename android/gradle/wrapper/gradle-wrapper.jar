@@ -1,0 +1,6 @@
+# This is a placeholder file. The actual gradle-wrapper.jar should be downloaded by Gradle
+# when you run ./gradlew for the first time.
+# 
+# To get the real gradle-wrapper.jar:
+# 1. Download from: https://github.com/gradle/gradle/raw/v8.7.0/gradle/wrapper/gradle-wrapper.jar
+# 2. Or let Gradle download it automatically when you run ./gradlew

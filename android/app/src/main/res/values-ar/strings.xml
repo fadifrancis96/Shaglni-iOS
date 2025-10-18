@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Info -->
+    <string name="app_name">شغلني</string>
+    <string name="tagline">ربط المقاولين بفرص العمل</string>
+    
+    <!-- Auth -->
+    <string name="welcome">مرحباً</string>
+    <string name="login">تسجيل الدخول</string>
+    <string name="signup">إنشاء حساب</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="create_account">إنشاء حساب</string>
+    <string name="already_have_account">لديك حساب بالفعل؟</string>
+    <string name="dont_have_account">ليس لديك حساب؟</string>
+    <string name="get_started">ابدأ الآن</string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="sign_up">إنشاء حساب</string>
+    <string name="welcome_back">مرحباً بعودتك</string>
+    <string name="create_your_account">إنشاء حسابك</string>
+    <string name="i_am_a">أنا:</string>
+    <string name="contractor">مقاول (يبحث عن عمل)</string>
+    <string name="job_poster">صاحب عمل (يستأجر مقاولين)</string>
+    
+    <!-- Navigation -->
+    <string name="dashboard">الرئيسية</string>
+    <string name="jobs">الوظائف</string>
+    <string name="map">الخريطة</string>
+    <string name="contractors">المقاولون</string>
+    <string name="my_offers">عروضي</string>
+    <string name="profile">الملف الشخصي</string>
+    
+    <!-- Jobs -->
+    <string name="job_details">تفاصيل الوظيفة</string>
+    <string name="description">الوصف</string>
+    <string name="location">الموقع</string>
+    <string name="date_posted">تاريخ النشر</string>
+    <string name="posted_by">نشر بواسطة</string>
+    <string name="submit_offer">تقديم عرض</string>
+    <string name="search_jobs">البحث في الوظائف...</string>
+    <string name="create_job">إنشاء وظيفة</string>
+    <string name="post_job">نشر وظيفة</string>
+    <string name="jobs_map">خريطة الوظائف</string>
+    <string name="no_jobs_on_map">لا توجد وظائف على الخريطة</string>
+    <string name="no_jobs_with_location">لا توجد وظائف ببيانات موقع متاحة</string>
+    <string name="tap_to_select_location">اضغط لاختيار الموقع</string>
+    <string name="selected_location">الموقع المحدد</string>
+    <string name="show_map">إظهار الخريطة</string>
+    
+    <!-- Offers -->
+    <string name="offers">العروض</string>
+    <string name="your_offer">عرضك</string>
+    <string name="price">السعر</string>
+    <string name="message">الرسالة</string>
+    <string name="optional">(اختياري)</string>
+    <string name="pending">معلق</string>
+    <string name="accepted">مقبول</string>
+    <string name="rejected">مرفوض</string>
+    <string name="all">الكل</string>
+    
+    <!-- Status -->
+    <string name="open">مفتوح</string>
+    <string name="in_progress">قيد التنفيذ</string>
+    <string name="completed">مكتمل</string>
+    <string name="cancelled">ملغي</string>
+    
+    <!-- Dashboard -->
+    <string name="total_jobs">إجمالي الوظائف</string>
+    <string name="open_jobs">الوظائف المفتوحة</string>
+    <string name="total_offers">إجمالي العروض</string>
+    <string name="pending_offers">العروض المعلقة</string>
+    <string name="accepted_offers">العروض المقبولة</string>
+    <string name="completed_jobs">الوظائف المكتملة</string>
+    <string name="recent_jobs">الوظائف الأخيرة</string>
+    <string name="recent_offers">العروض الأخيرة</string>
+    
+    <!-- Profile -->
+    <string name="settings">الإعدادات</string>
+    <string name="sign_out">تسجيل الخروج</string>
+    <string name="sign_out_confirm">هل أنت متأكد من تسجيل الخروج؟</string>
+    <string name="cancel">إلغاء</string>
+    <string name="version">الإصدار</string>
+    
+    <!-- Common -->
+    <string name="loading">جاري التحميل...</string>
+    <string name="error">خطأ</string>
+    <string name="success">نجح</string>
+    <string name="today">اليوم</string>
+    <string name="yesterday">أمس</string>
+    <string name="days_ago">أيام مضت</string>
+    <string name="hours_ago">ساعات مضت</string>
+    <string name="just_now">الآن</string>
+    
+    <!-- Offer Management -->
+    <string name="offer_details">تفاصيل العرض</string>
+    <string name="offered_price">السعر المقترح</string>
+    <string name="counter_offer">عرض مضاد</string>
+    <string name="negotiation_note">ملاحظة التفاوض</string>
+    <string name="submitted">تم الإرسال</string>
+    <string name="responded">تم الرد</string>
+    <string name="tap_to_view_profile">اضغط لعرض الملف الشخصي</string>
+    <string name="accept_offer">قبول العرض</string>
+    <string name="negotiate_price">التفاوض على السعر</string>
+    <string name="decline_offer">رفض العرض</string>
+    <string name="accept_counter_offer">قبول العرض المضاد</string>
+    <string name="decline_counter_offer">رفض العرض المضاد</string>
+    <string name="counter_offer_received">تم استلام عرض مضاد</string>
+    <string name="job_poster_price">سعر صاحب العمل</string>
+    <string name="accept_offer_confirmation">قبول هذا العرض مقابل</string>
+    <string name="decline_offer_confirmation">هل أنت متأكد أنك تريد رفض هذا العرض؟</string>
+    <string name="accept_counter_offer_confirmation">قبول العرض المضاد من صاحب العمل بقيمة</string>
+    <string name="decline_counter_offer_confirmation">هل أنت متأكد أنك تريد رفض هذا العرض المضاد؟ سيتم حذف عرضك بالكامل.</string>
+    <string name="your_price">سعرك</string>
+    <string name="explain_counter_offer">اشرح عرضك المضاد...</string>
+    <string name="original_price">السعر الأصلي</string>
+    <string name="send">إرسال</string>
+    <!-- Job Management -->
+    <string name="edit_job">تعديل الوظيفة</string>
+    <string name="update_job">تحديث الوظيفة</string>
+    <string name="select_location">اختيار الموقع</string>
+    <string name="search_location">البحث عن مدينة أو قرية أو عنوان...</string>
+    <string name="select_category">اختيار الفئة</string>
+    <string name="select">اختيار</string>
+    
+    <!-- Empty States -->
+    <string name="no_jobs_found">لم يتم العثور على وظائف</string>
+    <string name="no_offers_found">لم يتم العثور على عروض</string>
+    <string name="no_jobs_yet">لا توجد وظائف بعد</string>
+    <string name="no_offers_yet">لا توجد عروض بعد</string>
+    <string name="be_first_to_post">كن أول من ينشر وظيفة!</string>
+    <string name="submit_offers_to_jobs">قدم عروضاً للوظائف التي تهمك</string>
+    <string name="try_adjusting_filters">حاول تعديل المرشحات</string>
+    <string name="try_adjusting_search">حاول تعديل البحث أو المرشحات</string>
+</resources>

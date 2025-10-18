@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "565150701237",
+    "project_id": "shagla-project",
+    "storage_bucket": "shagla-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565150701237:android:1c69f9bfbdfaa05d2190fc",
+        "android_client_info": {
+          "package_name": "com.shaglni.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm2QBRwyD7q-n05N6mZGy8hSvrVKqwaV4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
