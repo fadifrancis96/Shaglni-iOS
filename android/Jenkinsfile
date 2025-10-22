@@ -1,11 +1,7 @@
 pipeline {
   agent any
 
-  // no schedules; manual runs only
-  triggers { }
-
   options {
-    ansiColor('xterm')
     timestamps()
     buildDiscarder(logRotator(numToKeepStr: '20'))
     timeout(time: 60, unit: 'MINUTES')
@@ -17,26 +13,22 @@ pipeline {
     booleanParam(name: 'TRY_AUTO_REMEDIATION', defaultValue: true, description: 'Try basic auto-fixes on failure')
   }
 
-  // Notice: no hard-coded JAVA_HOME / ANDROID_SDK_ROOT here.
+  // Read JAVA_HOME and ANDROID_SDK_ROOT from the agent's environment
   environment {
     GRADLE_OPTS = "-Dorg.gradle.jvmargs='-Xmx3g -Dfile.encoding=UTF-8'"
   }
 
   stages {
-    stage('Checkout') {
-      steps { checkout scm }
-    }
+    stage('Checkout') { steps { checkout scm } }
 
     stage('Verify env') {
       steps {
         script {
           def missing = []
-          if (!env.JAVA_HOME?.trim())          missing << 'JAVA_HOME'
-          if (!env.ANDROID_SDK_ROOT?.trim())   missing << 'ANDROID_SDK_ROOT'
-
+          if (!env.JAVA_HOME?.trim())        missing << 'JAVA_HOME'
+          if (!env.ANDROID_SDK_ROOT?.trim()) missing << 'ANDROID_SDK_ROOT'
           if (missing) {
-            error "Missing environment variables on the agent: ${missing.join(', ')}. " +
-                  "Set them in Windows System variables and restart the Jenkins service."
+            error "Missing env on agent: ${missing.join(', ')}. Set them in Windows System variables and restart the Jenkins service."
           }
 
           if (isUnix()) {
@@ -88,9 +80,7 @@ pipeline {
         }
       }
       post {
-        always {
-          junit allowEmptyResults: true, testResults: '**/build/test-results/test/*.xml'
-        }
+        always { junit allowEmptyResults: true, testResults: '**/build/test-results/test/*.xml' }
       }
     }
 
@@ -124,6 +114,7 @@ pipeline {
         )
       }
     }
+
     failure {
       script {
         if (params.TRY_AUTO_REMEDIATION && !env.ALREADY_REMEDIATED) {
@@ -150,6 +141,7 @@ pipeline {
             echo "Auto-remediation failed: ${e}"
           }
         }
+
         emailext(
           to: 'eliyaballout@gmail.com',
           subject: "[Jenkins][FAILURE] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
