@@ -1,45 +1,84 @@
 pipeline {
   agent any
-  options { timestamps(); buildDiscarder(logRotator(numToKeepStr: '20')); timeout(time: 60, unit: 'MINUTES') }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    timeout(time: 60, unit: 'MINUTES')
+  }
+
   parameters {
     choice(name: 'BUILD_VARIANT', choices: ['debug','release'], description: 'Which variant to build')
     booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run unit tests')
     booleanParam(name: 'TRY_AUTO_REMEDIATION', defaultValue: true, description: 'Try basic auto-fixes on failure')
   }
-  environment { GRADLE_OPTS = "-Dorg.gradle.jvmargs='-Xmx3g -Dfile.encoding=UTF-8'" }
+
+  environment {
+    // JAVA_HOME and ANDROID_SDK_ROOT come from the agent's env
+    GRADLE_OPTS = "-Dorg.gradle.jvmargs='-Xmx3g -Dfile.encoding=UTF-8'"
+  }
 
   stages {
-    stage('Checkout') { steps { checkout scm } }
+    stage('Checkout') {
+      steps { checkout scm }
+    }
 
     stage('Verify env') {
       steps {
         script {
-          def missing=[]; if(!env.JAVA_HOME?.trim()) missing<<'JAVA_HOME'; if(!env.ANDROID_SDK_ROOT?.trim()) missing<<'ANDROID_SDK_ROOT'
-          if(missing) error "Missing env: ${missing.join(', ')}"
-          if (isUnix()) { sh 'java -version || true'; sh 'echo $JAVA_HOME'; sh 'echo $ANDROID_SDK_ROOT && ls -la "$ANDROID_SDK_ROOT" || true' }
-          else { bat 'java -version'; bat 'echo %JAVA_HOME%'; bat 'echo %ANDROID_SDK_ROOT%'; bat 'dir "%ANDROID_SDK_ROOT%"' }
-          // verify gradlew exists
-          bat 'if exist android\\gradlew.bat (echo FOUND gradlew.bat) else (echo MISSING gradlew.bat & exit /b 1)'
+          def missing = []
+          if (!env.JAVA_HOME?.trim())        missing << 'JAVA_HOME'
+          if (!env.ANDROID_SDK_ROOT?.trim()) missing << 'ANDROID_SDK_ROOT'
+          if (missing) {
+            error "Missing env on agent: ${missing.join(', ')}"
+          }
+
+          if (isUnix()) {
+            sh 'java -version || true'
+            sh 'echo $JAVA_HOME'
+            sh 'echo $ANDROID_SDK_ROOT && ls -la "$ANDROID_SDK_ROOT" || true'
+          } else {
+            bat 'java -version'
+            bat 'echo %JAVA_HOME%'
+            bat 'echo %ANDROID_SDK_ROOT%'
+            bat 'dir "%ANDROID_SDK_ROOT%"'
+          }
+
+          // quick check that gradlew exists where we expect it
+          if (isUnix()) {
+            sh 'test -f android/gradlew || (echo "gradlew missing" && exit 1)'
+          } else {
+            bat 'if exist android\\gradlew.bat (echo FOUND gradlew.bat) else (echo MISSING gradlew.bat & exit /b 1)'
+          }
         }
       }
     }
 
     stage('Gradle: Clean') {
-      steps { dir('android'){ isUnix() ? sh('./gradlew clean --no-daemon') : bat('gradlew.bat clean --no-daemon') } }
+      steps {
+        dir('android') {
+          script {
+            if (isUnix()) sh './gradlew clean --no-daemon'
+            else           bat 'gradlew.bat clean --no-daemon'
+          }
+        }
+      }
     }
 
     stage('Static Checks (optional)') {
       when { expression { params.RUN_TESTS } }
       steps {
-        dir('android'){
-          if (isUnix()) {
-            sh './gradlew lint --no-daemon || true'
-            sh './gradlew ktlintCheck --no-daemon || true'
-            sh './gradlew spotlessCheck --no-daemon || true'
-          } else {
-            bat 'gradlew.bat lint --no-daemon || exit /b 0'
-            bat 'gradlew.bat ktlintCheck --no-daemon || exit /b 0'
-            bat 'gradlew.bat spotlessCheck --no-daemon || exit /b 0'
+        dir('android') {
+          script {
+            if (isUnix()) {
+              sh './gradlew lint --no-daemon || true'
+              sh './gradlew ktlintCheck --no-daemon || true'
+              sh './gradlew spotlessCheck --no-daemon || true'
+            } else {
+              bat 'gradlew.bat lint --no-daemon || exit /b 0'
+              bat 'gradlew.bat ktlintCheck --no-daemon || exit /b 0'
+              bat 'gradlew.bat spotlessCheck --no-daemon || exit /b 0'
+            }
           }
         }
       }
@@ -47,13 +86,24 @@ pipeline {
 
     stage('Unit Tests (optional)') {
       when { expression { params.RUN_TESTS } }
-      steps { dir('android'){ isUnix() ? sh('./gradlew test --no-daemon') : bat('gradlew.bat test --no-daemon') } }
-      post { always { junit allowEmptyResults: true, testResults: 'android/**/build/test-results/test/*.xml' } }
+      steps {
+        dir('android') {
+          script {
+            if (isUnix()) sh './gradlew test --no-daemon'
+            else           bat 'gradlew.bat test --no-daemon'
+          }
+        }
+      }
+      post {
+        always {
+          junit allowEmptyResults: true, testResults: 'android/**/build/test-results/test/*.xml'
+        }
+      }
     }
 
     stage('Assemble APK') {
       steps {
-        dir('android'){
+        dir('android') {
           script {
             def task = (params.BUILD_VARIANT == 'release') ? 'assembleRelease' : 'assembleDebug'
             if (isUnix()) sh "./gradlew ${task} --no-daemon --stacktrace"
@@ -64,24 +114,34 @@ pipeline {
     }
 
     stage('Archive APK') {
-      steps { archiveArtifacts artifacts: 'android/app/build/outputs/apk/**/*.apk', fingerprint: true, onlyIfSuccessful: true }
+      steps {
+        archiveArtifacts artifacts: 'android/app/build/outputs/apk/**/*.apk',
+                         fingerprint: true,
+                         onlyIfSuccessful: true
+      }
     }
   }
 
   post {
     success {
       script {
-        emailext(to: 'eliyaballout@gmail.com',
+        emailext(
+          to: 'eliyaballout@gmail.com',
           subject: "[Jenkins][SUCCESS] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-          body: "<p>Build OK — variant ${params.BUILD_VARIANT}. APK under Artifacts.</p>", mimeType: 'text/html')
+          body: "<p>Build succeeded (variant ${params.BUILD_VARIANT}). APK archived under Artifacts.</p>",
+          mimeType: 'text/html'
+        )
       }
     }
+
     failure {
       script {
+        // Auto-remediation: try once
         if (params.TRY_AUTO_REMEDIATION && !env.ALREADY_REMEDIATED) {
-          env.ALREADY_REMEDIATED = "true"; echo "Auto-remediation: refresh deps/format/clean then rebuild"
+          env.ALREADY_REMEDIATED = "true"
+          echo "Auto-remediation: refresh deps/format/clean then rebuild"
           try {
-            dir('android'){
+            dir('android') {
               if (isUnix()) {
                 sh './gradlew --refresh-dependencies --no-daemon || true'
                 sh './gradlew spotlessApply --no-daemon || true'
@@ -99,12 +159,19 @@ pipeline {
               }
             }
             currentBuild.result = 'SUCCESS'
-          } catch (e) { echo "Auto-remediation failed: ${e}" }
+          } catch (e) {
+            echo "Auto-remediation failed: ${e}"
+          }
         }
-        emailext(to: 'eliyaballout@gmail.com',
+
+        // Always email on failure
+        emailext(
+          to: 'eliyaballout@gmail.com',
           subject: "[Jenkins][FAILURE] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-          body: "<p>Build failed — variant ${params.BUILD_VARIANT}. Log attached.</p>",
-          attachLog: true, mimeType: 'text/html')
+          body: "<p>Build failed (variant ${params.BUILD_VARIANT}). Console log attached.</p>",
+          attachLog: true,
+          mimeType: 'text/html'
+        )
       }
     }
   }
