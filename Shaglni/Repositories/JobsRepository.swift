@@ -120,16 +120,20 @@ final class JobsRepository: ObservableObject {
         return try snap.decode(as: Job.self)
     }
 
-    /// Deletes the job, all of its offers, and any associated requirement photos.
-    /// Photo storage cleanup is best-effort (we don't fail the whole op if it errors).
+    /// Deletes the job and all of its offers in a single batch.
+    /// NOTE: requirement photos in Storage are NOT removed here — the client may
+    /// not outlive the operation. Orphan cleanup belongs in a Cloud Function
+    /// triggered on job deletion.
     func delete(jobId: String) async throws {
-        // 1. Remove subcollection offers
-        let offersSnap = try await db.collection("jobs").document(jobId).collection("offers").getDocuments()
+        let jobRef = db.collection("jobs").document(jobId)
+        let offersSnap = try await jobRef.collection("offers").getDocuments()
+
+        let batch = db.batch()
         for doc in offersSnap.documents {
-            try await doc.reference.delete()
+            batch.deleteDocument(doc.reference)
         }
-        // 2. Remove the job itself
-        try await db.collection("jobs").document(jobId).delete()
-        AppLogger.jobs.info("Deleted job \(jobId, privacy: .public)")
+        batch.deleteDocument(jobRef)
+        try await batch.commit()
+        AppLogger.jobs.info("Deleted job \(jobId, privacy: .public) with \(offersSnap.documents.count) offer(s)")
     }
 }

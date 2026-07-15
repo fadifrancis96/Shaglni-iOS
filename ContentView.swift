@@ -18,9 +18,10 @@ struct ContentView: View {
             } else if authViewModel.isReady {
                 MainTabView()
             } else if authViewModel.isAuthenticated {
-                // Signed in but Firestore user doc not found / failed to decode.
-                // Show landing so they can sign out and retry.
-                LoadingView()
+                // Signed in but the Firestore user doc is missing or failed to decode.
+                // The user-doc listener stays live, so if the doc appears this view is
+                // replaced automatically; the sign-out button is the manual escape hatch.
+                AccountLoadErrorView()
             } else {
                 LandingView()
             }
@@ -43,6 +44,36 @@ struct LoadingView: View {
                 Text(L10n.Loading.account.string)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+struct AccountLoadErrorView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
+
+    var body: some View {
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
+            VStack(spacing: 20) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.orange)
+                Text(L10n.Auth.accountLoadFailedTitle.string)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Text(L10n.Auth.accountLoadFailedMessage.string)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                Button(role: .destructive) {
+                    authViewModel.signOut()
+                } label: {
+                    Text(L10n.Common.logout.string)
+                        .fontWeight(.semibold)
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
     }

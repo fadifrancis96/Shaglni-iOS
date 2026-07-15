@@ -164,6 +164,8 @@ extension L10n {
         static let confirmDeleteTitle   = L10n(key: "auth.confirmDelete.title")
         static let confirmDeleteMessage = L10n(key: "auth.confirmDelete.message")
         static let resetEmailSent       = L10n(key: "auth.resetEmailSent")
+        static let accountLoadFailedTitle   = L10n(key: "auth.accountLoadFailed.title")
+        static let accountLoadFailedMessage = L10n(key: "auth.accountLoadFailed.message")
         static let verifyEmail          = L10n(key: "auth.verifyEmail")
         static let resendVerification   = L10n(key: "auth.resendVerification")
     }

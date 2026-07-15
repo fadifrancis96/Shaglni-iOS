@@ -124,23 +124,56 @@ final class OffersRepository: ObservableObject {
         try await db.collection("jobs").document(jobId).collection("offers").document(offerId).delete()
     }
 
-    /// Atomically: (1) accept this offer, (2) reject all others, (3) denormalise
-    /// accepted offer fields onto the Job so my-active-jobs becomes a single query.
+    /// Accept an offer: (1) transactionally mark it accepted and denormalise the
+    /// accepted fields onto the Job — guarding against a second accept racing in —
+    /// then (2) batch-reject the remaining pending/counter siblings.
+    /// Sibling rejection is outside the transaction (client transactions can't run
+    /// queries); once `acceptedOfferId` is set on the job, a straggler offer is
+    /// inert even if its rejection write were to fail.
     func acceptOfferAndCloseOthers(jobId: String, acceptedOfferId: String, finalPrice: Double, contractorId: String) async throws {
-        let batch = db.batch()
+        guard !contractorId.isEmpty else { throw AppError.validation("Offer has no contractor") }
+        guard finalPrice > 0 else { throw AppError.validation("Final price must be greater than zero") }
+
         let jobRef = db.collection("jobs").document(jobId)
         let offersCollection = jobRef.collection("offers")
-
-        // Mark accepted
         let acceptedRef = offersCollection.document(acceptedOfferId)
-        batch.updateData([
-            "status": OfferStatus.accepted.rawValue,
-            "finalPrice": finalPrice,
-            "respondedAt": FieldValue.serverTimestamp()
-        ], forDocument: acceptedRef)
 
-        // Reject siblings (only ones that aren't already final)
+        _ = try await db.runTransaction { transaction, errorPointer in
+            let jobSnap: DocumentSnapshot
+            do {
+                jobSnap = try transaction.getDocument(jobRef)
+            } catch {
+                errorPointer?.pointee = error as NSError
+                return nil
+            }
+            guard jobSnap.exists else {
+                errorPointer?.pointee = AppError.notFound("job") as NSError
+                return nil
+            }
+            if let existing = jobSnap.data()?["acceptedOfferId"] as? String, !existing.isEmpty {
+                errorPointer?.pointee = AppError.validation("This job already has an accepted offer") as NSError
+                return nil
+            }
+
+            transaction.updateData([
+                "status": OfferStatus.accepted.rawValue,
+                "finalPrice": finalPrice,
+                "respondedAt": FieldValue.serverTimestamp()
+            ], forDocument: acceptedRef)
+
+            transaction.updateData([
+                "acceptedOfferId": acceptedOfferId,
+                "acceptedContractorId": contractorId,
+                "acceptedPrice": finalPrice,
+                "acceptedAt": FieldValue.serverTimestamp()
+            ], forDocument: jobRef)
+            return nil
+        }
+
+        // Best-effort cleanup: reject whatever siblings exist at this point.
         let siblingsSnap = try await offersCollection.getDocuments()
+        let batch = db.batch()
+        var rejectedCount = 0
         for doc in siblingsSnap.documents where doc.documentID != acceptedOfferId {
             let status = doc.data()["status"] as? String
             if status == OfferStatus.pending.rawValue || status == OfferStatus.counterOffer.rawValue {
@@ -148,18 +181,11 @@ final class OffersRepository: ObservableObject {
                     "status": OfferStatus.rejected.rawValue,
                     "respondedAt": FieldValue.serverTimestamp()
                 ], forDocument: doc.reference)
+                rejectedCount += 1
             }
         }
+        if rejectedCount > 0 { try await batch.commit() }
 
-        // Denormalise onto the Job for fast queries
-        batch.updateData([
-            "acceptedOfferId": acceptedOfferId,
-            "acceptedContractorId": contractorId,
-            "acceptedPrice": finalPrice,
-            "acceptedAt": FieldValue.serverTimestamp()
-        ], forDocument: jobRef)
-
-        try await batch.commit()
-        AppLogger.offers.info("Accepted offer \(acceptedOfferId, privacy: .public) on job \(jobId, privacy: .public)")
+        AppLogger.offers.info("Accepted offer \(acceptedOfferId, privacy: .public) on job \(jobId, privacy: .public), rejected \(rejectedCount) sibling(s)")
     }
 }

@@ -125,20 +125,6 @@ final class FirestoreService {
         }
     }
 
-    func rejectAllOtherOffers(jobId: String, acceptedOfferId: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        Task {
-            do {
-                let all = try await offers.fetchOffers(jobId: jobId)
-                for o in all where o.id != acceptedOfferId && (o.status == .pending || o.status == .counterOffer) {
-                    if let oid = o.id {
-                        try? await offers.updateStatus(jobId: jobId, offerId: oid, status: .rejected)
-                    }
-                }
-                completion(.success(()))
-            } catch { completion(.failure(error)) }
-        }
-    }
-
     func sendCounterOffer(jobId: String, offerId: String, counterPrice: Double, message: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do { try await offers.sendCounterOffer(jobId: jobId, offerId: offerId, counterPrice: counterPrice, message: message); completion(.success(())) }
@@ -150,22 +136,13 @@ final class FirestoreService {
         Task {
             do {
                 if accept {
-                    try await offers.contractorAcceptsCounter(jobId: jobId, offerId: offerId, finalPrice: counterPrice ?? 0)
+                    guard let counterPrice, counterPrice > 0 else {
+                        throw AppError.validation("Counter offer has no valid price")
+                    }
+                    try await offers.contractorAcceptsCounter(jobId: jobId, offerId: offerId, finalPrice: counterPrice)
                 } else {
                     try await offers.contractorDeclinesCounter(jobId: jobId, offerId: offerId)
                 }
-                completion(.success(()))
-            } catch { completion(.failure(error)) }
-        }
-    }
-
-    func finalizeOffer(jobId: String, offerId: String, finalPrice: Double, completion: @escaping (Result<Void, Error>) -> Void) {
-        Task {
-            do {
-                // Look up the contractor id so we can denormalise onto the job.
-                let offerDoc = try await Firestore.firestore().collection("jobs").document(jobId).collection("offers").document(offerId).getDocument()
-                let contractorId = (offerDoc.data()? ["contractorId"] as? String) ?? ""
-                try await offers.acceptOfferAndCloseOthers(jobId: jobId, acceptedOfferId: offerId, finalPrice: finalPrice, contractorId: contractorId)
                 completion(.success(()))
             } catch { completion(.failure(error)) }
         }

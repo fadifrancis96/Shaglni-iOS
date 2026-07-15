@@ -28,7 +28,10 @@ struct ChatThread: Identifiable, Codable, Equatable, Hashable {
     // Per-user unread counts so we can show a badge on either side.
     var unreadCounts: [String: Int]
 
-    var participantIds: [String] { [jobPosterId, contractorId] }
+    // Stored (not computed) so it is serialized to Firestore — the thread-list
+    // query (`arrayContains`) and the security rules both depend on this field
+    // existing on the document.
+    var participantIds: [String]
 
     func unreadCount(for userId: String) -> Int { unreadCounts[userId] ?? 0 }
     func otherParticipantName(for userId: String) -> String {

@@ -56,7 +56,8 @@ final class ChatRepository: ObservableObject {
             lastMessage: "",
             lastMessageAt: Date(),
             lastMessageSenderId: "",
-            unreadCounts: [jobPosterId: 0, contractorId: 0]
+            unreadCounts: [jobPosterId: 0, contractorId: 0],
+            participantIds: [jobPosterId, contractorId]
         )
         try db.collection("chats").document(jobId).setData(from: thread, merge: true)
     }
