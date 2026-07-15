@@ -5,6 +5,16 @@
 
 import SwiftUI
 import FirebaseCore
+import FirebaseAppCheck
+
+/// App Attest with automatic fallback handled by Firebase. Debug builds use the
+/// debug provider so the simulator keeps working (paste the token it logs into
+/// Firebase console → App Check → Manage debug tokens).
+final class ShaglniAppCheckProviderFactory: NSObject, AppCheckProviderFactory {
+    func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
+        AppAttestProvider(app: app)
+    }
+}
 
 @main
 struct ShaglniApp: App {
@@ -17,6 +27,12 @@ struct ShaglniApp: App {
     @StateObject private var chatRepo      = ChatRepository.shared
 
     init() {
+        // App Check factory must be set BEFORE FirebaseApp.configure().
+        #if DEBUG
+        AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+        #else
+        AppCheck.setAppCheckProviderFactory(ShaglniAppCheckProviderFactory())
+        #endif
         FirebaseApp.configure()
         Self.configureImageCache()
     }

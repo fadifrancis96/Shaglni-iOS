@@ -57,10 +57,10 @@ For a deeper tour see [`docs/architecture.md`](docs/architecture.md).
 
 ## Configuring Firebase rules
 
-The repository ships hardened rules:
+The repository ships hardened rules and composite index definitions:
 
 ```bash
-firebase deploy --only firestore:rules,storage
+firebase deploy --only firestore,storage
 ```
 
 Highlights:
@@ -83,6 +83,23 @@ Highlights:
 | Tighten/loosen security         | `firestore.rules` / `storage.rules` |
 | Adjust currency formatting      | `Shaglni/Utilities/Money.swift` |
 | Image caching                   | `Shaglni/Utilities/RemoteImage.swift` |
+
+## Production checklist (console-side, one-time)
+
+Things the code is ready for but that need Firebase console / App Store
+Connect actions before going live:
+
+1. **Deploy rules + indexes** — `firebase deploy --only firestore,storage`
+   (the hardened rules close offer self-accept, client-set ratings, and the
+   open job-photos Storage path; the indexes back every list query).
+2. **App Check** — the app activates App Attest in Release builds and the
+   debug provider in Debug builds. In Firebase console → App Check:
+   register the iOS app with the App Attest provider, add your simulator
+   debug tokens, then turn on **enforcement** for Firestore and Storage.
+3. **Signing** — set your team on the Shaglni target (no `DEVELOPMENT_TEAM`
+   is committed) and confirm the App Attest entitlement is on the profile.
+4. **Email verification** — verification emails are sent at signup but not
+   enforced; decide whether to gate access before launch.
 
 ## What's intentionally not here
 

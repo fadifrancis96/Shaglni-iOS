@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+
+      - name: Show destinations
+        run: xcodebuild -project Shaglni.xcodeproj -scheme Shaglni -showdestinations | head -30
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild -project Shaglni.xcodeproj -scheme Shaglni \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tail -50
+
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          xcodebuild -project Shaglni.xcodeproj -scheme Shaglni \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -only-testing:ShaglniTests \
+            CODE_SIGNING_ALLOWED=NO \
+            test | tail -80
+
+  rules-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate Firestore + Storage rules compile
+        run: |
+          npx --yes firebase-tools emulators:exec \
+            --only firestore,storage \
+            --project demo-shaglni \
+            "echo rules loaded OK"
