@@ -34,7 +34,8 @@ final class FirestoreService {
             do {
                 var query: Query = Firestore.firestore().collection("jobs")
                 if let status { query = query.whereField("status", isEqualTo: status.rawValue) }
-                let snap = try await query.order(by: "datePosted", descending: true).getDocuments()
+                let snap = try await query.order(by: "datePosted", descending: true)
+                    .limit(to: JobsRepository.queryLimit).getDocuments()
                 completion(.success(snap.decoded(as: Job.self)))
             } catch {
                 completion(.failure(error))
@@ -48,6 +49,7 @@ final class FirestoreService {
                 let snap = try await Firestore.firestore().collection("jobs")
                     .whereField("createdBy", isEqualTo: userId)
                     .order(by: "datePosted", descending: true)
+                    .limit(to: JobsRepository.queryLimit)
                     .getDocuments()
                 completion(.success(snap.decoded(as: Job.self)))
             } catch {
@@ -99,6 +101,7 @@ final class FirestoreService {
                 let snap = try await Firestore.firestore().collectionGroup("offers")
                     .whereField("contractorId", isEqualTo: contractorId)
                     .order(by: "createdAt", descending: true)
+                    .limit(to: JobsRepository.queryLimit)
                     .getDocuments()
                 completion(.success(snap.decoded(as: Offer.self)))
             } catch { completion(.failure(error)) }
@@ -111,6 +114,7 @@ final class FirestoreService {
                 let myJobsSnap = try await Firestore.firestore().collection("jobs")
                     .whereField("createdBy", isEqualTo: userId)
                     .order(by: "datePosted", descending: true)
+                    .limit(to: JobsRepository.queryLimit)
                     .getDocuments()
                 let myJobs = myJobsSnap.decoded(as: Job.self)
                 completion(.success(try await offers.fetchOffersForJobPoster(userId, jobs: myJobs)))
@@ -160,7 +164,10 @@ final class FirestoreService {
     func fetchAllContractors(completion: @escaping (Result<[ContractorProfile], Error>) -> Void) {
         Task {
             do {
-                let snap = try await Firestore.firestore().collection("contractorProfiles").getDocuments()
+                let snap = try await Firestore.firestore().collection("contractorProfiles")
+                    .order(by: "completedJobsCount", descending: true)
+                    .limit(to: JobsRepository.queryLimit)
+                    .getDocuments()
                 completion(.success(snap.decoded(as: ContractorProfile.self)))
             } catch { completion(.failure(error)) }
         }
@@ -209,6 +216,7 @@ final class FirestoreService {
                 let snap = try await Firestore.firestore().collection("jobs")
                     .whereField("acceptedContractorId", isEqualTo: contractorId)
                     .order(by: "acceptedAt", descending: true)
+                    .limit(to: JobsRepository.queryLimit)
                     .getDocuments()
                 let jobs = snap.decoded(as: Job.self)
                 var out: [JobWithOffer] = []

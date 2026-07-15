@@ -15,6 +15,10 @@ final class JobsRepository: ObservableObject {
     @Published private(set) var myActiveJobs: [Job] = []     // contractor's accepted+inProgress+completed
     @Published private(set) var isLoadingOpenJobs = false
 
+    /// Cap on every list query. Bump to cursor-based pagination when a screen
+    /// legitimately needs more than this.
+    static let queryLimit = 200
+
     private let db = Firestore.firestore()
     private var openJobsListener: ListenerRegistration?
     private var myPostedJobsListener: ListenerRegistration?
@@ -31,6 +35,7 @@ final class JobsRepository: ObservableObject {
         openJobsListener = db.collection("jobs")
             .whereField("status", isEqualTo: JobStatus.open.rawValue)
             .order(by: "datePosted", descending: true)
+            .limit(to: Self.queryLimit)
             .addSnapshotListener { [weak self] snapshot, error in
                 guard let self else { return }
                 self.isLoadingOpenJobs = false
@@ -48,6 +53,7 @@ final class JobsRepository: ObservableObject {
         myPostedJobsListener = db.collection("jobs")
             .whereField("createdBy", isEqualTo: userId)
             .order(by: "datePosted", descending: true)
+            .limit(to: Self.queryLimit)
             .addSnapshotListener { [weak self] snapshot, error in
                 if let error = error {
                     AppLogger.jobs.error("postedJobs listener: \(error.localizedDescription, privacy: .public)")
@@ -64,6 +70,7 @@ final class JobsRepository: ObservableObject {
         myActiveJobsListener = db.collection("jobs")
             .whereField("acceptedContractorId", isEqualTo: contractorId)
             .order(by: "acceptedAt", descending: true)
+            .limit(to: Self.queryLimit)
             .addSnapshotListener { [weak self] snapshot, error in
                 if let error = error {
                     AppLogger.jobs.error("activeJobs listener: \(error.localizedDescription, privacy: .public)")
@@ -95,6 +102,13 @@ final class JobsRepository: ObservableObject {
 
     @discardableResult
     func create(_ job: Job) async throws -> String {
+        let title = job.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty, title.count <= 200 else {
+            throw AppError.validation("Title must be 1–200 characters")
+        }
+        if let budget = job.budget, budget <= 0 {
+            throw AppError.validation("Budget must be greater than zero")
+        }
         let ref = try db.collection("jobs").addDocument(from: job)
         AppLogger.jobs.info("Created job \(ref.documentID, privacy: .public)")
         return ref.documentID

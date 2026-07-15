@@ -27,6 +27,7 @@ final class OffersRepository: ObservableObject {
         myOffersListener = db.collectionGroup("offers")
             .whereField("contractorId", isEqualTo: contractorId)
             .order(by: "createdAt", descending: true)
+            .limit(to: JobsRepository.queryLimit)
             .addSnapshotListener { [weak self] snapshot, error in
                 if let error = error {
                     AppLogger.offers.error("myOffers listener: \(error.localizedDescription, privacy: .public)")
@@ -94,6 +95,7 @@ final class OffersRepository: ObservableObject {
 
     @discardableResult
     func submit(_ offer: Offer, jobId: String) async throws -> String {
+        guard offer.price > 0 else { throw AppError.validation("Price must be greater than zero") }
         let ref = try db.collection("jobs").document(jobId).collection("offers").addDocument(from: offer)
         AppLogger.offers.info("Submitted offer \(ref.documentID, privacy: .public) on job \(jobId, privacy: .public)")
         return ref.documentID
@@ -106,6 +108,7 @@ final class OffersRepository: ObservableObject {
     }
 
     func sendCounterOffer(jobId: String, offerId: String, counterPrice: Double, message: String) async throws {
+        guard counterPrice > 0 else { throw AppError.validation("Counter price must be greater than zero") }
         try await updateStatus(jobId: jobId, offerId: offerId, status: .counterOffer, extra: [
             "counterPrice": counterPrice,
             "negotiationMessage": message
@@ -113,6 +116,7 @@ final class OffersRepository: ObservableObject {
     }
 
     func contractorAcceptsCounter(jobId: String, offerId: String, finalPrice: Double) async throws {
+        guard finalPrice > 0 else { throw AppError.validation("Final price must be greater than zero") }
         try await db.collection("jobs").document(jobId).collection("offers").document(offerId).updateData([
             "contractorAcceptedCounter": true,
             "finalPrice": finalPrice,

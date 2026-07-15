@@ -24,6 +24,8 @@ final class ContractorsRepository: ObservableObject {
     func observeAllContractors() {
         guard allContractorsListener == nil else { return }
         allContractorsListener = db.collection("contractorProfiles")
+            .order(by: "completedJobsCount", descending: true)
+            .limit(to: JobsRepository.queryLimit)
             .addSnapshotListener { [weak self] snap, error in
                 if let error = error {
                     AppLogger.contractors.error("allContractors listener: \(error.localizedDescription, privacy: .public)")

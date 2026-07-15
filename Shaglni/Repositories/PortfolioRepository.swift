@@ -24,6 +24,7 @@ final class PortfolioRepository: ObservableObject {
         myPortfolioListener = db.collection("completedJobs")
             .whereField("contractorId", isEqualTo: contractorId)
             .order(by: "completedDate", descending: true)
+            .limit(to: 100)
             .addSnapshotListener { [weak self] snap, error in
                 if let error = error {
                     AppLogger.portfolio.error("myPortfolio listener: \(error.localizedDescription, privacy: .public)")
@@ -41,23 +42,35 @@ final class PortfolioRepository: ObservableObject {
 
     // MARK: - Mutations
 
+    /// Adds the portfolio entry and bumps the contractor's `completedJobsCount`
+    /// in one batch so the counter can't drift from the actual portfolio size.
     @discardableResult
     func add(_ completedJob: CompletedJob) async throws -> String {
-        let ref = try db.collection("completedJobs").addDocument(from: completedJob)
-        try? await ContractorsRepository.shared.incrementCompletedJobsCount(contractorId: completedJob.contractorId)
-        return ref.documentID
+        let docRef = db.collection("completedJobs").document()
+        let profileRef = db.collection("contractorProfiles").document(completedJob.contractorId)
+
+        let batch = db.batch()
+        try batch.setData(from: completedJob, forDocument: docRef)
+        batch.updateData(["completedJobsCount": FieldValue.increment(Int64(1))], forDocument: profileRef)
+        try await batch.commit()
+        return docRef.documentID
     }
 
     func delete(_ completedJob: CompletedJob) async throws {
         guard let id = completedJob.id else { throw AppError.validation("Missing portfolio id") }
-        try await db.collection("completedJobs").document(id).delete()
-        try? await ContractorsRepository.shared.decrementCompletedJobsCount(contractorId: completedJob.contractorId)
+        let profileRef = db.collection("contractorProfiles").document(completedJob.contractorId)
+
+        let batch = db.batch()
+        batch.deleteDocument(db.collection("completedJobs").document(id))
+        batch.updateData(["completedJobsCount": FieldValue.increment(Int64(-1))], forDocument: profileRef)
+        try await batch.commit()
     }
 
     func fetchPortfolio(contractorId: String) async throws -> [CompletedJob] {
         let snap = try await db.collection("completedJobs")
             .whereField("contractorId", isEqualTo: contractorId)
             .order(by: "completedDate", descending: true)
+            .limit(to: 100)
             .getDocuments()
         return snap.decoded(as: CompletedJob.self)
     }

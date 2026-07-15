@@ -28,6 +28,7 @@ final class ChatRepository: ObservableObject {
         threadsListener = db.collection("chats")
             .whereField("participantIds", arrayContains: userId)
             .order(by: "lastMessageAt", descending: true)
+            .limit(to: 100)
             .addSnapshotListener { [weak self] snap, error in
                 if let error = error {
                     AppLogger.chat.error("threads listener: \(error.localizedDescription, privacy: .public)")

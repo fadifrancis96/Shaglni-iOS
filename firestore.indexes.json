@@ -33,6 +33,14 @@
       ]
     },
     {
+      "collectionGroup": "completedJobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contractorId", "order": "ASCENDING" },
+        { "fieldPath": "completedDate", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "chats",
       "queryScope": "COLLECTION",
       "fields": [
