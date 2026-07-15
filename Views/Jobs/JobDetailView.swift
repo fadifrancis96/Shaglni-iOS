@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import Combine
 
 struct JobDetailView: View {
     let job: Job
@@ -18,7 +19,12 @@ struct JobDetailView: View {
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
     @State private var currentJobStatus: JobStatus
+    @State private var showMarkInProgressConfirmation = false
+    @State private var showMarkDoneConfirmation = false
+    @State private var isUpdatingStatus = false
+    @State private var acceptedOffer: Offer?
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) var scenePhase
     
     init(job: Job) {
         self.job = job
@@ -98,10 +104,10 @@ struct JobDetailView: View {
                         Text(localization.localized("budget"))
                             .font(.headline)
                         
-                        Text("$\(Int(budget))")
+                        Text(Money.string(budget))
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.accentColor)
                     }
                     .padding(.horizontal)
                 }
@@ -117,11 +123,122 @@ struct JobDetailView: View {
                 }
                 .padding(.horizontal)
                 
-                // Offers Section (for job poster)
+                // Job Status Management (for job poster)
                 if authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy {
                     Divider()
                         .padding(.vertical)
                     
+                    // Job Status Actions
+                    if currentJobStatus == .open {
+                        // Check if there's an accepted offer (check both offers array and acceptedOffer state)
+                        let accepted = acceptedOffer ?? offers.first(where: { $0.status == .accepted })
+                        if let accepted = accepted {
+                            VStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Image(systemName: "checkmark.seal.fill")
+                                            .foregroundColor(.green)
+                                        Text("Offer Accepted")
+                                            .font(.headline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.green)
+                                    }
+                                    
+                                    let displayPrice = accepted.finalPrice ?? accepted.counterPrice ?? accepted.price
+                                    HStack {
+                                        Text("Accepted Price:")
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Text("₪\(String(format: "%.0f", displayPrice))")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.green)
+                                    }
+                                    
+                                    Text("By: \(accepted.contractorName)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding()
+                                .background(Color.green.opacity(0.1))
+                                .cornerRadius(12)
+                                
+                                Button(action: { showMarkInProgressConfirmation = true }) {
+                                    HStack {
+                                        Image(systemName: "hammer.fill")
+                                        Text("Mark Job as In Progress")
+                                            .fontWeight(.semibold)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                                }
+                            }
+                            .padding()
+                        }
+                    } else if currentJobStatus == .inProgress {
+                        VStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: "clock.fill")
+                                        .foregroundColor(.orange)
+                                    Text("Job In Progress")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.orange)
+                                }
+                                
+                                Text("The job is currently being worked on. Mark as done when the work is completed.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(12)
+                            
+                            Button(action: { showMarkDoneConfirmation = true }) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("Mark Job as Done")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                        }
+                        .padding()
+                    } else if currentJobStatus == .completed {
+                        VStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .foregroundColor(.green)
+                                    Text("Job Completed")
+                                        .font(.headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                                
+                                Text("This job has been marked as completed.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .padding()
+                    }
+                    
+                    Divider()
+                        .padding(.vertical)
+                    
+                    // Offers Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Offers (\(offers.count))")
                             .font(.headline)
@@ -148,7 +265,7 @@ struct JobDetailView: View {
                 }
                 
                 // Submit Offer Button (for contractors)
-                if authViewModel.isContractor && job.status == .open {
+                if authViewModel.isContractor && currentJobStatus == .open {
                     Button(action: { showOfferForm = true }) {
                         Text(localization.localized("submitOffer"))
                             .font(.headline)
@@ -191,9 +308,50 @@ struct JobDetailView: View {
         } message: {
             Text("Are you sure you want to delete this job? This will also delete all associated offers. This action cannot be undone.")
         }
+        .alert("Mark Job In Progress", isPresented: $showMarkInProgressConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Mark In Progress") {
+                markJobInProgress()
+            }
+        } message: {
+            Text("This will remove the job from public listings and mark it as in progress. Continue?")
+        }
+        .alert("Mark Job as Done", isPresented: $showMarkDoneConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Mark as Done") {
+                markJobAsDone()
+            }
+        } message: {
+            Text("Mark this job as completed? This action cannot be undone.")
+        }
         .onAppear {
             loadOffers()
             refreshJobStatus()
+        }
+        .onChange(of: scenePhase) { newPhase in
+            // Refresh when app becomes active
+            if newPhase == .active {
+                loadOffers()
+                refreshJobStatus()
+            }
+        }
+        .onChange(of: offers) { _ in
+            // Update accepted offer when offers change
+            acceptedOffer = offers.first(where: { $0.status == .accepted })
+        }
+        .refreshable {
+            // Pull to refresh
+            loadOffers()
+            refreshJobStatus()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OfferStatusUpdated"))) { _ in
+            // Refresh when offer status changes
+            print("🔄 Received OfferStatusUpdated notification - refreshing offers and job status")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Small delay to ensure Firestore has updated
+                loadOffers()
+                refreshJobStatus()
+            }
         }
     }
     
@@ -207,6 +365,11 @@ struct JobDetailView: View {
             switch result {
             case .success(let fetchedOffers):
                 offers = fetchedOffers
+                acceptedOffer = fetchedOffers.first(where: { $0.status == .accepted })
+                print("📋 Loaded \(fetchedOffers.count) offers. Accepted offer: \(acceptedOffer != nil ? "Yes" : "No")")
+                if let accepted = acceptedOffer {
+                    print("✅ Found accepted offer from \(accepted.contractorName) for ₪\(accepted.price)")
+                }
             case .failure(let error):
                 print("Error loading offers: \(error.localizedDescription)")
             }
@@ -223,6 +386,44 @@ struct JobDetailView: View {
                 print("✅ Job status refreshed: \(updatedJob.status.rawValue)")
             case .failure(let error):
                 print("❌ Error refreshing job status: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func markJobInProgress() {
+        guard let jobId = job.id else { return }
+        
+        isUpdatingStatus = true
+        FirestoreService.shared.updateJobStatus(jobId: jobId, status: .inProgress) { result in
+            isUpdatingStatus = false
+            switch result {
+            case .success:
+                currentJobStatus = .inProgress
+                refreshJobStatus()
+            case .failure(let error):
+                print("Error updating job status: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func markJobAsDone() {
+        guard let jobId = job.id else { return }
+        
+        isUpdatingStatus = true
+        FirestoreService.shared.updateJobStatus(jobId: jobId, status: .completed) { result in
+            isUpdatingStatus = false
+            switch result {
+            case .success:
+                currentJobStatus = .completed
+                refreshJobStatus()
+                
+                // Notify contractor that job is completed
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("JobCompleted"),
+                    object: jobId
+                )
+            case .failure(let error):
+                print("Error updating job status: \(error.localizedDescription)")
             }
         }
     }

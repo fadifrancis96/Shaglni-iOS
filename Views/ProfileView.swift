@@ -2,8 +2,6 @@
 //  ProfileView.swift
 //  Shaglni
 //
-//  Created on October 2025
-//
 
 import SwiftUI
 
@@ -11,129 +9,193 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
     @State private var showLogoutAlert = false
-    
+    @State private var showDeleteAlert = false
+    @State private var sendingVerification = false
+    @State private var verificationStatus: String?
+    @State private var deleteError: String?
+
     var body: some View {
         NavigationStack {
             List {
-                // User Info Section
-                Section {
-                    HStack(spacing: 16) {
-                        Circle()
-                            .fill(Color.blue.opacity(0.2))
-                            .frame(width: 60, height: 60)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.title)
-                                    .foregroundColor(.blue)
-                            )
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            if let userName = authViewModel.currentUserData?.displayName {
-                                Text(userName)
-                                    .font(.headline)
-                            }
-                            
-                            if let email = authViewModel.currentUser?.email {
-                                Text(email)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            if let role = authViewModel.currentUserData?.role {
-                                Text(role == .jobPoster ? localization.localized("jobPoster") : localization.localized("contractor"))
-                                    .font(.caption)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.blue.opacity(0.1))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(6)
-                            }
-                        }
-                    }
-                    .padding(.vertical, 8)
+                userSection
+
+                if !authViewModel.isEmailVerified, authViewModel.currentUser != nil {
+                    verifyEmailSection
                 }
-                
-                // Contractor-specific options
+
                 if authViewModel.isContractor {
-                    Section {
-                        NavigationLink(destination: ManageProfileView()) {
-                            Label(localization.localized("manageProfile"), systemImage: "person.text.rectangle")
-                        }
-                        
-                        NavigationLink(destination: MyOffersView()) {
-                            Label(localization.localized("myOffers"), systemImage: "doc.text")
-                        }
-                    }
+                    contractorActions
                 }
-                
-                // Job Poster-specific options
                 if authViewModel.isJobPoster {
-                    Section {
-                        NavigationLink(destination: JobListView()) {
-                            Label("My Jobs", systemImage: "briefcase")
-                        }
+                    jobPosterActions
+                }
+
+                languageSection
+                aboutSection
+                accountActions
+            }
+            .navigationTitle(L10n.Tab.profile.string)
+            .alert(L10n.Common.logout.string, isPresented: $showLogoutAlert) {
+                Button(L10n.Common.cancel.string, role: .cancel) {}
+                Button(L10n.Common.logout.string, role: .destructive) { authViewModel.signOut() }
+            }
+            .alert(L10n.Auth.confirmDeleteTitle.string, isPresented: $showDeleteAlert) {
+                Button(L10n.Common.cancel.string, role: .cancel) {}
+                Button(L10n.Action.deleteAccount.string, role: .destructive) {
+                    Task {
+                        do { try await authViewModel.deleteAccount() }
+                        catch { deleteError = error.localizedDescription }
                     }
                 }
-                
-                // Language Settings
-                Section(header: Text("Language")) {
-                    Picker("Language", selection: $localization.currentLanguage) {
-                        ForEach(AppLanguage.allCases, id: \.self) { language in
-                            Text(language.displayName).tag(language)
-                        }
+            } message: {
+                Text(L10n.Auth.confirmDeleteMessage.string)
+            }
+            .alert(L10n.Common.error.string, isPresented: .constant(deleteError != nil), actions: {
+                Button(L10n.Common.done.string) { deleteError = nil }
+            }, message: { Text(deleteError ?? "") })
+        }
+    }
+
+    // MARK: - Sections
+
+    private var userSection: some View {
+        Section {
+            HStack(spacing: 16) {
+                Circle()
+                    .fill(Color.accentColor.opacity(0.2))
+                    .frame(width: 60, height: 60)
+                    .overlay(Image(systemName: "person.fill").font(.title).foregroundColor(.accentColor))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    if let userName = authViewModel.currentUserData?.displayName {
+                        Text(userName).font(.headline)
                     }
-                }
-                
-                // App Info
-                Section(header: Text("About")) {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundColor(.secondary)
+                    if let email = authViewModel.currentUser?.email {
+                        Text(email).font(.caption).foregroundColor(.secondary)
                     }
-                    
-                    Link(destination: URL(string: "https://shaglni.com/privacy")!) {
-                        HStack {
-                            Text("Privacy Policy")
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://shaglni.com/terms")!) {
-                        HStack {
-                            Text("Terms of Service")
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                
-                // Logout
-                Section {
-                    Button(action: { showLogoutAlert = true }) {
-                        HStack {
-                            Spacer()
-                            Text(localization.localized("logout"))
-                                .foregroundColor(.red)
-                            Spacer()
-                        }
+                    if let role = authViewModel.currentUserData?.role {
+                        Text(role == .jobPoster ? L10n.Role.jobPoster.string : L10n.Role.contractor.string)
+                            .font(.caption)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Color.accentColor.opacity(0.1))
+                            .foregroundColor(.accentColor)
+                            .clipShape(Capsule())
                     }
                 }
             }
-            .navigationTitle(localization.localized("profile"))
-            .alert("Logout", isPresented: $showLogoutAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Logout", role: .destructive) {
-                    authViewModel.signOut()
+            .padding(.vertical, 8)
+        }
+    }
+
+    private var verifyEmailSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                Label(L10n.Auth.verifyEmail.string, systemImage: "envelope.badge")
+                    .font(.subheadline)
+                if let verificationStatus {
+                    Text(verificationStatus).font(.caption).foregroundStyle(.secondary)
                 }
-            } message: {
-                Text("Are you sure you want to logout?")
+                Button {
+                    sendingVerification = true
+                    Task {
+                        try? await authViewModel.resendVerificationEmail()
+                        verificationStatus = L10n.Auth.resetEmailSent.string
+                        sendingVerification = false
+                    }
+                } label: {
+                    if sendingVerification {
+                        ProgressView()
+                    } else {
+                        L10n.Auth.resendVerification.text
+                    }
+                }
+            }
+        }
+    }
+
+    private var contractorActions: some View {
+        Section {
+            NavigationLink {
+                ManageProfileView()
+            } label: {
+                Label(L10n.Action.manageProfile.string, systemImage: "person.text.rectangle")
+            }
+            NavigationLink {
+                MyOffersView()
+            } label: {
+                Label(L10n.Action.myOffers.string, systemImage: "doc.text")
+            }
+            NavigationLink {
+                MyPortfolioView()
+            } label: {
+                Label(L10n.Action.myPortfolio.string, systemImage: "photo.stack")
+            }
+        }
+    }
+
+    private var jobPosterActions: some View {
+        Section {
+            NavigationLink {
+                JobListView()
+            } label: {
+                Label(L10n.Tab.jobs.string, systemImage: "briefcase")
+            }
+            NavigationLink {
+                ReceivedOffersView()
+            } label: {
+                Label(L10n.Action.receivedOffers.string, systemImage: "tray.full")
+            }
+        }
+    }
+
+    private var languageSection: some View {
+        Section(header: Text("Language")) {
+            Picker("Language", selection: Binding(
+                get: { localization.currentLanguage },
+                set: { localization.setLanguage($0) }
+            )) {
+                ForEach(AppLanguage.allCases) { language in
+                    Text(language.displayName).tag(language)
+                }
+            }
+        }
+    }
+
+    private var aboutSection: some View {
+        Section(header: Text("About")) {
+            HStack { Text("Version"); Spacer(); Text("1.0.0").foregroundStyle(.secondary) }
+            Link(destination: URL(string: "https://shaglni.com/privacy")!) {
+                HStack {
+                    Text("Privacy Policy")
+                    Spacer()
+                    Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Link(destination: URL(string: "https://shaglni.com/terms")!) {
+                HStack {
+                    Text("Terms of Service")
+                    Spacer()
+                    Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private var accountActions: some View {
+        Section {
+            Button { showLogoutAlert = true } label: {
+                HStack {
+                    Spacer()
+                    L10n.Common.logout.text.foregroundColor(.red)
+                    Spacer()
+                }
+            }
+            Button { showDeleteAlert = true } label: {
+                HStack {
+                    Spacer()
+                    L10n.Action.deleteAccount.text.foregroundColor(.red)
+                    Spacer()
+                }
             }
         }
     }
@@ -142,5 +204,5 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
 }

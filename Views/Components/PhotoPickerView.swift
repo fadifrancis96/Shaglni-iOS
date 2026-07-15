@@ -201,15 +201,21 @@ struct PhotoPickerView: View {
 struct PhotoPreviewCard: View {
     let image: UIImage
     let onRemove: () -> Void
+    @State private var showFullScreen = false
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 80, height: 80)
-                .clipped()
-                .cornerRadius(8)
+            Button(action: {
+                showFullScreen = true
+            }) {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 80, height: 80)
+                    .clipped()
+                    .cornerRadius(8)
+            }
+            .buttonStyle(PlainButtonStyle())
             
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
@@ -219,6 +225,27 @@ struct PhotoPreviewCard: View {
                     .clipShape(Circle())
             }
             .offset(x: 5, y: -5)
+        }
+        .sheet(isPresented: $showFullScreen) {
+            NavigationStack {
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .padding()
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            showFullScreen = false
+                        }
+                        .foregroundColor(.white)
+                    }
+                }
+            }
         }
     }
 }

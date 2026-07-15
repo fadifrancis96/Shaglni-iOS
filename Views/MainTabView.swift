@@ -2,18 +2,15 @@
 //  MainTabView.swift
 //  Shaglni
 //
-//  Created on October 2025
-//
 
 import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
-    
+    @EnvironmentObject var chatRepo: ChatRepository
+
     var body: some View {
         TabView {
-            // Dashboard Tab
             Group {
                 if authViewModel.isJobPoster {
                     JobPosterDashboardView()
@@ -21,43 +18,41 @@ struct MainTabView: View {
                     ContractorDashboardView()
                 }
             }
-            .tabItem {
-                Label(localization.localized("dashboard"), systemImage: "house.fill")
-            }
-            
-            // Jobs Tab
+            .tabItem { Label(L10n.Tab.dashboard.string, systemImage: "house.fill") }
+
             JobListView()
-                .tabItem {
-                    Label(localization.localized("jobs"), systemImage: "briefcase.fill")
-                }
-            
-            // Contractors Tab (Job Posters only)
+                .tabItem { Label(L10n.Tab.jobs.string, systemImage: "briefcase.fill") }
+
             if authViewModel.isJobPoster {
                 ContractorListView()
-                    .tabItem {
-                        Label(localization.localized("contractors"), systemImage: "person.3.fill")
-                    }
+                    .tabItem { Label(L10n.Tab.contractors.string, systemImage: "person.3.fill") }
             }
-            
-            // My Offers Tab (Contractors only)
+
             if authViewModel.isContractor {
                 MyOffersView()
-                    .tabItem {
-                        Label(localization.localized("myOffers"), systemImage: "doc.text.fill")
-                    }
+                    .tabItem { Label(L10n.Tab.offers.string, systemImage: "doc.text.fill") }
             }
-            
-            // Profile Tab
-            ProfileView()
+
+            ChatListView()
                 .tabItem {
-                    Label(localization.localized("profile"), systemImage: "person.fill")
+                    Label(L10n.Tab.chat.string, systemImage: "bubble.left.and.bubble.right.fill")
                 }
+                .badge(totalUnread)
+
+            ProfileView()
+                .tabItem { Label(L10n.Tab.profile.string, systemImage: "person.fill") }
         }
+    }
+
+    private var totalUnread: Int {
+        guard let uid = authViewModel.currentUser?.uid else { return 0 }
+        return chatRepo.myThreads.reduce(0) { $0 + $1.unreadCount(for: uid) }
     }
 }
 
 #Preview {
     MainTabView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(ChatRepository.shared)
 }

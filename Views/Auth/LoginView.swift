@@ -2,113 +2,162 @@
 //  LoginView.swift
 //  Shaglni
 //
-//  Created on October 2025
-//
 
 import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @Environment(\.dismiss) var dismiss
-    
+
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
-    
+    @State private var showResetSheet = false
+    @State private var resetStatus: String?
+
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
-                // Header
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 60))
-                        .foregroundColor(.blue)
-                    
-                    Text(localization.localized("welcome"))
-                        .font(.title)
-                        .fontWeight(.bold)
-                    
-                    Text(localization.localized("login"))
+                        .foregroundStyle(.tint)
+                    L10n.welcome.text
+                        .font(.title).fontWeight(.bold)
+                    L10n.Common.signIn.text
                         .font(.title3)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.top, 40)
-                
-                // Form
+
                 VStack(spacing: 20) {
-                    // Email Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("email"))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        TextField(localization.localized("email"), text: $email)
+                    LabeledField(title: L10n.Common.email.string) {
+                        TextField(L10n.Common.email.string, text: $email)
                             .textFieldStyle(.roundedBorder)
                             .textInputAutocapitalization(.never)
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                     }
-                    
-                    // Password Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("password"))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        SecureField(localization.localized("password"), text: $password)
+                    LabeledField(title: L10n.Common.password.string) {
+                        SecureField(L10n.Common.password.string, text: $password)
                             .textFieldStyle(.roundedBorder)
                     }
-                    
-                    // Error Message
-                    if let errorMessage = errorMessage {
+
+                    if let errorMessage {
                         Text(errorMessage)
                             .font(.caption)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                     }
-                    
-                    // Login Button
+
                     Button(action: handleLogin) {
                         if isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            ProgressView().progressViewStyle(.circular).tint(.white)
                         } else {
-                            Text(localization.localized("signIn"))
-                                .fontWeight(.semibold)
+                            L10n.Common.signIn.text.fontWeight(.semibold)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isFormValid ? Color.blue : Color.gray)
+                    .background(isFormValid ? Color.accentColor : Color.gray)
                     .foregroundColor(.white)
-                    .cornerRadius(12)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                     .disabled(!isFormValid || isLoading)
+
+                    Button { showResetSheet = true } label: {
+                        L10n.Action.forgotPassword.text.font(.footnote)
+                    }
                 }
                 .padding(.horizontal, 30)
-                
                 Spacer()
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showResetSheet) {
+            ResetPasswordSheet(email: email, status: $resetStatus)
+        }
     }
-    
+
     private var isFormValid: Bool {
         !email.isEmpty && !password.isEmpty && email.contains("@")
     }
-    
+
     private func handleLogin() {
         isLoading = true
         errorMessage = nil
-        
-        authViewModel.signIn(email: email, password: password) { success, error in
-            isLoading = false
-            
-            if success {
+        Task {
+            do {
+                try await authViewModel.signIn(email: email, password: password)
+                isLoading = false
                 dismiss()
-            } else {
-                errorMessage = error ?? "Login failed"
+            } catch {
+                isLoading = false
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+}
+
+/// Reusable labeled field used across the auth forms.
+struct LabeledField<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.subheadline).fontWeight(.medium)
+            content()
+        }
+    }
+}
+
+/// Password-reset sheet. Always reports a generic success so we don't leak whether
+/// the email was registered.
+struct ResetPasswordSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authViewModel: AuthViewModel
+
+    @State var email: String
+    @Binding var status: String?
+    @State private var working = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(L10n.Common.email.string, text: $email)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+                if let status {
+                    Section { Text(status).foregroundStyle(.secondary) }
+                }
+                Section {
+                    Button {
+                        working = true
+                        Task {
+                            try? await authViewModel.sendPasswordReset(to: email)
+                            status = L10n.Auth.resetEmailSent.string
+                            working = false
+                        }
+                    } label: {
+                        if working {
+                            ProgressView()
+                        } else {
+                            L10n.Action.sendResetEmail.text
+                        }
+                    }
+                    .disabled(email.isEmpty || working)
+                }
+            }
+            .navigationTitle(L10n.Action.forgotPassword.string)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.Common.cancel.string) { dismiss() }
+                }
             }
         }
     }
@@ -118,6 +167,6 @@ struct LoginView: View {
     NavigationStack {
         LoginView()
             .environmentObject(AuthViewModel())
-            .environmentObject(LocalizationManager())
+            .environmentObject(LocalizationManager.shared)
     }
 }

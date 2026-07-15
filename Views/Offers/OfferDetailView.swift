@@ -20,14 +20,11 @@ struct OfferDetailView: View {
     @State private var contractorProfile: ContractorProfile?
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var jobStatus: JobStatus = .open
     
     // Counter offer response
     @State private var showAcceptCounterConfirmation = false
     @State private var showDeclineCounterConfirmation = false
-    
-    // Job poster final approval
-    @State private var showFinalizeConfirmation = false
-    @State private var showMarkInProgressConfirmation = false
     
     // Negotiation fields
     @State private var counterPrice = ""
@@ -196,8 +193,31 @@ struct OfferDetailView: View {
                             .padding(.horizontal)
                     }
                     
-                    // Action Buttons
-                    if authViewModel.isJobPoster && offer.status == .pending {
+                    // Job Status Warning
+                    if jobStatus != .open && (offer.status == .pending || offer.status == .counterOffer) {
+                        VStack(spacing: 8) {
+                            HStack {
+                                Image(systemName: "info.circle.fill")
+                                    .foregroundColor(.orange)
+                                Text("Job Status: \(jobStatus == .inProgress ? "In Progress" : "Completed")")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.orange)
+                            }
+                            
+                            Text("This job is no longer accepting offer actions. Manage the job status from the job detail page.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding()
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(12)
+                        .padding()
+                    }
+                    
+                    // Action Buttons (only show if job is still open)
+                    if authViewModel.isJobPoster && offer.status == .pending && jobStatus == .open {
                         // Job Poster Actions for Pending Offers
                         VStack(spacing: 12) {
                             // Accept Button
@@ -243,7 +263,7 @@ struct OfferDetailView: View {
                             }
                         }
                         .padding()
-                    } else if !authViewModel.isJobPoster && offer.status == .counterOffer {
+                    } else if !authViewModel.isJobPoster && offer.status == .counterOffer && jobStatus == .open {
                         // Contractor Actions for Counter Offers
                         VStack(spacing: 12) {
                             // Counter Offer Info
@@ -305,7 +325,7 @@ struct OfferDetailView: View {
                             }
                         }
                         .padding()
-                    } else if authViewModel.isJobPoster && offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
+                    } else if authViewModel.isJobPoster && offer.status == .counterOffer && offer.contractorAcceptedCounter == true && jobStatus == .open {
                         // Job Poster Final Approval (contractor accepted counter offer)
                         VStack(spacing: 12) {
                             // Waiting info
@@ -332,7 +352,7 @@ struct OfferDetailView: View {
                                     .padding(.top, 4)
                                 }
                                 
-                                Text("Finalize this offer to proceed with the job.")
+                                Text("Accept this offer to finalize the agreement. You can manage the job status from the job detail page.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 4)
@@ -341,23 +361,23 @@ struct OfferDetailView: View {
                             .background(Color.green.opacity(0.1))
                             .cornerRadius(12)
                             
-                            // Finalize and Mark In Progress Button
-                            Button(action: { showFinalizeConfirmation = true }) {
+                            // Accept Button (to finalize the counter offer)
+                            Button(action: { showAcceptConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "checkmark.seal.fill")
-                                    Text("Finalize & Mark Job In Progress")
+                                    Text("Accept & Finalize Offer")
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.blue)
+                                .background(Color.green)
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                             }
                         }
                         .padding()
                     } else if authViewModel.isJobPoster && offer.status == .accepted {
-                        // Job Poster - Offer Accepted, option to mark in progress
+                        // Job Poster - Offer Accepted
                         VStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
@@ -379,24 +399,15 @@ struct OfferDetailView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
                                 }
+                                
+                                Text("Manage job status from the job detail page.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 4)
                             }
                             .padding()
                             .background(Color.green.opacity(0.1))
                             .cornerRadius(12)
-                            
-                            // Mark as In Progress Button
-                            Button(action: { showMarkInProgressConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "hammer.fill")
-                                    Text("Mark Job as In Progress")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
                         }
                         .padding()
                     }
@@ -418,14 +429,6 @@ struct OfferDetailView: View {
             }
             .sheet(isPresented: $showNegotiation) {
                 negotiationSheet
-            }
-            .alert("Accept Offer", isPresented: $showAcceptConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Accept") {
-                    acceptOffer()
-                }
-            } message: {
-                Text("Accept this offer for ₪\(String(format: "%.0f", offer.price))?")
             }
             .alert("Decline Offer", isPresented: $showRejectConfirmation) {
                 Button("Cancel", role: .cancel) { }
@@ -455,25 +458,26 @@ struct OfferDetailView: View {
             } message: {
                 Text("Are you sure you want to decline this counter offer? This will remove your offer completely.")
             }
-            .alert("Finalize Offer", isPresented: $showFinalizeConfirmation) {
+            .alert("Accept Offer", isPresented: $showAcceptConfirmation) {
                 Button("Cancel", role: .cancel) { }
-                Button("Finalize & Start Job") {
-                    finalizeAndStartJob()
+                Button("Accept") {
+                    // If it's a counter offer that contractor accepted, finalize it
+                    if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
+                        finalizeCounterOffer()
+                    } else {
+                        acceptOffer()
+                    }
                 }
             } message: {
-                if let counterPrice = offer.counterPrice {
-                    Text("Finalize this offer for ₪\(String(format: "%.0f", counterPrice)) and mark the job as in progress?")
+                if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
+                    if let counterPrice = offer.counterPrice {
+                        Text("Finalize this offer for ₪\(String(format: "%.0f", counterPrice))? All other offers will be automatically rejected.")
+                    } else {
+                        Text("Finalize this offer? All other offers will be automatically rejected.")
+                    }
                 } else {
-                    Text("Finalize this offer and mark the job as in progress?")
+                    Text("Accept this offer for ₪\(String(format: "%.0f", offer.price))? All other offers for this job will be automatically rejected.")
                 }
-            }
-            .alert("Mark Job In Progress", isPresented: $showMarkInProgressConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Mark In Progress") {
-                    markJobInProgress()
-                }
-            } message: {
-                Text("This will remove the job from public listings and mark it as in progress. Continue?")
             }
             .overlay {
                 if isLoading {
@@ -482,6 +486,20 @@ struct OfferDetailView: View {
                     ProgressView()
                         .scaleEffect(1.5)
                 }
+            }
+            .onAppear {
+                loadJobStatus()
+            }
+        }
+    }
+    
+    private func loadJobStatus() {
+        FirestoreService.shared.fetchJob(jobId: jobId) { result in
+            switch result {
+            case .success(let job):
+                jobStatus = job.status
+            case .failure(let error):
+                print("Error loading job status: \(error.localizedDescription)")
             }
         }
     }
@@ -587,16 +605,42 @@ struct OfferDetailView: View {
     
     private func acceptOffer() {
         guard let offerId = offer.id else { return }
-        
         isLoading = true
-        FirestoreService.shared.updateOfferStatus(jobId: jobId, offerId: offerId, status: .accepted) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await OffersRepository.shared.acceptOfferAndCloseOthers(
+                    jobId: jobId,
+                    acceptedOfferId: offerId,
+                    finalPrice: offer.price,
+                    contractorId: offer.contractorId
+                )
+                await openChatThread(finalPrice: offer.price)
+                isLoading = false
                 dismiss()
-            case .failure(let error):
+            } catch {
+                isLoading = false
                 errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    /// Create-or-update the chat thread for this job so both sides can message immediately
+    /// after acceptance. Best-effort — failures are logged but don't block dismissal.
+    private func openChatThread(finalPrice: Double) async {
+        guard let posterId = authViewModel.currentUser?.uid,
+              let posterName = authViewModel.currentUserData?.displayName else { return }
+        do {
+            let job = try await JobsRepository.shared.fetch(jobId: jobId)
+            try await ChatRepository.shared.ensureThread(
+                jobId: jobId,
+                jobTitle: job.title,
+                jobPosterId: posterId,
+                jobPosterName: posterName,
+                contractorId: offer.contractorId,
+                contractorName: offer.contractorName
+            )
+        } catch {
+            AppLogger.chat.warning("Failed to seed chat thread: \(error.localizedDescription, privacy: .public)")
         }
     }
     
@@ -668,35 +712,24 @@ struct OfferDetailView: View {
         }
     }
     
-    private func finalizeAndStartJob() {
+    private func finalizeCounterOffer() {
         guard let offerId = offer.id else { return }
         let finalPrice = offer.counterPrice ?? offer.price
-        
         isLoading = true
-        
-        // Step 1: Finalize the offer
-        FirestoreService.shared.finalizeOffer(jobId: jobId, offerId: offerId, finalPrice: finalPrice) { [self] result in
-            switch result {
-            case .success:
-                // Step 2: Mark job as in progress
-                self.markJobInProgress()
-            case .failure(let error):
-                self.isLoading = false
-                self.errorMessage = "Failed to finalize offer: \(error.localizedDescription)"
-            }
-        }
-    }
-    
-    private func markJobInProgress() {
-        isLoading = true
-        
-        FirestoreService.shared.updateJobStatus(jobId: jobId, status: .inProgress) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await OffersRepository.shared.acceptOfferAndCloseOthers(
+                    jobId: jobId,
+                    acceptedOfferId: offerId,
+                    finalPrice: finalPrice,
+                    contractorId: offer.contractorId
+                )
+                await openChatThread(finalPrice: finalPrice)
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = "Failed to mark job in progress: \(error.localizedDescription)"
+            } catch {
+                isLoading = false
+                errorMessage = error.localizedDescription
             }
         }
     }

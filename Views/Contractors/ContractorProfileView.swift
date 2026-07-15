@@ -167,52 +167,145 @@ struct ContractorProfileView: View {
     }
     
     private func loadPortfolio() {
-        guard !contractor.userId.isEmpty else {
-            print("Error: Contractor userId is empty")
-            return
-        }
-        
+        guard !contractor.userId.isEmpty else { return }
         isLoadingJobs = true
-        FirestoreService.shared.fetchCompletedJobs(contractorId: contractor.userId) { result in
-            isLoadingJobs = false
-            switch result {
-            case .success(let jobs):
-                completedJobs = jobs
-            case .failure(let error):
-                print("Error loading portfolio: \(error.localizedDescription)")
+        Task {
+            do {
+                completedJobs = try await PortfolioRepository.shared.fetchPortfolio(contractorId: contractor.userId)
+            } catch {
+                AppLogger.portfolio.warning("loadPortfolio failed: \(error.localizedDescription, privacy: .public)")
             }
+            isLoadingJobs = false
         }
     }
 }
 
 struct PortfolioItemView: View {
     let job: CompletedJob
+    @State private var selectedImageIndex: Int?
+    @State private var showFullScreen = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(job.title)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            // Title and Category
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(job.title)
+                        .font(.headline)
+                    
+                    if let category = job.category {
+                        Text(category.rawValue)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.1))
+                            .foregroundColor(.blue)
+                            .cornerRadius(6)
+                    }
+                }
+                
+                Spacer()
+                
+                if let price = job.finalPrice {
+                    Text(Money.string(price))
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
+                }
+            }
             
+            // Description
             Text(job.description)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .lineLimit(2)
             
-            if let category = job.category {
-                Text(category.rawValue)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
-                    .cornerRadius(6)
+            // Images Gallery
+            if !job.images.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        // Before/After Grid Image (if exists)
+                        if let gridURL = job.beforeAfterGridImage {
+                            PortfolioImageView(
+                                url: gridURL,
+                                label: "Before/After",
+                                onTap: {
+                                    selectedImageIndex = 0
+                                    showFullScreen = true
+                                }
+                            )
+                        }
+                        
+                        // Regular portfolio photos
+                        ForEach(Array(job.images.enumerated()), id: \.offset) { index, url in
+                            PortfolioImageView(
+                                url: url,
+                                onTap: {
+                                    let offset = job.beforeAfterGridImage != nil ? index + 1 : index
+                                    selectedImageIndex = offset
+                                    showFullScreen = true
+                                }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+            } else if job.beforeAfterGridImage != nil {
+                // Only grid image
+                PortfolioImageView(
+                    url: job.beforeAfterGridImage!,
+                    label: "Before/After",
+                    onTap: {
+                        selectedImageIndex = 0
+                        showFullScreen = true
+                    }
+                )
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemGray6))
+                .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        )
         .padding(.horizontal)
+        .sheet(isPresented: $showFullScreen) {
+            if let selectedIndex = selectedImageIndex {
+                let allImages = (job.beforeAfterGridImage != nil ? [job.beforeAfterGridImage!] : []) + job.images
+                if selectedIndex < allImages.count {
+                    FullScreenPhotoView(
+                        photoURLs: allImages,
+                        selectedIndex: selectedIndex,
+                        isPresented: $showFullScreen
+                    )
+                }
+            }
+        }
+    }
+}
+
+struct PortfolioImageView: View {
+    let url: String
+    var label: String? = nil
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            ZStack(alignment: .bottomLeading) {
+                RemoteThumbnail(urlString: url, size: 120, cornerRadius: 8)
+                if let label = label {
+                    Text(label)
+                        .font(.caption2).fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6).padding(.vertical, 3)
+                        .background(Color.black.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .padding(4)
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -271,9 +364,13 @@ struct FlowLayout: Layout {
             completedJobsCount: 45,
             contactEmail: "ahmed@example.com",
             phone: "+966 50 123 4567",
+            website: nil,
+            profilePicture: nil,
             location: "Riyadh, Saudi Arabia",
+            latitude: nil,
+            longitude: nil,
             availableForWork: true
         ))
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
     }
 }

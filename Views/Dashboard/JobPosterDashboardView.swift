@@ -11,6 +11,7 @@ struct JobPosterDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
     @State private var jobs: [Job] = []
+    @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
     @State private var showPostJob = false
     
@@ -53,6 +54,17 @@ struct JobPosterDashboardView: View {
                                 color: .green
                             )
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        NavigationLink(destination: ReceivedOffersView()) {
+                            ActionCard(
+                                title: "Received Offers",
+                                subtitle: "View offers from contractors",
+                                icon: "envelope.circle.fill",
+                                color: .purple
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .padding(.horizontal)
                     
@@ -80,6 +92,20 @@ struct JobPosterDashboardView: View {
                         )
                     }
                     .padding(.horizontal)
+                    
+                    // Offers Stats
+                    if pendingOffersCount > 0 {
+                        HStack(spacing: 16) {
+                            StatCard(
+                                title: "Pending Offers",
+                                value: "\(pendingOffersCount)",
+                                icon: "envelope.fill",
+                                color: .purple
+                            )
+                            .frame(maxWidth: .infinity)
+                        }
+                        .padding(.horizontal)
+                    }
                     
                     // Recent Jobs
                     VStack(alignment: .leading, spacing: 12) {
@@ -114,7 +140,10 @@ struct JobPosterDashboardView: View {
             .sheet(isPresented: $showPostJob) {
                 JobFormView()
             }
-            .onAppear(perform: loadJobs)
+            .onAppear {
+                loadJobs()
+                loadOffers()
+            }
         }
     }
     
@@ -130,6 +159,10 @@ struct JobPosterDashboardView: View {
         jobs.filter { $0.status == .completed }.count
     }
     
+    private var pendingOffersCount: Int {
+        offersWithJobs.filter { $0.offer.status == .pending }.count
+    }
+    
     private func loadJobs() {
         guard let userId = authViewModel.currentUser?.uid else { return }
         
@@ -143,6 +176,19 @@ struct JobPosterDashboardView: View {
             }
         }
     }
+    
+    private func loadOffers() {
+        guard let userId = authViewModel.currentUser?.uid else { return }
+        
+        FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
+            switch result {
+            case .success(let fetchedOffers):
+                offersWithJobs = fetchedOffers
+            case .failure(let error):
+                print("Error loading offers: \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
 struct ActionCard: View {
@@ -153,34 +199,45 @@ struct ActionCard: View {
     var action: (() -> Void)? = nil
     
     var body: some View {
-        Button(action: { action?() }) {
-            HStack(spacing: 16) {
-                Image(systemName: icon)
-                    .font(.system(size: 30))
-                    .foregroundColor(color)
-                    .frame(width: 50, height: 50)
-                    .background(color.opacity(0.1))
-                    .cornerRadius(10)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        Group {
+            if action != nil {
+                Button(action: action!) {
+                    cardContent
                 }
+            } else {
+                cardContent
+            }
+        }
+    }
+    
+    private var cardContent: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 30))
+                .foregroundColor(color)
+                .frame(width: 50, height: 50)
+                .background(color.opacity(0.1))
+                .cornerRadius(10)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 
-                Spacer()
-                
-                Image(systemName: "chevron.right")
+                Text(subtitle)
+                    .font(.caption)
                     .foregroundColor(.secondary)
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
         }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .contentShape(Rectangle()) // Makes entire area tappable
     }
 }
 

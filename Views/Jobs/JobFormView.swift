@@ -176,22 +176,11 @@ struct JobFormView: View {
     private func handleSubmit() {
         guard let userId = authViewModel.currentUser?.uid,
               let coordinate = selectedCoordinate else { return }
-        
+
         isSubmitting = true
         errorMessage = nil
-        
+
         let budgetValue = Double(budget)
-        
-        // Create job with or without photos
-        if !selectedImages.isEmpty {
-            uploadPhotosAndCreateJob(userId: userId, coordinate: coordinate, budgetValue: budgetValue)
-        } else {
-            createJobWithoutPhotos(userId: userId, coordinate: coordinate, budgetValue: budgetValue)
-        }
-    }
-    
-    private func uploadPhotosAndCreateJob(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
-        // First create the job to get the actual job ID
         let job = Job(
             title: title,
             description: description,
@@ -203,47 +192,36 @@ struct JobFormView: View {
             status: .open,
             category: selectedCategory,
             budget: budgetValue,
-            photoURLs: nil // Will be updated after photo upload
+            photoURLs: nil
         )
-        
-        FirestoreService.shared.createJob(job) { result in
-            switch result {
-            case .success(let jobId):
-                // Now upload photos with the actual job ID
-                PhotoUploadService.shared.uploadJobRequirementPhotos(jobId: jobId, photos: self.selectedImages) { photoResult in
-                    switch photoResult {
-                    case .success(let photoURLs):
-                        // Update the job with photo URLs
-                        self.updateJobWithPhotos(jobId: jobId, photoURLs: photoURLs)
-                    case .failure(let error):
-                        self.isSubmitting = false
-                        self.errorMessage = "Failed to upload photos: \(error.localizedDescription)"
+
+        Task {
+            do {
+                let jobId = try await JobsRepository.shared.create(job)
+
+                if !selectedImages.isEmpty {
+                    let urls = try await PhotoUploadService.shared.uploadJobRequirementPhotos(
+                        jobId: jobId,
+                        images: selectedImages
+                    )
+                    if !urls.isEmpty {
+                        try await JobsRepository.shared.attachPhotoURLs(jobId: jobId, urls: urls)
                     }
                 }
-            case .failure(let error):
-                self.isSubmitting = false
-                self.errorMessage = error.localizedDescription
+
+                await MainActor.run {
+                    isSubmitting = false
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    isSubmitting = false
+                    errorMessage = error.localizedDescription
+                }
             }
         }
     }
-    
-    private func updateJobWithPhotos(jobId: String, photoURLs: [String]) {
-        // Update the job document with photo URLs
-        let db = Firestore.firestore()
-        let updateData: [String: Any] = photoURLs.isEmpty ? 
-            ["photoURLs": NSNull()] : 
-            ["photoURLs": photoURLs]
-        
-        db.collection("jobs").document(jobId).updateData(updateData) { error in
-            self.isSubmitting = false
-            if let error = error {
-                self.errorMessage = "Failed to update job with photos: \(error.localizedDescription)"
-            } else {
-                self.dismiss()
-            }
-        }
-    }
-    
+
     private func createJobWithoutPhotos(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
         let job = Job(
             title: title,

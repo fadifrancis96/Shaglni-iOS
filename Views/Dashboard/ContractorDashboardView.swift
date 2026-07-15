@@ -36,6 +36,16 @@ struct ContractorDashboardView: View {
                     
                     // Quick Actions
                     VStack(spacing: 16) {
+                        NavigationLink(destination: MyActiveJobsView()) {
+                            ActionCard(
+                                title: "My Active Jobs",
+                                subtitle: "View your in-progress jobs",
+                                icon: "hammer.fill",
+                                color: .orange
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
                         NavigationLink(destination: JobListView()) {
                             ActionCard(
                                 title: localization.localized("browseJobs"),
@@ -44,6 +54,17 @@ struct ContractorDashboardView: View {
                                 color: .blue
                             )
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        NavigationLink(destination: MyPortfolioView()) {
+                            ActionCard(
+                                title: "My Portfolio",
+                                subtitle: "Manage your completed jobs",
+                                icon: "photo.stack.fill",
+                                color: .purple
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                         
                         NavigationLink(destination: ManageProfileView()) {
                             ActionCard(
@@ -53,6 +74,7 @@ struct ContractorDashboardView: View {
                                 color: .green
                             )
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .padding(.horizontal)
                     

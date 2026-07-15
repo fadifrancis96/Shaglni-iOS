@@ -53,24 +53,36 @@ struct ContractorProfile: Identifiable, Codable {
 struct CompletedJob: Identifiable, Codable {
     @DocumentID var id: String?
     var contractorId: String
+    var jobId: String?  // Reference to original job
     var title: String
     var description: String
     var completedDate: Date
     var clientName: String?
     var category: JobCategory?
-    var images: [String]
+    var images: [String]  // All job photos
+    var beforeAfterGridImage: String?  // Generated before/after grid
+    var beforePhotoIndex: Int?  // Index of selected "before" photo
+    var afterPhotoIndex: Int?  // Index of selected "after" photo
+    var finalPrice: Double?  // Price from the accepted offer
+    var location: String?  // Job location
     var rating: Double?
     var review: String?
     
     enum CodingKeys: String, CodingKey {
         case id
         case contractorId
+        case jobId
         case title
         case description
         case completedDate
         case clientName
         case category
         case images
+        case beforeAfterGridImage
+        case beforePhotoIndex
+        case afterPhotoIndex
+        case finalPrice
+        case location
         case rating
         case review
     }

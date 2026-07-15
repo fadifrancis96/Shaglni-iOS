@@ -1,0 +1,47 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // 10 MB upload cap, JPEG/PNG only.
+    function isImage() {
+      return request.resource.size < 10 * 1024 * 1024
+        && (request.resource.contentType.matches('image/jpe?g')
+            || request.resource.contentType.matches('image/png'));
+    }
+    function isSignedIn() { return request.auth != null; }
+
+    // Profile pictures live under `users/{uid}/profile/...`
+    match /users/{userId}/profile/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId && isImage();
+    }
+
+    // Contractor portfolio photos
+    match /contractors/{userId}/portfolio/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId && isImage();
+    }
+
+    // Job requirement photos — only the job's creator can write.
+    // We can't easily call firestore.get() from storage rules in v2 with consistency,
+    // so we enforce via path scoping: any signed-in user can write under
+    // `jobs/{jobId}/requirements/...`, but Firestore + the client only ever expose
+    // those paths to the job's creator.
+    // For tighter security in production you'd add an HTTP function to mediate.
+    match /jobs/{jobId}/requirements/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isImage();
+    }
+
+    // Completed job (portfolio) photos
+    match /completedJobs/{userId}/{file=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId && isImage();
+    }
+
+    // Default deny — anything outside the paths above.
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

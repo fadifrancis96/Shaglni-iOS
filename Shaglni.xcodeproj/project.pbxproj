@@ -28,6 +28,11 @@
 		5D1699F42E929FFE00AC53B4 /* MyOffersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */; };
 		5D1699F52E929FFE00AC53B4 /* OfferCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CD2E929FFE00AC53B4 /* OfferCardView.swift */; };
 		5DA4C08B2E93FF9900AC53B4 /* OfferDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */; };
+		5DA4C0932E93FF9900AC53B4 /* ReceivedOffersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C0942E93FF9900AC53B4 /* ReceivedOffersView.swift */; };
+		5DA4C0952E93FF9900AC53B4 /* MyActiveJobsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C0962E93FF9900AC53B4 /* MyActiveJobsView.swift */; };
+		5DA4C0972E93FF9900AC53B4 /* ActiveJobDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C0982E93FF9900AC53B4 /* ActiveJobDetailView.swift */; };
+		5DA4C0992E93FF9900AC53B4 /* JobCompletionPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C09A2E93FF9900AC53B4 /* JobCompletionPreviewView.swift */; };
+		5DA4C09B2E93FF9900AC53B4 /* MyPortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C09C2E93FF9900AC53B4 /* MyPortfolioView.swift */; };
 		5D1699F62E929FFE00AC53B4 /* JobCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699CC2E929FFE00AC53B4 /* JobCardView.swift */; };
 		5DA4C08D2E93FF9900AC53B4 /* PhotoUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C08E2E93FF9900AC53B4 /* PhotoUploadService.swift */; };
 		5DA4C08F2E93FF9900AC53B4 /* PhotoPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA4C0902E93FF9900AC53B4 /* PhotoPickerView.swift */; };
@@ -38,12 +43,10 @@
 		5D1699FA2E929FFE00AC53B4 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */; };
 		5D1699FB2E929FFE00AC53B4 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C62E929FFE00AC53B4 /* AuthViewModel.swift */; };
 		5D1699FC2E929FFE00AC53B4 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699DF2E929FFE00AC53B4 /* ProfileView.swift */; };
-		5D1699FD2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 5D1699BB2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md */; };
 		5D169A022E92A36A00AC53B4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5D169A012E92A36A00AC53B4 /* GoogleService-Info.plist */; };
 		5D169A052E92A3EB00AC53B4 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5D169A042E92A3EB00AC53B4 /* FirebaseAuth */; };
 		5D169A072E92A3FC00AC53B4 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5D169A062E92A3FC00AC53B4 /* FirebaseFirestore */; };
 		5D169A092E92A40300AC53B4 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5D169A082E92A40300AC53B4 /* FirebaseStorage */; };
-		5DA4C0872E93FCAC0044B045 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 5DA4C0862E93FCAC0044B045 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,7 +71,6 @@
 		5D16999D2E929FCF00AC53B4 /* ShaglniTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShaglniTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D1699A72E929FCF00AC53B4 /* ShaglniUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShaglniUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D1699BA2E929FFE00AC53B4 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		5D1699BB2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = IMPLEMENTATION_GUIDE.md; sourceTree = "<group>"; };
 		5D1699BC2E929FFE00AC53B4 /* ContractorProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractorProfile.swift; sourceTree = "<group>"; };
 		5D1699BD2E929FFE00AC53B4 /* Job.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Job.swift; sourceTree = "<group>"; };
 		5D1699BE2E929FFE00AC53B4 /* Offer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Offer.swift; sourceTree = "<group>"; };
@@ -94,6 +96,11 @@
 		5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyOffersView.swift; sourceTree = "<group>"; };
 		5D1699DC2E929FFE00AC53B4 /* OfferFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferFormView.swift; sourceTree = "<group>"; };
 		5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferDetailView.swift; sourceTree = "<group>"; };
+		5DA4C0942E93FF9900AC53B4 /* ReceivedOffersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceivedOffersView.swift; sourceTree = "<group>"; };
+		5DA4C0962E93FF9900AC53B4 /* MyActiveJobsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyActiveJobsView.swift; sourceTree = "<group>"; };
+		5DA4C0982E93FF9900AC53B4 /* ActiveJobDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveJobDetailView.swift; sourceTree = "<group>"; };
+		5DA4C09A2E93FF9900AC53B4 /* JobCompletionPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobCompletionPreviewView.swift; sourceTree = "<group>"; };
+		5DA4C09C2E93FF9900AC53B4 /* MyPortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPortfolioView.swift; sourceTree = "<group>"; };
 		5DA4C08E2E93FF9900AC53B4 /* PhotoUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoUploadService.swift; sourceTree = "<group>"; };
 		5DA4C0902E93FF9900AC53B4 /* PhotoPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPickerView.swift; sourceTree = "<group>"; };
 		5DA4C0922E93FF9900AC53B4 /* PhotoGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGalleryView.swift; sourceTree = "<group>"; };
@@ -138,7 +145,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5DA4C0872E93FCAC0044B045 /* FirebaseMessaging in Frameworks */,
 				5D169A052E92A3EB00AC53B4 /* FirebaseAuth in Frameworks */,
 				5D169A072E92A3FC00AC53B4 /* FirebaseFirestore in Frameworks */,
 				5D169A092E92A40300AC53B4 /* FirebaseStorage in Frameworks */,
@@ -166,7 +172,6 @@
 			isa = PBXGroup;
 			children = (
 				5D1699BA2E929FFE00AC53B4 /* ContentView.swift */,
-				5D1699BB2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md */,
 				5D169A012E92A36A00AC53B4 /* GoogleService-Info.plist */,
 				5D1699C02E929FFE00AC53B4 /* Models */,
 				5D1699C42E929FFE00AC53B4 /* Services */,
@@ -267,6 +272,10 @@
 				5D1699D72E929FFE00AC53B4 /* JobFormView.swift */,
 				5D1699D82E929FFE00AC53B4 /* JobListView.swift */,
 				5D1699D92E929FFE00AC53B4 /* JobMapView.swift */,
+				5DA4C0962E93FF9900AC53B4 /* MyActiveJobsView.swift */,
+				5DA4C0982E93FF9900AC53B4 /* ActiveJobDetailView.swift */,
+				5DA4C09A2E93FF9900AC53B4 /* JobCompletionPreviewView.swift */,
+				5DA4C09C2E93FF9900AC53B4 /* MyPortfolioView.swift */,
 			);
 			path = Jobs;
 			sourceTree = "<group>";
@@ -277,6 +286,7 @@
 				5D1699DB2E929FFE00AC53B4 /* MyOffersView.swift */,
 				5D1699DC2E929FFE00AC53B4 /* OfferFormView.swift */,
 				5DA4C08C2E93FF9900AC53B4 /* OfferDetailView.swift */,
+				5DA4C0942E93FF9900AC53B4 /* ReceivedOffersView.swift */,
 			);
 			path = Offers;
 			sourceTree = "<group>";
@@ -326,7 +336,6 @@
 				5D169A042E92A3EB00AC53B4 /* FirebaseAuth */,
 				5D169A062E92A3FC00AC53B4 /* FirebaseFirestore */,
 				5D169A082E92A40300AC53B4 /* FirebaseStorage */,
-				5DA4C0862E93FCAC0044B045 /* FirebaseMessaging */,
 			);
 			productName = Shaglni;
 			productReference = 5D1699902E929FCA00AC53B4 /* Shaglni.app */;
@@ -431,7 +440,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D169A022E92A36A00AC53B4 /* GoogleService-Info.plist in Resources */,
-				5D1699FD2E929FFE00AC53B4 /* IMPLEMENTATION_GUIDE.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +485,11 @@
 				5D1699F42E929FFE00AC53B4 /* MyOffersView.swift in Sources */,
 				5D1699F52E929FFE00AC53B4 /* OfferCardView.swift in Sources */,
 				5DA4C08B2E93FF9900AC53B4 /* OfferDetailView.swift in Sources */,
+				5DA4C0932E93FF9900AC53B4 /* ReceivedOffersView.swift in Sources */,
+				5DA4C0952E93FF9900AC53B4 /* MyActiveJobsView.swift in Sources */,
+				5DA4C0972E93FF9900AC53B4 /* ActiveJobDetailView.swift in Sources */,
+				5DA4C0992E93FF9900AC53B4 /* JobCompletionPreviewView.swift in Sources */,
+				5DA4C09B2E93FF9900AC53B4 /* MyPortfolioView.swift in Sources */,
 				5D1699F62E929FFE00AC53B4 /* JobCardView.swift in Sources */,
 				5DA4C08D2E93FF9900AC53B4 /* PhotoUploadService.swift in Sources */,
 				5DA4C08F2E93FF9900AC53B4 /* PhotoPickerView.swift in Sources */,
@@ -832,11 +845,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
-		};
-		5DA4C0862E93FCAC0044B045 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5D1699FE2E92A28900AC53B4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -46,10 +46,10 @@ struct JobCardView: View {
             // Budget and Date
             HStack {
                 if let budget = job.budget {
-                    Text("$\(Int(budget))")
+                    Text(Money.string(budget))
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.accentColor)
                 }
                 
                 Spacer()

@@ -2,8 +2,6 @@
 //  ShaglniApp.swift
 //  Shaglni
 //
-//  Created on October 2025
-//
 
 import SwiftUI
 import FirebaseCore
@@ -11,21 +9,40 @@ import FirebaseCore
 @main
 struct ShaglniApp: App {
     @StateObject private var authViewModel = AuthViewModel()
-    @StateObject private var localization = LocalizationManager()
-    
+    @StateObject private var localization  = LocalizationManager.shared
+    @StateObject private var jobsRepo      = JobsRepository.shared
+    @StateObject private var offersRepo    = OffersRepository.shared
+    @StateObject private var contractorsRepo = ContractorsRepository.shared
+    @StateObject private var portfolioRepo = PortfolioRepository.shared
+    @StateObject private var chatRepo      = ChatRepository.shared
+
     init() {
-        // Configure Firebase
         FirebaseApp.configure()
-        
-        // TODO: Uncomment when you add FirebaseMessaging to enable push notifications
-        // PushNotificationService.shared.registerForPushNotifications()
+        Self.configureImageCache()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authViewModel)
                 .environmentObject(localization)
+                .environmentObject(jobsRepo)
+                .environmentObject(offersRepo)
+                .environmentObject(contractorsRepo)
+                .environmentObject(portfolioRepo)
+                .environmentObject(chatRepo)
+                .appLanguageDirection(localization)
         }
+    }
+
+    /// Larger URLCache so `AsyncImage` (and our `RemoteImage` wrapper) can satisfy most
+    /// portfolio/job thumbnails out of memory or disk without re-fetching.
+    private static func configureImageCache() {
+        let cache = URLCache(
+            memoryCapacity: 50 * 1024 * 1024,
+            diskCapacity:   200 * 1024 * 1024,
+            diskPath:       "shaglni_images"
+        )
+        URLCache.shared = cache
     }
 }

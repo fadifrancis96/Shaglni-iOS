@@ -65,36 +65,11 @@ struct PhotoGalleryView: View {
 struct PhotoThumbnailView: View {
     let url: String
     let onTap: (() -> Void)?
-    
-    @State private var image: UIImage?
-    @State private var isLoading = true
-    @State private var loadError = false
-    
+
     var body: some View {
         Button(action: onTap ?? {}) {
             ZStack {
-                // Placeholder
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemGray5))
-                    .frame(width: 80, height: 80)
-                
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                } else if let image = image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 80, height: 80)
-                        .clipped()
-                        .cornerRadius(8)
-                } else if loadError {
-                    Image(systemName: "photo")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Tap indicator
+                RemoteThumbnail(urlString: url, size: 80, cornerRadius: 8)
                 if onTap != nil {
                     VStack {
                         Spacer()
@@ -113,29 +88,6 @@ struct PhotoThumbnailView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-        .onAppear {
-            loadImage()
-        }
-    }
-    
-    private func loadImage() {
-        guard let imageURL = URL(string: url) else {
-            loadError = true
-            isLoading = false
-            return
-        }
-        
-        URLSession.shared.dataTask(with: imageURL) { data, response, error in
-            DispatchQueue.main.async {
-                isLoading = false
-                
-                if let data = data, let loadedImage = UIImage(data: data) {
-                    image = loadedImage
-                } else {
-                    loadError = true
-                }
-            }
-        }.resume()
     }
 }
 
@@ -143,83 +95,39 @@ struct FullScreenPhotoView: View {
     let photoURLs: [String]
     let selectedIndex: Int
     @Binding var isPresented: Bool
-    
+
     @State private var currentIndex: Int
-    @State private var images: [UIImage?] = []
-    @State private var isLoading = true
-    
+
     init(photoURLs: [String], selectedIndex: Int, isPresented: Binding<Bool>) {
         self.photoURLs = photoURLs
         self.selectedIndex = selectedIndex
         self._isPresented = isPresented
         self._currentIndex = State(initialValue: selectedIndex)
-        self._images = State(initialValue: Array(repeating: nil, count: photoURLs.count))
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
-                
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .foregroundColor(.white)
-                } else {
-                    TabView(selection: $currentIndex) {
-                        ForEach(Array(photoURLs.enumerated()), id: \.offset) { index, url in
-                            if let image = images[index] {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .tag(index)
-                            } else {
-                                Color.gray
-                                    .overlay(
-                                        Image(systemName: "photo")
-                                            .font(.largeTitle)
-                                            .foregroundColor(.white)
-                                    )
-                                    .tag(index)
-                            }
+                TabView(selection: $currentIndex) {
+                    ForEach(Array(photoURLs.enumerated()), id: \.offset) { index, url in
+                        RemoteImage(urlString: url) { image in
+                            image.resizable().aspectRatio(contentMode: .fit)
                         }
+                        .tag(index)
                     }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-                    .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
                 }
+                .tabViewStyle(.page(indexDisplayMode: .always))
+                .indexViewStyle(.page(backgroundDisplayMode: .always))
             }
-            .navigationTitle("Photo \(currentIndex + 1) of \(photoURLs.count)")
+            .navigationTitle("\(currentIndex + 1) / \(photoURLs.count)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        isPresented = false
-                    }
-                    .foregroundColor(.white)
+                    Button(L10n.Common.done.string) { isPresented = false }
+                        .foregroundColor(.white)
                 }
             }
-            .onAppear {
-                loadImages()
-            }
-        }
-    }
-    
-    private func loadImages() {
-        for (index, url) in photoURLs.enumerated() {
-            guard let imageURL = URL(string: url) else { continue }
-            
-            URLSession.shared.dataTask(with: imageURL) { data, response, error in
-                DispatchQueue.main.async {
-                    if let data = data, let image = UIImage(data: data) {
-                        images[index] = image
-                    }
-                    
-                    // Check if all images are loaded
-                    if images.allSatisfy({ $0 != nil }) {
-                        isLoading = false
-                    }
-                }
-            }.resume()
         }
     }
 }

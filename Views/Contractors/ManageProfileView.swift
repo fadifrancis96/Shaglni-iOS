@@ -2,19 +2,19 @@
 //  ManageProfileView.swift
 //  Shaglni
 //
-//  Created on October 2025
-//
 
 import SwiftUI
+import PhotosUI
 
 struct ManageProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var contractorsRepo: ContractorsRepository
+
     @State private var profile: ContractorProfile?
     @State private var isLoading = true
     @State private var isEditing = false
-    
-    // Form fields
+
     @State private var bio = ""
     @State private var skills: [String] = []
     @State private var newSkill = ""
@@ -24,7 +24,12 @@ struct ManageProfileView: View {
     @State private var location = ""
     @State private var availableForWork = true
     @State private var isSaving = false
-    
+
+    // Profile-picture state
+    @State private var pickedItem: PhotosPickerItem?
+    @State private var isUploadingPic = false
+    @State private var picUploadError: String?
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -34,15 +39,7 @@ struct ManageProfileView: View {
                         .padding()
                 } else {
                     VStack(spacing: 24) {
-                        // Profile Picture
-                        Circle()
-                            .fill(Color.blue.opacity(0.2))
-                            .frame(width: 100, height: 100)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(.blue)
-                            )
+                        profilePictureAvatar
                             .padding(.top)
                         
                         if isEditing {
@@ -210,16 +207,80 @@ struct ManageProfileView: View {
     
     private func loadProfile() {
         guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchContractorProfile(userId: userId) { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedProfile):
-                profile = fetchedProfile
-                populateFields(from: fetchedProfile)
-            case .failure(let error):
-                print("Error loading profile: \(error.localizedDescription)")
+        Task {
+            do {
+                let fetched = try await contractorsRepo.fetchProfile(userId: userId)
+                profile = fetched
+                populateFields(from: fetched)
+            } catch {
+                AppLogger.contractors.warning("loadProfile failed: \(error.localizedDescription, privacy: .public)")
             }
+            isLoading = false
+        }
+    }
+
+    @ViewBuilder
+    private var profilePictureAvatar: some View {
+        PhotosPicker(selection: $pickedItem, matching: .images) {
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if let url = profile?.profilePicture {
+                        RemoteImage(urlString: url) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        }
+                    } else {
+                        Circle()
+                            .fill(Color.accentColor.opacity(0.2))
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.accentColor)
+                            )
+                    }
+                }
+                .frame(width: 100, height: 100)
+                .clipShape(Circle())
+
+                Circle()
+                    .fill(Color.accentColor)
+                    .frame(width: 30, height: 30)
+                    .overlay(
+                        Group {
+                            if isUploadingPic {
+                                ProgressView().tint(.white).controlSize(.small)
+                            } else {
+                                Image(systemName: "camera.fill").foregroundColor(.white).font(.caption)
+                            }
+                        }
+                    )
+            }
+        }
+        .onChange(of: pickedItem) { _, newItem in
+            guard let newItem else { return }
+            Task { await uploadPickedPicture(item: newItem) }
+        }
+        if let picUploadError {
+            Text(picUploadError).font(.caption).foregroundColor(.red)
+        }
+    }
+
+    private func uploadPickedPicture(item: PhotosPickerItem) async {
+        guard let userId = authViewModel.currentUser?.uid else { return }
+        isUploadingPic = true
+        defer { isUploadingPic = false }
+        do {
+            guard let data = try await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else {
+                picUploadError = "Couldn't read image"
+                return
+            }
+            let url = try await PhotoUploadService.shared.uploadProfilePicture(userId: userId, image: image)
+            try await contractorsRepo.updateProfilePictureURL(userId: userId, urlString: url)
+            // Reflect locally so the UI updates instantly while the listener catches up.
+            if var p = profile { p.profilePicture = url; profile = p }
+            picUploadError = nil
+        } catch {
+            picUploadError = error.localizedDescription
         }
     }
     
@@ -248,9 +309,8 @@ struct ManageProfileView: View {
     private func saveProfile() {
         guard let userId = authViewModel.currentUser?.uid,
               let userName = authViewModel.currentUserData?.displayName else { return }
-        
+
         isSaving = true
-        
         let updatedProfile = ContractorProfile(
             userId: userId,
             displayName: userName,
@@ -261,19 +321,22 @@ struct ManageProfileView: View {
             contactEmail: contactEmail.isEmpty ? nil : contactEmail,
             phone: phone.isEmpty ? nil : phone,
             website: website.isEmpty ? nil : website,
+            profilePicture: profile?.profilePicture,
             location: location.isEmpty ? nil : location,
+            latitude: profile?.latitude,
+            longitude: profile?.longitude,
             availableForWork: availableForWork
         )
-        
-        FirestoreService.shared.updateContractorProfile(updatedProfile) { result in
-            isSaving = false
-            switch result {
-            case .success:
+
+        Task {
+            do {
+                try await contractorsRepo.upsertProfile(updatedProfile)
                 profile = updatedProfile
                 isEditing = false
-            case .failure(let error):
-                print("Error saving profile: \(error.localizedDescription)")
+            } catch {
+                AppLogger.contractors.error("save profile failed: \(error.localizedDescription, privacy: .public)")
             }
+            isSaving = false
         }
     }
 }
@@ -281,5 +344,6 @@ struct ManageProfileView: View {
 #Preview {
     ManageProfileView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(ContractorsRepository.shared)
 }

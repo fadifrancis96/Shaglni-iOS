@@ -2,149 +2,197 @@
 //  AuthViewModel.swift
 //  Shaglni
 //
-//  Created on October 2025
-//
 
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
-import Combine
+import FirebaseStorage
 
-class AuthViewModel: ObservableObject {
-    @Published var currentUser: FirebaseAuth.User?
-    @Published var currentUserData: UserData?
-    @Published var isLoading = true
+/// Single source of truth for the signed-in user and their role.
+/// Owns Firestore listeners on Jobs/Offers/Contractors that depend on identity, so
+/// switching accounts cleanly re-targets the live data.
+@MainActor
+final class AuthViewModel: ObservableObject {
+    @Published private(set) var currentUser: FirebaseAuth.User?
+    @Published private(set) var currentUserData: UserData?
+    @Published private(set) var isBootstrapping = true
     @Published var errorMessage: String?
-    
-    private var cancellables = Set<AnyCancellable>()
+
     private let db = Firestore.firestore()
-    
+    private var authHandle: AuthStateDidChangeListenerHandle?
+    private var userDocListener: ListenerRegistration?
+
     init() {
-        setupAuthStateListener()
+        observeAuthState()
     }
-    
-    private func setupAuthStateListener() {
-        _ = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            self?.currentUser = user
-            if let user = user {
-                self?.fetchUserData(userId: user.uid)
-                // Save FCM token when user logs in
-                // TODO: Uncomment after adding FirebaseMessaging package to Xcode
-                // if let fcmToken = PushNotificationService.shared.fcmToken {
-                //     PushNotificationService.shared.saveFCMToken(userId: user.uid, token: fcmToken)
-                // }
-            } else {
-                self?.currentUserData = nil
-                self?.isLoading = false
+
+    deinit { if let authHandle { Auth.auth().removeStateDidChangeListener(authHandle) } }
+
+    var isJobPoster:   Bool { currentUserData?.role == .jobPoster }
+    var isContractor:  Bool { currentUserData?.role == .contractor }
+    var isAuthenticated: Bool { currentUser != nil }
+    /// True only after we know the user AND their role document. Use this to gate the main UI.
+    var isReady: Bool { currentUser != nil && currentUserData != nil }
+
+    // MARK: - Auth state
+
+    private func observeAuthState() {
+        authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            guard let self else { return }
+            Task { @MainActor in
+                await self.handleAuthChange(user: user)
             }
         }
     }
-    
-    private func fetchUserData(userId: String) {
-        db.collection("users").document(userId).getDocument { [weak self] snapshot, error in
-            if let error = error {
-                print("Error fetching user data: \(error.localizedDescription)")
-                self?.isLoading = false
-                return
-            }
-            
-            if let snapshot = snapshot, snapshot.exists {
-                do {
-                    self?.currentUserData = try snapshot.data(as: UserData.self)
-                } catch {
-                    print("Error decoding user data: \(error.localizedDescription)")
+
+    private func handleAuthChange(user: FirebaseAuth.User?) async {
+        currentUser = user
+        userDocListener?.remove()
+        userDocListener = nil
+
+        guard let user else {
+            currentUserData = nil
+            isBootstrapping = false
+            stopAllListeners()
+            return
+        }
+
+        // Live user document so role / displayName changes propagate.
+        userDocListener = db.collection("users").document(user.uid)
+            .addSnapshotListener { [weak self] snap, error in
+                guard let self else { return }
+                Task { @MainActor in
+                    if let error = error {
+                        AppLogger.auth.error("user doc listener: \(error.localizedDescription, privacy: .public)")
+                    }
+                    if let snap, snap.exists {
+                        self.currentUserData = try? snap.data(as: UserData.self)
+                    }
+                    self.isBootstrapping = false
+                    self.startListenersForRole()
                 }
             }
-            self?.isLoading = false
+    }
+
+    private func startListenersForRole() {
+        guard let uid = currentUser?.uid, let role = currentUserData?.role else { return }
+        switch role {
+        case .jobPoster:
+            JobsRepository.shared.observePostedJobs(by: uid)
+        case .contractor:
+            JobsRepository.shared.observeOpenJobs()
+            JobsRepository.shared.observeActiveJobs(for: uid)
+            OffersRepository.shared.observeMyOffers(contractorId: uid)
+            ContractorsRepository.shared.observeMyProfile(userId: uid)
+            PortfolioRepository.shared.observeMyPortfolio(contractorId: uid)
+        }
+        ChatRepository.shared.observeThreads(for: uid)
+        ContractorsRepository.shared.observeAllContractors()
+    }
+
+    private func stopAllListeners() {
+        JobsRepository.shared.stopAll()
+        OffersRepository.shared.stopObservingMyOffers()
+        ContractorsRepository.shared.stopAll()
+        PortfolioRepository.shared.stopObservingMyPortfolio()
+        ChatRepository.shared.stopObservingThreads()
+    }
+
+    // MARK: - Sign in / sign up
+
+    func signIn(email: String, password: String) async throws {
+        do {
+            _ = try await Auth.auth().signIn(withEmail: email, password: password)
+        } catch {
+            throw AppError.network(error.localizedDescription)
         }
     }
-    
-    func signIn(email: String, password: String, completion: @escaping (Bool, String?) -> Void) {
-        Auth.auth().signIn(withEmail: email, password: password) { result, error in
-            if let error = error {
-                completion(false, error.localizedDescription)
-                return
-            }
-            completion(true, nil)
-        }
-    }
-    
-    func signUp(email: String, password: String, displayName: String, role: UserRole, completion: @escaping (Bool, String?) -> Void) {
-        Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
-            if let error = error {
-                completion(false, error.localizedDescription)
-                return
-            }
-            
-            guard let userId = result?.user.uid else {
-                completion(false, "Failed to get user ID")
-                return
-            }
-            
-            // Create user document in Firestore
-            let userData = UserData(
-                id: userId,
+
+    func signUp(email: String, password: String, displayName: String, role: UserRole) async throws {
+        do {
+            let result = try await Auth.auth().createUser(withEmail: email, password: password)
+            try await result.user.sendEmailVerification()
+
+            let user = UserData(
+                id: result.user.uid,
                 email: email,
                 displayName: displayName,
                 role: role,
                 createdAt: Date()
             )
-            
-            do {
-                try self?.db.collection("users").document(userId).setData(from: userData) { error in
-                    if let error = error {
-                        completion(false, error.localizedDescription)
-                        return
-                    }
-                    
-                    // If contractor, create profile
-                    if role == .contractor {
-                        self?.createInitialContractorProfile(userId: userId, displayName: displayName)
-                    }
-                    
-                    completion(true, nil)
-                }
-            } catch {
-                completion(false, error.localizedDescription)
+            try db.collection("users").document(result.user.uid).setData(from: user)
+
+            if role == .contractor {
+                let profile = ContractorProfile(
+                    userId: result.user.uid,
+                    displayName: displayName,
+                    bio: "",
+                    skills: [],
+                    rating: nil,
+                    completedJobsCount: 0,
+                    availableForWork: true
+                )
+                try await ContractorsRepository.shared.upsertProfile(profile)
             }
-        }
-    }
-    
-    private func createInitialContractorProfile(userId: String, displayName: String) {
-        let profile = ContractorProfile(
-            userId: userId,
-            displayName: displayName,
-            bio: "",
-            skills: [],
-            rating: nil,
-            completedJobsCount: 0,
-            availableForWork: true
-        )
-        
-        do {
-            try db.collection("contractorProfiles").document(userId).setData(from: profile)
         } catch {
-            print("Error creating contractor profile: \(error.localizedDescription)")
+            throw AppError.network(error.localizedDescription)
         }
     }
-    
+
     func signOut() {
-        // Remove FCM token before signing out
-        // TODO: Uncomment after adding FirebaseMessaging package to Xcode
-        // if let userId = currentUser?.uid {
-        //     PushNotificationService.shared.removeFCMToken(userId: userId)
-        // }
-        
         try? Auth.auth().signOut()
-        currentUser = nil
-        currentUserData = nil
     }
-    
-    var isJobPoster: Bool {
-        currentUserData?.role == .jobPoster
+
+    // MARK: - Password reset
+
+    func sendPasswordReset(to email: String) async throws {
+        do {
+            try await Auth.auth().sendPasswordReset(withEmail: email)
+        } catch {
+            // For privacy we still surface a generic success message in the UI.
+            AppLogger.auth.error("password reset failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
-    
-    var isContractor: Bool {
-        currentUserData?.role == .contractor
+
+    // MARK: - Email verification
+
+    var isEmailVerified: Bool { currentUser?.isEmailVerified ?? false }
+
+    func resendVerificationEmail() async throws {
+        try await currentUser?.sendEmailVerification()
+    }
+
+    func reloadVerificationStatus() async {
+        try? await currentUser?.reload()
+        objectWillChange.send()
+    }
+
+    // MARK: - Account deletion
+
+    /// Best-effort delete: removes Firestore docs the user authored, then the auth user.
+    /// Storage files are tied to security rules — Firebase deletes them automatically
+    /// only if a Cloud Function listens for `users/{uid}` removals.
+    func deleteAccount() async throws {
+        guard let user = currentUser else { throw AppError.notAuthenticated }
+        let uid = user.uid
+
+        // 1. Remove user-owned Firestore documents we know about.
+        try? await db.collection("contractorProfiles").document(uid).delete()
+
+        let postedJobs = try await db.collection("jobs").whereField("createdBy", isEqualTo: uid).getDocuments()
+        for doc in postedJobs.documents {
+            try? await JobsRepository.shared.delete(jobId: doc.documentID)
+        }
+
+        try? await db.collection("users").document(uid).delete()
+
+        // 2. Delete the Firebase Auth account.
+        do {
+            try await user.delete()
+        } catch {
+            // Most common reason: requires recent login. Surface to caller so they can
+            // re-prompt the password and retry.
+            throw AppError.network(error.localizedDescription)
+        }
     }
 }
