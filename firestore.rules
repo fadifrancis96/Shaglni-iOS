@@ -19,12 +19,27 @@ service cloud.firestore {
       return isSignedIn()
         && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds;
     }
+    // Keys the incoming write actually changes.
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
 
     // ---------- users ----------
     match /users/{userId} {
-      allow read:   if isSelf(userId);
-      // displayName/email/role/createdAt set by client; we don't enforce shape here.
-      allow create, update: if isSelf(userId);
+      allow read: if isSelf(userId);
+
+      allow create: if isSelf(userId)
+        && request.resource.data.role in ['job_poster', 'contractor']
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 100;
+
+      // Role is fixed at signup — changing it would desync every listener,
+      // denormalised doc, and dashboard in the app.
+      allow update: if isSelf(userId)
+        && !('role' in changedKeys())
+        && !('createdAt' in changedKeys());
+
       allow delete: if isSelf(userId);
     }
 
@@ -34,11 +49,38 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && request.auth.uid == request.resource.data.createdBy
-        && request.resource.data.status == 'open';
+        && request.resource.data.status == 'open'
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 5000
+        && (!('budget' in request.resource.data) || request.resource.data.budget > 0)
+        // Accepted-offer denormalisation can never be planted at creation.
+        && !('acceptedOfferId' in request.resource.data)
+        && !('acceptedContractorId' in request.resource.data)
+        && !('acceptedPrice' in request.resource.data)
+        && !('acceptedAt' in request.resource.data);
 
-      // Job poster can update their own job; status/title/etc. are mutable.
+      // Owner-only updates with an enforced status state machine
+      // (open → in_progress → completed) and write-once accepted-offer fields.
       allow update: if isSignedIn()
-        && request.auth.uid == resource.data.createdBy;
+        && request.auth.uid == resource.data.createdBy
+        && !('createdBy' in changedKeys())
+        && !('datePosted' in changedKeys())
+        && (
+          !('status' in changedKeys())
+          || (resource.data.status == 'open' && request.resource.data.status == 'in_progress')
+          || (resource.data.status == 'in_progress' && request.resource.data.status == 'completed')
+        )
+        && (
+          !('acceptedOfferId' in changedKeys())
+          || !('acceptedOfferId' in resource.data)
+        )
+        && (
+          !('acceptedContractorId' in changedKeys())
+          || !('acceptedContractorId' in resource.data)
+        );
 
       allow delete: if isSignedIn()
         && request.auth.uid == resource.data.createdBy;
@@ -51,17 +93,36 @@ service cloud.firestore {
           request.auth.uid == resource.data.contractorId
         );
 
-        // Contractors create their own offers; status must start as `pending`.
+        // Contractors create their own offers on OPEN jobs they don't own.
+        // Offers must start pending with a positive price and no negotiation
+        // outcome fields pre-planted.
         allow create: if isSignedIn()
           && request.auth.uid == request.resource.data.contractorId
-          && request.resource.data.status == 'pending';
+          && request.auth.uid != jobOf(jobId).createdBy
+          && jobOf(jobId).status == 'open'
+          && !('acceptedOfferId' in jobOf(jobId))
+          && request.resource.data.jobId == jobId
+          && request.resource.data.status == 'pending'
+          && request.resource.data.price > 0
+          && !('finalPrice' in request.resource.data)
+          && !('contractorAcceptedCounter' in request.resource.data);
 
-        // Job poster can update status (accept/reject/counter); contractor can update
-        // `contractorAcceptedCounter` + `finalPrice` when responding to a counter; or
-        // delete their own offer when they decline a counter.
+        // Poster responds (accept / reject / counter) — may only touch the
+        // response fields, never the offer's identity or original price.
+        // Contractor responds to a counter — may only touch the counter-response
+        // fields, and can never flip `status` (no self-accept).
         allow update: if isSignedIn() && (
-          isJobOwner(jobId) ||
-          request.auth.uid == resource.data.contractorId
+          (
+            isJobOwner(jobId)
+            && changedKeys().hasOnly(['status', 'counterPrice', 'negotiationMessage', 'respondedAt', 'finalPrice'])
+            && request.resource.data.status in ['pending', 'accepted', 'rejected', 'counter_offer']
+            && (!('counterPrice' in changedKeys()) || request.resource.data.counterPrice > 0)
+            && (!('finalPrice' in changedKeys()) || request.resource.data.finalPrice > 0)
+          ) || (
+            request.auth.uid == resource.data.contractorId
+            && changedKeys().hasOnly(['contractorAcceptedCounter', 'finalPrice', 'respondedAt'])
+            && (!('finalPrice' in changedKeys()) || request.resource.data.finalPrice > 0)
+          )
         );
 
         allow delete: if isSignedIn() && (
@@ -74,38 +135,73 @@ service cloud.firestore {
     // ---------- contractor profiles ----------
     match /contractorProfiles/{userId} {
       allow read: if isSignedIn();
-      // Only the contractor themselves can write — completedJobsCount aggregation
-      // is also done client-side, which is fine for an MVP.
-      allow write: if isSelf(userId);
+
+      allow create: if isSelf(userId)
+        && request.resource.data.userId == userId
+        // Reputation fields cannot be self-asserted at creation.
+        && (!('completedJobsCount' in request.resource.data) || request.resource.data.completedJobsCount == 0)
+        && !('rating' in request.resource.data);
+
+      // `rating` is never client-writable; `completedJobsCount` may only move
+      // by ±1 (the portfolio add/remove increment).
+      allow update: if isSelf(userId)
+        && !('userId' in changedKeys())
+        && !('rating' in changedKeys())
+        && (
+          !('completedJobsCount' in changedKeys())
+          || request.resource.data.completedJobsCount == resource.data.completedJobsCount + 1
+          || request.resource.data.completedJobsCount == resource.data.completedJobsCount - 1
+        );
+
+      allow delete: if isSelf(userId);
     }
 
     // ---------- completed jobs (portfolio) ----------
     match /completedJobs/{docId} {
       allow read: if isSignedIn();
-      // Contractor can only create their own entries.
+
+      // Contractor creates their own entries; when the entry references a job,
+      // that job must actually have been won by this contractor.
       allow create: if isSignedIn()
-        && request.auth.uid == request.resource.data.contractorId;
+        && request.auth.uid == request.resource.data.contractorId
+        && (
+          !('jobId' in request.resource.data)
+          || jobOf(request.resource.data.jobId).acceptedContractorId == request.auth.uid
+        );
+
       allow update, delete: if isSignedIn()
-        && request.auth.uid == resource.data.contractorId;
+        && request.auth.uid == resource.data.contractorId
+        && (!('contractorId' in changedKeys()));
     }
 
     // ---------- chats ----------
     match /chats/{chatId} {
-      // Either party can create or read a thread for a job they're both involved in.
       allow read: if isSignedIn()
         && request.auth.uid in resource.data.participantIds;
 
+      // Thread ids are job ids. A thread must reference its job truthfully:
+      // poster = the job's creator, contractor = the job's accepted contractor.
       allow create: if isSignedIn()
-        && request.auth.uid in request.resource.data.participantIds;
+        && request.auth.uid in request.resource.data.participantIds
+        && request.resource.data.participantIds ==
+             [request.resource.data.jobPosterId, request.resource.data.contractorId]
+        && request.resource.data.jobId == chatId
+        && jobOf(chatId).createdBy == request.resource.data.jobPosterId
+        && jobOf(chatId).acceptedContractorId == request.resource.data.contractorId;
 
-      // Updates: anybody in the thread can bump lastMessage/unreadCounts.
+      // Participants may only bump the message metadata — never rewrite who
+      // is in the thread or which job it belongs to.
       allow update: if isSignedIn()
-        && request.auth.uid in resource.data.participantIds;
+        && request.auth.uid in resource.data.participantIds
+        && changedKeys().hasOnly(['lastMessage', 'lastMessageAt', 'lastMessageSenderId', 'unreadCounts', 'jobTitle']);
 
       match /messages/{messageId} {
         allow read: if isChatParticipant(chatId);
         allow create: if isChatParticipant(chatId)
-          && request.auth.uid == request.resource.data.senderId;
+          && request.auth.uid == request.resource.data.senderId
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 4000;
         // Messages are immutable — no edits or deletes after sending.
         allow update, delete: if false;
       }

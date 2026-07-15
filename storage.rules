@@ -22,15 +22,13 @@ service firebase.storage {
       allow write: if isSignedIn() && request.auth.uid == userId && isImage();
     }
 
-    // Job requirement photos — only the job's creator can write.
-    // We can't easily call firestore.get() from storage rules in v2 with consistency,
-    // so we enforce via path scoping: any signed-in user can write under
-    // `jobs/{jobId}/requirements/...`, but Firestore + the client only ever expose
-    // those paths to the job's creator.
-    // For tighter security in production you'd add an HTTP function to mediate.
+    // Job requirement photos — only the job's creator can write, verified
+    // against the Firestore job document (cross-service rules).
     match /jobs/{jobId}/requirements/{file=**} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && isImage();
+      allow write: if isSignedIn()
+        && isImage()
+        && firestore.get(/databases/(default)/documents/jobs/$(jobId)).data.createdBy == request.auth.uid;
     }
 
     // Completed job (portfolio) photos
