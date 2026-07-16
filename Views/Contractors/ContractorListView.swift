@@ -9,8 +9,7 @@ import SwiftUI
 
 struct ContractorListView: View {
     @EnvironmentObject var localization: LocalizationManager
-    @State private var contractors: [ContractorProfile] = []
-    @State private var isLoading = true
+    @EnvironmentObject var contractorsRepo: ContractorsRepository
     @State private var searchText = ""
     @State private var selectedSkill: String?
     
@@ -38,11 +37,7 @@ struct ContractorListView: View {
                 .padding()
                 
                 // Contractors List
-                if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if filteredContractors.isEmpty {
+                if filteredContractors.isEmpty {
                     Spacer()
                     EmptyStateView(
                         icon: "person.3",
@@ -66,34 +61,15 @@ struct ContractorListView: View {
             }
             .navigationTitle(localization.localized("contractors"))
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadContractors)
         }
     }
-    
+
     private var filteredContractors: [ContractorProfile] {
-        contractors.filter { contractor in
+        contractorsRepo.allContractors.filter { contractor in
             searchText.isEmpty ||
             contractor.displayName.localizedCaseInsensitiveContains(searchText) ||
             contractor.bio.localizedCaseInsensitiveContains(searchText) ||
             contractor.skills.contains { $0.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-    
-    private func loadContractors() {
-        print("Loading contractors...")
-        FirestoreService.shared.fetchAllContractors { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedContractors):
-                print("Successfully loaded \(fetchedContractors.count) contractors")
-                contractors = fetchedContractors
-                // Debug: Print first contractor if available
-                if let first = fetchedContractors.first {
-                    print("First contractor: \(first.displayName), userId: \(first.userId)")
-                }
-            case .failure(let error):
-                print("Error loading contractors: \(error.localizedDescription)")
-            }
         }
     }
 }
@@ -180,5 +156,6 @@ struct ContractorCardView: View {
 
 #Preview {
     ContractorListView()
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(ContractorsRepository.shared)
 }

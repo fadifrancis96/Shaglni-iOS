@@ -10,9 +10,8 @@ import SwiftUI
 struct ContractorDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
-    @State private var availableJobs: [Job] = []
-    @State private var myOffers: [Offer] = []
-    @State private var isLoading = true
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var offersRepo: OffersRepository
     
     var body: some View {
         NavigationStack {
@@ -112,7 +111,7 @@ struct ContractorDashboardView: View {
                         }
                         .padding(.horizontal)
                         
-                        if isLoading {
+                        if jobsRepo.isLoadingOpenJobs {
                             ProgressView()
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -165,10 +164,17 @@ struct ContractorDashboardView: View {
             }
             .navigationTitle(localization.localized("dashboard"))
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadData)
         }
     }
-    
+
+    private var availableJobs: [Job] {
+        jobsRepo.openJobs
+    }
+
+    private var myOffers: [Offer] {
+        offersRepo.myOffers
+    }
+
     private var pendingOffersCount: Int {
         myOffers.filter { $0.status == .pending }.count
     }
@@ -176,35 +182,12 @@ struct ContractorDashboardView: View {
     private var acceptedOffersCount: Int {
         myOffers.filter { $0.status == .accepted }.count
     }
-    
-    private func loadData() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        // Load available jobs
-        FirestoreService.shared.fetchJobs(status: .open) { result in
-            isLoading = false
-            switch result {
-            case .success(let jobs):
-                availableJobs = jobs
-            case .failure(let error):
-                print("Error loading jobs: \(error.localizedDescription)")
-            }
-        }
-        
-        // Load my offers
-        FirestoreService.shared.fetchOffersByContractor(contractorId: userId) { result in
-            switch result {
-            case .success(let offers):
-                myOffers = offers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
-        }
-    }
 }
 
 #Preview {
     ContractorDashboardView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
+        .environmentObject(OffersRepository.shared)
 }

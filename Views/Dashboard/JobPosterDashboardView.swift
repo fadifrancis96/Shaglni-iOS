@@ -10,10 +10,11 @@ import SwiftUI
 struct JobPosterDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
-    @State private var jobs: [Job] = []
+    @EnvironmentObject var jobsRepo: JobsRepository
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
     @State private var showPostJob = false
+    @State private var errorMessage: String?
     
     var body: some View {
         NavigationStack {
@@ -117,14 +118,14 @@ struct JobPosterDashboardView: View {
                             ProgressView()
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                        } else if jobs.isEmpty {
+                        } else if jobsRepo.myPostedJobs.isEmpty {
                             EmptyStateView(
                                 icon: "briefcase",
                                 title: "No jobs yet",
                                 subtitle: "Post your first job to get started"
                             )
                         } else {
-                            ForEach(jobs.prefix(5)) { job in
+                            ForEach(jobsRepo.myPostedJobs.prefix(5)) { job in
                                 NavigationLink(destination: JobDetailView(job: job)) {
                                     JobCardView(job: job)
                                 }
@@ -140,53 +141,52 @@ struct JobPosterDashboardView: View {
             .sheet(isPresented: $showPostJob) {
                 JobFormView()
             }
-            .onAppear {
-                loadJobs()
-                loadOffers()
+            .task {
+                await loadOffers()
+            }
+            .refreshable {
+                await loadOffers()
+            }
+            .onChange(of: jobsRepo.myPostedJobs) { _, _ in
+                Task { await loadOffers() }
+            }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
             }
         }
     }
-    
+
     private var openJobsCount: Int {
-        jobs.filter { $0.status == .open }.count
+        jobsRepo.myPostedJobs.filter { $0.status == .open }.count
     }
-    
+
     private var inProgressJobsCount: Int {
-        jobs.filter { $0.status == .inProgress }.count
+        jobsRepo.myPostedJobs.filter { $0.status == .inProgress }.count
     }
-    
+
     private var completedJobsCount: Int {
-        jobs.filter { $0.status == .completed }.count
+        jobsRepo.myPostedJobs.filter { $0.status == .completed }.count
     }
-    
+
     private var pendingOffersCount: Int {
         offersWithJobs.filter { $0.offer.status == .pending }.count
     }
-    
-    private func loadJobs() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchJobsByUser(userId: userId) { result in
+
+    private func loadOffers() async {
+        guard let userId = authViewModel.currentUser?.uid else {
             isLoading = false
-            switch result {
-            case .success(let fetchedJobs):
-                jobs = fetchedJobs
-            case .failure(let error):
-                print("Error loading jobs: \(error.localizedDescription)")
-            }
+            return
         }
-    }
-    
-    private func loadOffers() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
-            switch result {
-            case .success(let fetchedOffers):
-                offersWithJobs = fetchedOffers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            offersWithJobs = try await OffersRepository.shared.fetchOffersForJobPoster(userId, jobs: jobsRepo.myPostedJobs)
+        } catch {
+            errorMessage = AppError(error).errorDescription
         }
     }
 }
@@ -295,5 +295,6 @@ struct EmptyStateView: View {
 #Preview {
     JobPosterDashboardView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
 }

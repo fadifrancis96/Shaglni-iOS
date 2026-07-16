@@ -7,11 +7,11 @@
 
 import SwiftUI
 import MapKit
-import FirebaseFirestore
 
 struct JobFormView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var jobsRepo: JobsRepository
     @Environment(\.dismiss) var dismiss
     
     @State private var title = ""
@@ -122,13 +122,6 @@ struct JobFormView: View {
                     }
                 }
                 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                    }
-                }
             }
             .navigationTitle(localization.localized("postJob"))
             .navigationBarTitleDisplayMode(.inline)
@@ -166,6 +159,11 @@ struct JobFormView: View {
                     title: "Job Requirements"
                 )
             }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
     
@@ -197,7 +195,7 @@ struct JobFormView: View {
 
         Task {
             do {
-                let jobId = try await JobsRepository.shared.create(job)
+                let jobId = try await jobsRepo.create(job)
 
                 if !selectedImages.isEmpty {
                     let urls = try await PhotoUploadService.shared.uploadJobRequirementPhotos(
@@ -205,7 +203,7 @@ struct JobFormView: View {
                         images: selectedImages
                     )
                     if !urls.isEmpty {
-                        try await JobsRepository.shared.attachPhotoURLs(jobId: jobId, urls: urls)
+                        try await jobsRepo.attachPhotoURLs(jobId: jobId, urls: urls)
                     }
                 }
 
@@ -216,35 +214,8 @@ struct JobFormView: View {
             } catch {
                 await MainActor.run {
                     isSubmitting = false
-                    errorMessage = error.localizedDescription
+                    errorMessage = AppError(error).errorDescription
                 }
-            }
-        }
-    }
-
-    private func createJobWithoutPhotos(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
-        let job = Job(
-            title: title,
-            description: description,
-            location: selectedLocationName,
-            latitude: coordinate.latitude,
-            longitude: coordinate.longitude,
-            datePosted: Date(),
-            createdBy: userId,
-            status: .open,
-            category: selectedCategory,
-            budget: budgetValue,
-            photoURLs: nil
-        )
-        
-        FirestoreService.shared.createJob(job) { result in
-            self.isSubmitting = false
-            
-            switch result {
-            case .success:
-                self.dismiss()
-            case .failure(let error):
-                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -405,5 +376,6 @@ struct LocationPickerView: View {
 #Preview {
     JobFormView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
 }

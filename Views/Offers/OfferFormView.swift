@@ -11,6 +11,7 @@ struct OfferFormView: View {
     let job: Job
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var offersRepo: OffersRepository
     @Environment(\.dismiss) var dismiss
     
     @State private var price = ""
@@ -50,13 +51,6 @@ struct OfferFormView: View {
                         )
                 }
                 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                    }
-                }
             }
             .navigationTitle(localization.localized("submitOffer"))
             .navigationBarTitleDisplayMode(.inline)
@@ -79,22 +73,31 @@ struct OfferFormView: View {
                     .disabled(!isFormValid || isSubmitting)
                 }
             }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
-    
+
     private var isFormValid: Bool {
-        !price.isEmpty && !message.isEmpty && Double(price) != nil
+        !price.isEmpty && !message.isEmpty && (Double(price) ?? 0) > 0
     }
-    
+
     private func handleSubmit() {
         guard let userId = authViewModel.currentUser?.uid,
               let userName = authViewModel.currentUserData?.displayName,
-              let jobId = job.id,
-              let priceValue = Double(price) else { return }
-        
+              let jobId = job.id else { return }
+
+        guard let priceValue = Double(price), priceValue > 0 else {
+            errorMessage = AppError.validation("Price must be greater than zero").errorDescription
+            return
+        }
+
         isSubmitting = true
         errorMessage = nil
-        
+
         let offer = Offer(
             jobId: jobId,
             contractorId: userId,
@@ -104,15 +107,15 @@ struct OfferFormView: View {
             status: .pending,
             createdAt: Date()
         )
-        
-        FirestoreService.shared.submitOffer(offer, jobId: jobId) { result in
-            isSubmitting = false
-            
-            switch result {
-            case .success:
+
+        Task {
+            do {
+                try await offersRepo.submit(offer, jobId: jobId)
+                isSubmitting = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isSubmitting = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -129,5 +132,6 @@ struct OfferFormView: View {
         status: .open
     ))
     .environmentObject(AuthViewModel())
-    .environmentObject(LocalizationManager())
+    .environmentObject(LocalizationManager.shared)
+    .environmentObject(OffersRepository.shared)
 }

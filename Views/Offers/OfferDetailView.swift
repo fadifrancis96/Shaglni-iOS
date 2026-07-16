@@ -11,6 +11,10 @@ struct OfferDetailView: View {
     let offer: Offer
     let jobId: String
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var offersRepo: OffersRepository
+    @EnvironmentObject var contractorsRepo: ContractorsRepository
+    @EnvironmentObject var chatRepo: ChatRepository
     @Environment(\.dismiss) var dismiss
     
     @State private var showAcceptConfirmation = false
@@ -181,17 +185,6 @@ struct OfferDetailView: View {
                         }
                     }
                     .padding(.horizontal)
-                    
-                    // Error Message
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding()
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal)
-                    }
                     
                     // Job Status Warning
                     if jobStatus != .open && (offer.status == .pending || offer.status == .counterOffer) {
@@ -479,6 +472,11 @@ struct OfferDetailView: View {
                     Text("Accept this offer for ₪\(String(format: "%.0f", offer.price))? All other offers for this job will be automatically rejected.")
                 }
             }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
             .overlay {
                 if isLoading {
                     Color.black.opacity(0.3)
@@ -494,12 +492,12 @@ struct OfferDetailView: View {
     }
     
     private func loadJobStatus() {
-        FirestoreService.shared.fetchJob(jobId: jobId) { result in
-            switch result {
-            case .success(let job):
+        Task {
+            do {
+                let job = try await jobsRepo.fetch(jobId: jobId)
                 jobStatus = job.status
-            case .failure(let error):
-                print("Error loading job status: \(error.localizedDescription)")
+            } catch {
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -588,17 +586,21 @@ struct OfferDetailView: View {
                     .disabled(counterPrice.isEmpty || negotiationMessage.isEmpty)
                 }
             }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
     
     private func loadContractorProfile() {
-        FirestoreService.shared.fetchContractorProfile(userId: offer.contractorId) { result in
-            switch result {
-            case .success(let profile):
-                contractorProfile = profile
+        Task {
+            do {
+                contractorProfile = try await contractorsRepo.fetchProfile(userId: offer.contractorId)
                 showContractorProfile = true
-            case .failure(let error):
-                errorMessage = "Could not load contractor profile: \(error.localizedDescription)"
+            } catch {
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -608,7 +610,7 @@ struct OfferDetailView: View {
         isLoading = true
         Task {
             do {
-                try await OffersRepository.shared.acceptOfferAndCloseOthers(
+                try await offersRepo.acceptOfferAndCloseOthers(
                     jobId: jobId,
                     acceptedOfferId: offerId,
                     finalPrice: offer.price,
@@ -619,7 +621,7 @@ struct OfferDetailView: View {
                 dismiss()
             } catch {
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -630,8 +632,8 @@ struct OfferDetailView: View {
         guard let posterId = authViewModel.currentUser?.uid,
               let posterName = authViewModel.currentUserData?.displayName else { return }
         do {
-            let job = try await JobsRepository.shared.fetch(jobId: jobId)
-            try await ChatRepository.shared.ensureThread(
+            let job = try await jobsRepo.fetch(jobId: jobId)
+            try await chatRepo.ensureThread(
                 jobId: jobId,
                 jobTitle: job.title,
                 jobPosterId: posterId,
@@ -646,68 +648,82 @@ struct OfferDetailView: View {
     
     private func rejectOffer() {
         guard let offerId = offer.id else { return }
-        
+
         isLoading = true
-        FirestoreService.shared.updateOfferStatus(jobId: jobId, offerId: offerId, status: .rejected) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.updateStatus(jobId: jobId, offerId: offerId, status: .rejected)
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
-    
+
     private func sendCounterOffer() {
-        guard let offerId = offer.id,
-              let price = Double(counterPrice) else { return }
-        
+        guard let offerId = offer.id else { return }
+
+        // Validate the price BEFORE dismissing the sheet so a bad value surfaces
+        // instead of silently dropping the counter offer.
+        guard let price = Double(counterPrice), price > 0 else {
+            errorMessage = AppError.validation("Please enter a valid counter offer price").errorDescription
+            return
+        }
+
         isLoading = true
         showNegotiation = false
-        
-        FirestoreService.shared.sendCounterOffer(
-            jobId: jobId,
-            offerId: offerId,
-            counterPrice: price,
-            message: negotiationMessage
-        ) { result in
-            isLoading = false
-            switch result {
-            case .success:
+
+        Task {
+            do {
+                try await offersRepo.sendCounterOffer(
+                    jobId: jobId,
+                    offerId: offerId,
+                    counterPrice: price,
+                    message: negotiationMessage
+                )
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
-    
+
     private func acceptCounterOffer() {
         guard let offerId = offer.id else { return }
-        
+
         isLoading = true
-        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: true, counterPrice: offer.counterPrice) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.contractorAcceptsCounter(
+                    jobId: jobId,
+                    offerId: offerId,
+                    finalPrice: offer.counterPrice ?? offer.price
+                )
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
-    
+
     private func declineCounterOffer() {
         guard let offerId = offer.id else { return }
-        
+
         isLoading = true
-        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: false, counterPrice: nil) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.contractorDeclinesCounter(jobId: jobId, offerId: offerId)
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -718,7 +734,7 @@ struct OfferDetailView: View {
         isLoading = true
         Task {
             do {
-                try await OffersRepository.shared.acceptOfferAndCloseOthers(
+                try await offersRepo.acceptOfferAndCloseOthers(
                     jobId: jobId,
                     acceptedOfferId: offerId,
                     finalPrice: finalPrice,
@@ -729,7 +745,7 @@ struct OfferDetailView: View {
                 dismiss()
             } catch {
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -750,5 +766,9 @@ struct OfferDetailView: View {
         jobId: "job1"
     )
     .environmentObject(AuthViewModel())
+    .environmentObject(JobsRepository.shared)
+    .environmentObject(OffersRepository.shared)
+    .environmentObject(ContractorsRepository.shared)
+    .environmentObject(ChatRepository.shared)
 }
 

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5D1699E12E929FFE00AC53B4 /* FirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */; };
 		5D1699E22E929FFE00AC53B4 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C82E929FFE00AC53B4 /* LandingView.swift */; };
 		5D1699E32E929FFE00AC53B4 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699C92E929FFE00AC53B4 /* LoginView.swift */; };
 		5D1699E42E929FFE00AC53B4 /* ManageProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D1699D12E929FFE00AC53B4 /* ManageProfileView.swift */; };
@@ -76,7 +75,6 @@
 		5D1699BD2E929FFE00AC53B4 /* Job.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Job.swift; sourceTree = "<group>"; };
 		5D1699BE2E929FFE00AC53B4 /* Offer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Offer.swift; sourceTree = "<group>"; };
 		5D1699BF2E929FFE00AC53B4 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
-		5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
 		5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		5D1699C52E929FFE00AC53B4 /* ShaglniApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShaglniApp.swift; sourceTree = "<group>"; };
 		5D1699C62E929FFE00AC53B4 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -212,7 +210,6 @@
 		5D1699C42E929FFE00AC53B4 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				5D1699C22E929FFE00AC53B4 /* FirestoreService.swift */,
 				5D1699C32E929FFE00AC53B4 /* LocalizationManager.swift */,
 				5DA4C08E2E93FF9900AC53B4 /* PhotoUploadService.swift */,
 			);
@@ -467,7 +464,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5D1699E12E929FFE00AC53B4 /* FirestoreService.swift in Sources */,
 				5D1699E22E929FFE00AC53B4 /* LandingView.swift in Sources */,
 				5D1699E32E929FFE00AC53B4 /* LoginView.swift in Sources */,
 				5D1699E42E929FFE00AC53B4 /* ManageProfileView.swift in Sources */,

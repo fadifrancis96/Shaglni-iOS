@@ -8,18 +8,17 @@
 import SwiftUI
 
 struct MyPortfolioView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
-    @State private var portfolioJobs: [CompletedJob] = [] // Jobs already in profile
-    @State private var completedButNotAdded: [JobWithOffer] = [] // Jobs completed but not yet added
-    @State private var isLoading = true
-    @State private var selectedJob: JobWithOffer?
-    @State private var showCompletionPreview = false
+    @EnvironmentObject var portfolioRepo: PortfolioRepository
     @State private var selectedCompletedJob: CompletedJob?
     @State private var isEditMode = false
     @State private var jobToDelete: CompletedJob?
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
+    @State private var errorMessage: String?
+
+    private var portfolioJobs: [CompletedJob] {
+        portfolioRepo.myPortfolio
+    }
     
     var body: some View {
         NavigationStack {
@@ -61,11 +60,7 @@ struct MyPortfolioView: View {
                         }
                         .padding(.horizontal)
                         
-                        if isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        } else if portfolioJobs.isEmpty {
+                        if portfolioJobs.isEmpty {
                             EmptyStateView(
                                 icon: "photo.stack.fill",
                                 title: "No Portfolio Items Yet",
@@ -90,24 +85,6 @@ struct MyPortfolioView: View {
             }
             .navigationTitle("My Portfolio")
             .navigationBarTitleDisplayMode(.inline)
-            .refreshable {
-                loadData()
-            }
-            .onAppear {
-                loadData()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("CompletedJobAdded"))) { _ in
-                loadData()
-            }
-            .sheet(isPresented: $showCompletionPreview) {
-                if let job = selectedJob {
-                    JobCompletionPreviewView(jobWithOffer: job)
-                        .onDisappear {
-                            // Refresh when returning
-                            loadData()
-                        }
-                }
-            }
             .sheet(item: $selectedCompletedJob) { job in
                 PortfolioJobDetailView(job: job)
             }
@@ -123,44 +100,14 @@ struct MyPortfolioView: View {
             } message: {
                 Text("Are you sure you want to delete this portfolio item? This will also delete all associated photos. This action cannot be undone.")
             }
-        }
-    }
-    
-    private func loadData() {
-        guard let contractorId = authViewModel.currentUser?.uid else { return }
-        
-        isLoading = true
-        
-        // Load portfolio jobs (already added)
-        FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { [self] result in
-            switch result {
-            case .success(let jobs):
-                portfolioJobs = jobs
-                
-                // Now load completed jobs that aren't in portfolio yet
-                FirestoreService.shared.fetchJobsWithAcceptedOffer(contractorId: contractorId) { result in
-                    isLoading = false
-                    switch result {
-                    case .success(let jobsWithOffers):
-                        let completedJobs = jobsWithOffers.filter { $0.job.status == .completed }
-                        
-                        // Filter out jobs that are already in portfolio
-                        let portfolioJobIds = Set(portfolioJobs.compactMap { $0.jobId })
-                        completedButNotAdded = completedJobs.filter { jobWithOffer in
-                            guard let jobId = jobWithOffer.job.id else { return false }
-                            return !portfolioJobIds.contains(jobId)
-                        }
-                    case .failure(let error):
-                        print("Error loading completed jobs: \(error.localizedDescription)")
-                    }
-                }
-            case .failure(let error):
-                isLoading = false
-                print("Error loading portfolio: \(error.localizedDescription)")
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
             }
         }
     }
-    
+
     private func deletePortfolioJob(_ job: CompletedJob) {
         guard !isDeleting else { return }
         isDeleting = true
@@ -171,93 +118,20 @@ struct MyPortfolioView: View {
             await PhotoUploadService.shared.deleteAll(urls: photoURLs)
 
             do {
-                try await PortfolioRepository.shared.delete(job)
+                try await portfolioRepo.delete(job)
                 await MainActor.run {
-                    portfolioJobs.removeAll { $0.id == job.id }
                     isDeleting = false
                     jobToDelete = nil
                 }
             } catch {
                 AppLogger.portfolio.error("Failed to delete portfolio item: \(error.localizedDescription, privacy: .public)")
                 await MainActor.run {
+                    errorMessage = AppError(error).errorDescription
                     isDeleting = false
                     jobToDelete = nil
                 }
             }
         }
-    }
-}
-
-struct CompletedJobToAddCard: View {
-    let jobWithOffer: JobWithOffer
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(jobWithOffer.job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    if let category = jobWithOffer.job.category {
-                        Text(category.rawValue)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.orange)
-                    Text("Add")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(8)
-            }
-            
-            Text(jobWithOffer.job.description)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-            
-            HStack {
-                let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                Text("Price: ₪\(String(format: "%.0f", finalPrice))")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.green)
-                
-                Spacer()
-                
-                Label(jobWithOffer.job.location, systemImage: "mappin.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Text("Tap to add photos and create before/after comparison")
-                .font(.caption)
-                .foregroundColor(.blue)
-        }
-        .padding()
-        .background(
-            LinearGradient(
-                colors: [Color.orange.opacity(0.05), Color.blue.opacity(0.05)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.orange.opacity(0.3), lineWidth: 2)
-        )
-        .cornerRadius(12)
     }
 }
 
@@ -465,7 +339,7 @@ struct PortfolioJobDetailView: View {
 
 #Preview {
     MyPortfolioView()
-        .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(PortfolioRepository.shared)
 }
 

@@ -10,9 +10,11 @@ import SwiftUI
 struct ReceivedOffersView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var jobsRepo: JobsRepository
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
     @State private var selectedFilter: OfferStatus?
+    @State private var errorMessage: String?
     
     var body: some View {
         NavigationStack {
@@ -92,28 +94,43 @@ struct ReceivedOffersView: View {
             }
             .navigationTitle("Received Offers")
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadOffers)
+            .task {
+                await loadOffers()
+            }
+            .refreshable {
+                await loadOffers()
+            }
+            .onChange(of: jobsRepo.myPostedJobs) { _, _ in
+                Task { await loadOffers() }
+            }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
-    
+
     private var filteredOffers: [OfferWithJob] {
         if let filter = selectedFilter {
             return offersWithJobs.filter { $0.offer.status == filter }
         }
         return offersWithJobs
     }
-    
-    private func loadOffers() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
+
+    private func loadOffers() async {
+        guard let userId = authViewModel.currentUser?.uid else {
             isLoading = false
-            switch result {
-            case .success(let fetchedOffers):
-                offersWithJobs = fetchedOffers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            offersWithJobs = try await OffersRepository.shared.fetchOffersForJobPoster(userId, jobs: jobsRepo.myPostedJobs)
+        } catch {
+            errorMessage = AppError(error).errorDescription
         }
     }
 }
@@ -246,7 +263,8 @@ struct ReceivedOfferCardView: View {
 #Preview {
     ReceivedOffersView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
 }
 
 

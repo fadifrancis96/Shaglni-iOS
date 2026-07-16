@@ -14,3 +14,11 @@ xcuserdata/
 # SPM
 .swiftpm/
 .build/
+
+# Claude Code session worktrees
+.claude/worktrees/
+
+# Firebase emulator artifacts
+firestore-debug.log
+firebase-debug.log
+ui-debug.log

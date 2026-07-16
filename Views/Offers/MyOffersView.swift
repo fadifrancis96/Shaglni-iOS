@@ -8,10 +8,8 @@
 import SwiftUI
 
 struct MyOffersView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
-    @State private var offers: [Offer] = []
-    @State private var isLoading = true
+    @EnvironmentObject var offersRepo: OffersRepository
     @State private var selectedFilter: OfferStatus?
     
     var body: some View {
@@ -59,11 +57,7 @@ struct MyOffersView: View {
                 }
                 
                 // Offers List
-                if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if filteredOffers.isEmpty {
+                if filteredOffers.isEmpty {
                     Spacer()
                     EmptyStateView(
                         icon: "doc.text",
@@ -87,29 +81,14 @@ struct MyOffersView: View {
             }
             .navigationTitle(localization.localized("myOffers"))
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadOffers)
         }
     }
-    
+
     private var filteredOffers: [Offer] {
         if let filter = selectedFilter {
-            return offers.filter { $0.status == filter }
+            return offersRepo.myOffers.filter { $0.status == filter }
         }
-        return offers
-    }
-    
-    private func loadOffers() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchOffersByContractor(contractorId: userId) { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedOffers):
-                offers = fetchedOffers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
-        }
+        return offersRepo.myOffers
     }
 }
 
@@ -134,6 +113,6 @@ struct FilterChip: View {
 
 #Preview {
     MyOffersView()
-        .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(OffersRepository.shared)
 }

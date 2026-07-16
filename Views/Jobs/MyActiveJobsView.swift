@@ -8,25 +8,18 @@
 import SwiftUI
 
 struct MyActiveJobsView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
-    @State private var activeJobs: [JobWithOffer] = []
-    @State private var completedJobs: [JobWithOffer] = []
-    @State private var isLoading = true
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var offersRepo: OffersRepository
+    @EnvironmentObject var portfolioRepo: PortfolioRepository
     @State private var selectedJob: JobWithOffer?
-    @State private var showJobDetail = false
     @State private var newlyCompletedJob: JobWithOffer?
     @State private var showCompletionPreview = false
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if isLoading && activeJobs.isEmpty && completedJobs.isEmpty {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, minHeight: 400)
-                            .padding()
-                    } else if !isLoading && activeJobs.isEmpty && completedJobs.isEmpty {
+                    if activeJobs.isEmpty && completedJobs.isEmpty {
                         EmptyStateView(
                             icon: "briefcase.fill",
                             title: "No Active Jobs",
@@ -44,7 +37,6 @@ struct MyActiveJobsView: View {
                                     ActiveJobCard(jobWithOffer: jobWithOffer)
                                         .onTapGesture {
                                             selectedJob = jobWithOffer
-                                            showJobDetail = true
                                         }
                                 }
                             }
@@ -63,7 +55,6 @@ struct MyActiveJobsView: View {
                                         .onTapGesture {
                                             // Open to job detail view so contractor can view the job first
                                             selectedJob = jobWithOffer
-                                            showJobDetail = true
                                         }
                                 }
                             }
@@ -74,31 +65,15 @@ struct MyActiveJobsView: View {
             }
             .navigationTitle("My Active Jobs")
             .navigationBarTitleDisplayMode(.inline)
-            .refreshable {
-                loadActiveJobs()
-            }
             .onAppear {
-                loadActiveJobs()
+                maybeShowCompletionPreview()
             }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("JobCompleted"))) { _ in
-                // Refresh when a job is completed
-                loadActiveJobs()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OfferStatusUpdated"))) { _ in
-                // Refresh when offer status changes
-                loadActiveJobs()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("CompletedJobAdded"))) { _ in
-                // Refresh when a job is added to portfolio
-                loadActiveJobs()
+            .onChange(of: completedJobs) { _, _ in
+                maybeShowCompletionPreview()
             }
             .sheet(item: $selectedJob) { jobWithOffer in
                 NavigationStack {
                     ActiveJobDetailView(jobWithOffer: jobWithOffer)
-                        .onDisappear {
-                            // Refresh when returning from job detail
-                            loadActiveJobs()
-                        }
                 }
             }
             .sheet(isPresented: $showCompletionPreview) {
@@ -108,62 +83,38 @@ struct MyActiveJobsView: View {
             }
         }
     }
-    
-    private func loadActiveJobs() {
-        guard let contractorId = authViewModel.currentUser?.uid else {
-            print("❌ No contractor ID available")
-            return
+
+    /// Live pairing of the contractor's won jobs with the offer that won them.
+    private var jobsWithOffers: [JobWithOffer] {
+        jobsRepo.myActiveJobs.compactMap { job in
+            let offer = offersRepo.myOffers.first(where: { $0.id != nil && $0.id == job.acceptedOfferId })
+                ?? offersRepo.myOffers.first(where: { $0.jobId == job.id })
+            guard let offer else { return nil }
+            return JobWithOffer(job: job, offer: offer)
         }
-        
-        print("🔍 Loading active jobs for contractor: \(contractorId)")
-        isLoading = true
-        
-        // Fetch all jobs where contractor has an accepted offer
-        FirestoreService.shared.fetchJobsWithAcceptedOffer(contractorId: contractorId) { [self] result in
-            switch result {
-            case .success(let jobs):
-                print("📊 Fetched \(jobs.count) jobs total")
-                
-                // Separate active and completed jobs
-                activeJobs = jobs.filter { $0.job.status == .inProgress || $0.job.status == .open }
-                let allCompletedJobs = jobs.filter { $0.job.status == .completed }
-                
-                // Fetch portfolio jobs to filter out already added ones
-                FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { portfolioResult in
-                    isLoading = false
-                    switch portfolioResult {
-                    case .success(let portfolioJobs):
-                        // Get set of job IDs that are already in portfolio
-                        let portfolioJobIds = Set(portfolioJobs.compactMap { $0.jobId })
-                        
-                        // Filter out completed jobs that are already in portfolio
-                        completedJobs = allCompletedJobs.filter { jobWithOffer in
-                            guard let jobId = jobWithOffer.job.id else { return true }
-                            return !portfolioJobIds.contains(jobId)
-                        }
-                        
-                        print("✅ Active jobs: \(activeJobs.count), Completed (not in portfolio): \(completedJobs.count)")
-                        
-                        // Check if there's a newly completed job to show preview
-                        if let firstCompleted = completedJobs.first,
-                           newlyCompletedJob == nil {
-                            // Small delay to ensure UI is ready
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                newlyCompletedJob = firstCompleted
-                                showCompletionPreview = true
-                            }
-                        }
-                    case .failure(let error):
-                        // If we can't fetch portfolio, show all completed jobs
-                        completedJobs = allCompletedJobs
-                        isLoading = false
-                        print("Error loading portfolio: \(error.localizedDescription)")
-                    }
-                }
-            case .failure(let error):
-                isLoading = false
-                print("Error loading active jobs: \(error.localizedDescription)")
-            }
+    }
+
+    private var activeJobs: [JobWithOffer] {
+        jobsWithOffers.filter { $0.job.status == .inProgress || $0.job.status == .open }
+    }
+
+    /// Completed jobs the contractor hasn't added to their portfolio yet.
+    private var completedJobs: [JobWithOffer] {
+        let portfolioJobIds = Set(portfolioRepo.myPortfolio.compactMap { $0.jobId })
+        return jobsWithOffers.filter { jobWithOffer in
+            guard jobWithOffer.job.status == .completed else { return false }
+            guard let jobId = jobWithOffer.job.id else { return true }
+            return !portfolioJobIds.contains(jobId)
+        }
+    }
+
+    private func maybeShowCompletionPreview() {
+        guard newlyCompletedJob == nil, let firstCompleted = completedJobs.first else { return }
+        // Small delay to ensure UI is ready before presenting the sheet
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            guard newlyCompletedJob == nil else { return }
+            newlyCompletedJob = firstCompleted
+            showCompletionPreview = true
         }
     }
 }
@@ -318,6 +269,9 @@ struct ActiveJobCard: View {
 #Preview {
     MyActiveJobsView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
+        .environmentObject(OffersRepository.shared)
+        .environmentObject(PortfolioRepository.shared)
 }
 

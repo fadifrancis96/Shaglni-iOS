@@ -10,8 +10,7 @@ import SwiftUI
 struct JobListView: View {
     @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State private var jobs: [Job] = []
-    @State private var isLoading = true
+    @EnvironmentObject var jobsRepo: JobsRepository
     @State private var searchText = ""
     @State private var selectedCategory: JobCategory?
     @State private var showMapView = false
@@ -101,10 +100,18 @@ struct JobListView: View {
             .sheet(isPresented: $showMapView) {
                 JobMapView(jobs: jobs)
             }
-            .onAppear(perform: loadJobs)
         }
     }
-    
+
+    // Job Posters see only their own jobs, Contractors see all open jobs
+    private var jobs: [Job] {
+        authViewModel.isJobPoster ? jobsRepo.myPostedJobs : jobsRepo.openJobs
+    }
+
+    private var isLoading: Bool {
+        !authViewModel.isJobPoster && jobsRepo.isLoadingOpenJobs
+    }
+
     private var filteredJobs: [Job] {
         jobs.filter { job in
             let matchesSearch = searchText.isEmpty ||
@@ -114,33 +121,6 @@ struct JobListView: View {
             let matchesCategory = selectedCategory == nil || job.category == selectedCategory
             
             return matchesSearch && matchesCategory
-        }
-    }
-    
-    private func loadJobs() {
-        // Job Posters see only their own jobs, Contractors see all open jobs
-        if authViewModel.isJobPoster {
-            guard let userId = authViewModel.currentUser?.uid else { return }
-            FirestoreService.shared.fetchJobsByUser(userId: userId) { result in
-                isLoading = false
-                switch result {
-                case .success(let fetchedJobs):
-                    jobs = fetchedJobs
-                case .failure(let error):
-                    print("Error loading jobs: \(error.localizedDescription)")
-                }
-            }
-        } else {
-            // Contractors see all open jobs
-            FirestoreService.shared.fetchJobs(status: .open) { result in
-                isLoading = false
-                switch result {
-                case .success(let fetchedJobs):
-                    jobs = fetchedJobs
-                case .failure(let error):
-                    print("Error loading jobs: \(error.localizedDescription)")
-                }
-            }
         }
     }
 }
@@ -166,6 +146,7 @@ struct CategoryChip: View {
 
 #Preview {
     JobListView()
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
         .environmentObject(AuthViewModel())
+        .environmentObject(JobsRepository.shared)
 }

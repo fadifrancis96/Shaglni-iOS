@@ -7,21 +7,25 @@
 
 import SwiftUI
 import MapKit
-import Combine
 
 struct ActiveJobDetailView: View {
     let jobWithOffer: JobWithOffer
-    @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
-    @Environment(\.dismiss) var dismiss
-    @State private var jobStatus: JobStatus
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var portfolioRepo: PortfolioRepository
     @State private var showCompletionPreview = false
-    
-    init(jobWithOffer: JobWithOffer) {
-        self.jobWithOffer = jobWithOffer
-        _jobStatus = State(initialValue: jobWithOffer.job.status)
+
+    /// Live status from the repository's snapshot listener, falling back to the
+    /// value the view was constructed with.
+    private var jobStatus: JobStatus {
+        jobsRepo.myActiveJobs.first(where: { $0.id == jobWithOffer.job.id })?.status ?? jobWithOffer.job.status
     }
-    
+
+    private var isAlreadyInPortfolio: Bool {
+        guard let jobId = jobWithOffer.job.id else { return false }
+        return portfolioRepo.myPortfolio.contains(where: { $0.jobId == jobId })
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -187,20 +191,18 @@ struct ActiveJobDetailView: View {
                             }
                             
                             // Optional: Show if already in portfolio
-                            checkIfAlreadyInPortfolio { isInPortfolio in
-                                if isInPortfolio {
-                                    HStack {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                        Text("This job is already in your portfolio")
-                                            .font(.caption)
-                                            .foregroundColor(.green)
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.green.opacity(0.1))
-                                    .cornerRadius(8)
+                            if isAlreadyInPortfolio {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                    Text("This job is already in your portfolio")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
                                 }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.green.opacity(0.1))
+                                .cornerRadius(8)
                             }
                         }
                         .padding()
@@ -223,80 +225,8 @@ struct ActiveJobDetailView: View {
         }
         .navigationTitle("Job Details")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            refreshJobStatus()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("JobCompleted"))) { notification in
-            if let completedJobId = notification.object as? String,
-               completedJobId == jobWithOffer.job.id {
-                refreshJobStatus()
-                // Don't auto-show preview - let contractor view the job first and decide
-            }
-        }
         .sheet(isPresented: $showCompletionPreview) {
             JobCompletionPreviewView(jobWithOffer: jobWithOffer)
-        }
-    }
-    
-    private func refreshJobStatus() {
-        guard let jobId = jobWithOffer.job.id else { return }
-        
-        FirestoreService.shared.fetchJob(jobId: jobId) { result in
-            switch result {
-            case .success(let updatedJob):
-                jobStatus = updatedJob.status
-                // Don't auto-show preview - let contractor decide when to add
-            case .failure(let error):
-                print("Error refreshing job status: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private func checkIfAlreadyInPortfolio(@ViewBuilder content: @escaping (Bool) -> some View) -> some View {
-        Group {
-            if let jobId = jobWithOffer.job.id,
-               let contractorId = authViewModel.currentUser?.uid {
-                CheckPortfolioView(jobId: jobId, contractorId: contractorId) { isInPortfolio in
-                    content(isInPortfolio)
-                }
-            } else {
-                content(false)
-            }
-        }
-    }
-}
-
-// Helper view to check if job is in portfolio
-struct CheckPortfolioView<Content: View>: View {
-    let jobId: String
-    let contractorId: String
-    let content: (Bool) -> Content
-    @State private var isInPortfolio = false
-    @State private var hasChecked = false
-    
-    var body: some View {
-        Group {
-            if hasChecked {
-                content(isInPortfolio)
-            } else {
-                EmptyView()
-            }
-        }
-        .onAppear {
-            checkPortfolio()
-        }
-    }
-    
-    private func checkPortfolio() {
-        FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { result in
-            switch result {
-            case .success(let jobs):
-                isInPortfolio = jobs.contains(where: { $0.jobId == jobId })
-                hasChecked = true
-            case .failure:
-                hasChecked = true
-            }
         }
     }
 }
@@ -326,7 +256,9 @@ struct CheckPortfolioView<Content: View>: View {
             )
         ))
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
+        .environmentObject(PortfolioRepository.shared)
     }
 }
 
