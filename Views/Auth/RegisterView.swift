@@ -30,33 +30,33 @@ struct RegisterView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                header
-                ProgressIndicator(current: step, total: totalSteps)
-                    .padding(.horizontal, 30)
+        ZStack {
+            Color.bgCanvas.ignoresSafeArea()
 
-                Group {
-                    switch step {
-                    case 0: roleStep
-                    case 1: accountStep
-                    default: contractorStep
+            ScrollView {
+                VStack(spacing: DS.Space.xl) {
+                    header
+                    StepProgressBar(current: step, total: totalSteps)
+
+                    Group {
+                        switch step {
+                        case 0: roleStep
+                        case 1: accountStep
+                        default: contractorStep
+                        }
                     }
-                }
-                .transition(.opacity)
+                    .transition(.opacity)
 
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 30)
-                }
+                    if let errorMessage {
+                        DSBanner(kind: .error, message: errorMessage)
+                    }
 
-                actionRow
-                Spacer()
+                    actionRow
+                        .padding(.bottom, DS.Space.xl)
+                }
+                .padding(.horizontal, DS.Space.screen)
+                .padding(.top, DS.Space.l)
             }
-            .padding(.top, 30)
         }
         .navigationBarTitleDisplayMode(.inline)
         .animation(.easeInOut, value: step)
@@ -67,118 +67,175 @@ struct RegisterView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "person.badge.plus")
-                .font(.system(size: 54))
-                .foregroundStyle(.tint)
-            L10n.Common.register.text.font(.title).fontWeight(.bold)
+        VStack(alignment: .leading, spacing: 6) {
+            Text(L10n.AuthUI.createAccount.string)
+                .font(.dsTitle)
+                .foregroundStyle(Color.ink)
+            Text(L10n.AuthUI.registerSubtitle.string)
+                .font(.dsSub)
+                .foregroundStyle(Color.inkMuted)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Steps
 
     private var roleStep: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DS.Space.l) {
             Text(L10n.Role.select.string)
-                .font(.title3)
-                .foregroundStyle(.secondary)
+                .font(.dsTitle2)
+                .foregroundStyle(Color.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             RoleCard(
-                role: .jobPoster,
                 title: L10n.Role.jobPoster.string,
                 icon: "briefcase.fill",
-                description: L10n.Action.postJob.string,
+                description: L10n.AuthUI.jobPosterDesc.string,
                 isSelected: selectedRole == .jobPoster
             ) { selectedRole = .jobPoster }
 
             RoleCard(
-                role: .contractor,
                 title: L10n.Role.contractor.string,
                 icon: "hammer.fill",
-                description: L10n.Action.findContractor.string,
+                description: L10n.AuthUI.contractorDesc.string,
                 isSelected: selectedRole == .contractor
             ) { selectedRole = .contractor }
         }
-        .padding(.horizontal, 30)
     }
 
     private var accountStep: some View {
-        VStack(spacing: 16) {
-            LabeledField(title: L10n.Common.displayName.string) {
-                TextField(L10n.Common.displayName.string, text: $displayName)
-                    .textFieldStyle(.roundedBorder)
-            }
-            LabeledField(title: L10n.Common.email.string) {
-                TextField(L10n.Common.email.string, text: $email)
-                    .textFieldStyle(.roundedBorder)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-            }
-            LabeledField(title: L10n.Common.password.string) {
-                SecureField(L10n.Common.password.string, text: $password)
-                    .textFieldStyle(.roundedBorder)
-            }
+        VStack(spacing: DS.Space.l) {
+            DSTextField(
+                label: L10n.Common.displayName.string,
+                systemImage: "person",
+                text: $displayName,
+                contentType: .name,
+                autocapitalization: .words
+            )
+            DSTextField(
+                label: L10n.Common.email.string,
+                systemImage: "envelope",
+                text: $email,
+                keyboard: .emailAddress,
+                contentType: .emailAddress
+            )
+            DSTextField(
+                label: L10n.Common.password.string,
+                systemImage: "lock",
+                text: $password,
+                isSecure: true,
+                contentType: .newPassword
+            )
         }
-        .padding(.horizontal, 30)
     }
 
     private var contractorStep: some View {
-        VStack(spacing: 16) {
-            LabeledField(title: L10n.Field.skills.string) {
-                HStack {
+        VStack(spacing: DS.Space.l) {
+            // Skills entry
+            VStack(alignment: .leading, spacing: 6) {
+                Text(L10n.Field.skills.string)
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.inkMuted)
+
+                HStack(spacing: DS.Space.m) {
                     TextField(L10n.Field.skills.string, text: $newSkill)
-                        .textFieldStyle(.roundedBorder)
-                    Button {
-                        let trimmed = newSkill.trimmingCharacters(in: .whitespaces)
-                        if !trimmed.isEmpty, !skills.contains(trimmed) { skills.append(trimmed) }
-                        newSkill = ""
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
+                        .font(.dsBody)
+                        .padding(.horizontal, DS.Space.l)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                                .fill(Color.surface)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                                .strokeBorder(Color.divider, lineWidth: 1)
+                        )
+                        .onSubmit(addSkill)
+
+                    Button(action: addSkill) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(Color.onBrand)
+                            .frame(width: 48, height: 48)
+                            .background(
+                                RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                                    .fill(Color.brand)
+                            )
                     }
                     .disabled(newSkill.isEmpty)
+                    .opacity(newSkill.isEmpty ? 0.4 : 1)
                 }
+
                 if !skills.isEmpty {
-                    FlowLayout(spacing: 6) {
+                    DSFlowLayout(spacing: 8) {
                         ForEach(skills, id: \.self) { skill in
-                            HStack(spacing: 4) {
-                                Text(skill).font(.subheadline)
+                            HStack(spacing: 5) {
+                                Text(skill)
+                                    .font(.dsCaptionBold)
+                                    .foregroundStyle(Color.brand)
                                 Button { skills.removeAll { $0 == skill } } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.secondary)
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundStyle(Color.brand.opacity(0.7))
                                 }
                             }
-                            .padding(.horizontal, 10).padding(.vertical, 5)
-                            .background(Color.accentColor.opacity(0.1))
-                            .clipShape(Capsule())
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Capsule().fill(Color.brandSoft))
                         }
                     }
+                    .padding(.top, DS.Space.s)
                 }
             }
-            LabeledField(title: L10n.Field.location.string + " (" + L10n.Common.optional.string + ")") {
-                TextField(L10n.Field.location.string, text: $location)
-                    .textFieldStyle(.roundedBorder)
+
+            DSTextField(
+                label: "\(L10n.Field.location.string) (\(L10n.Common.optional.string))",
+                systemImage: "mappin.and.ellipse",
+                text: $location,
+                autocapitalization: .words
+            )
+            DSTextField(
+                label: "\(L10n.Field.phone.string) (\(L10n.Common.optional.string))",
+                systemImage: "phone",
+                text: $phone,
+                keyboard: .phonePad,
+                contentType: .telephoneNumber
+            )
+
+            Toggle(isOn: $availableForWork) {
+                Text(L10n.Field.availableForWork.string)
+                    .font(.dsHeadline)
+                    .foregroundStyle(Color.ink)
             }
-            LabeledField(title: L10n.Field.phone.string + " (" + L10n.Common.optional.string + ")") {
-                TextField(L10n.Field.phone.string, text: $phone)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.phonePad)
-            }
-            Toggle(L10n.Field.availableForWork.string, isOn: $availableForWork)
+            .tint(Color.brand)
+            .padding(DS.Space.l)
+            .background(
+                RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                    .fill(Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                    .strokeBorder(Color.divider, lineWidth: 1)
+            )
         }
-        .padding(.horizontal, 30)
+    }
+
+    private func addSkill() {
+        let trimmed = newSkill.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty, !skills.contains(trimmed) { skills.append(trimmed) }
+        newSkill = ""
     }
 
     // MARK: - Action row
 
     private var actionRow: some View {
-        HStack {
+        HStack(spacing: DS.Space.m) {
             if step > 0 {
                 Button(L10n.Common.back.string) { step -= 1 }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(DSOutlineButtonStyle())
+                    .frame(width: 110)
             }
-            Spacer()
+
             Button {
                 if step == totalSteps - 1 {
                     Task { await submit() }
@@ -187,19 +244,15 @@ struct RegisterView: View {
                 }
             } label: {
                 if isWorking {
-                    ProgressView().tint(.white)
+                    ProgressView().tint(Color.onBrand)
                 } else {
                     Text(step == totalSteps - 1 ? L10n.Common.signUp.string : L10n.Common.next.string)
-                        .fontWeight(.semibold)
                 }
             }
-            .padding(.horizontal, 24).padding(.vertical, 12)
-            .background(canAdvance ? Color.accentColor : Color.gray)
-            .foregroundColor(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .buttonStyle(DSPrimaryButtonStyle())
             .disabled(!canAdvance || isWorking)
+            .opacity(canAdvance ? 1 : 0.5)
         }
-        .padding(.horizontal, 30)
     }
 
     // MARK: - Validation
@@ -250,7 +303,9 @@ struct RegisterView: View {
     }
 }
 
-struct ProgressIndicator: View {
+// MARK: - Step progress
+
+struct StepProgressBar: View {
     let current: Int
     let total: Int
 
@@ -258,15 +313,17 @@ struct ProgressIndicator: View {
         HStack(spacing: 6) {
             ForEach(0..<total, id: \.self) { idx in
                 Capsule()
-                    .fill(idx <= current ? Color.accentColor : Color(.systemGray5))
-                    .frame(height: 4)
+                    .fill(idx <= current ? Color.brand : Color.divider)
+                    .frame(height: 5)
             }
         }
+        .animation(.easeOut(duration: 0.25), value: current)
     }
 }
 
+// MARK: - Role card
+
 struct RoleCard: View {
-    let role: UserRole
     let title: String
     let icon: String
     let description: String
@@ -275,31 +332,44 @@ struct RoleCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            HStack(spacing: DS.Space.l) {
                 Image(systemName: icon)
-                    .font(.system(size: 30))
-                    .foregroundColor(isSelected ? .white : .accentColor)
-                    .frame(width: 50, height: 50)
-                    .background(isSelected ? Color.accentColor : Color.accentColor.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.onBrand : Color.brand)
+                    .frame(width: 54, height: 54)
+                    .background(
+                        RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous)
+                            .fill(isSelected ? Color.brand : Color.brandSoft)
+                    )
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.headline)
-                        .foregroundColor(isSelected ? .white : .primary)
-                    Text(description).font(.caption)
-                        .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary)
+                    Text(title)
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                    Text(description)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkMuted)
+                        .multilineTextAlignment(.leading)
                 }
+
                 Spacer()
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.white)
-                        .font(.title2)
-                }
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(isSelected ? Color.brand : Color.divider)
             }
-            .padding()
-            .background(isSelected ? Color.accentColor : Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(DS.Space.l)
+            .background(
+                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                    .fill(Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                    .strokeBorder(isSelected ? Color.brand : Color.divider, lineWidth: isSelected ? 2 : 1)
+            )
         }
+        .buttonStyle(DSPressableStyle())
+        .animation(.easeOut(duration: 0.15), value: isSelected)
     }
 }
 

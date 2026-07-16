@@ -2,7 +2,8 @@
 //  MyOffersView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Contractor's submitted offers: status filter chips over a list of
+//  canonical offer cards.
 //
 
 import SwiftUI
@@ -13,94 +14,89 @@ struct MyOffersView: View {
     @State private var offers: [Offer] = []
     @State private var isLoading = true
     @State private var selectedFilter: OfferStatus?
-    
+
+    private let statusFilters: [OfferStatus] = [.pending, .accepted, .rejected, .counterOffer]
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Filter Chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        FilterChip(
-                            title: "All",
-                            isSelected: selectedFilter == nil
-                        ) {
-                            selectedFilter = nil
-                        }
-                        
-                        FilterChip(
-                            title: localization.localized("pending"),
-                            isSelected: selectedFilter == .pending
-                        ) {
-                            selectedFilter = .pending
-                        }
-                        
-                        FilterChip(
-                            title: localization.localized("accepted"),
-                            isSelected: selectedFilter == .accepted
-                        ) {
-                            selectedFilter = .accepted
-                        }
-                        
-                        FilterChip(
-                            title: localization.localized("rejected"),
-                            isSelected: selectedFilter == .rejected
-                        ) {
-                            selectedFilter = .rejected
-                        }
-                        
-                        FilterChip(
-                            title: "Counter Offer",
-                            isSelected: selectedFilter == .counterOffer
-                        ) {
-                            selectedFilter = .counterOffer
-                        }
-                    }
-                    .padding()
-                }
-                
-                // Offers List
-                if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if filteredOffers.isEmpty {
-                    Spacer()
-                    EmptyStateView(
-                        icon: "doc.text",
-                        title: "No offers",
-                        subtitle: "Submit offers to jobs you're interested in"
-                    )
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredOffers) { offer in
-                                NavigationLink(destination: OfferDetailView(offer: offer, jobId: offer.jobId)) {
-                                    OfferCardView(offer: offer)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    filterBar
+
+                    if isLoading {
+                        Spacer()
+                        ProgressView()
+                            .tint(Color.brand)
+                        Spacer()
+                    } else if filteredOffers.isEmpty {
+                        Spacer()
+                        DSEmptyState(
+                            systemImage: "tag",
+                            title: L10n.Empty.noOffers.string,
+                            message: L10n.Empty.submitOffers.string
+                        )
+                        Spacer()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: DS.Space.m) {
+                                ForEach(filteredOffers) { offer in
+                                    NavigationLink(destination: OfferDetailView(offer: offer, jobId: offer.jobId)) {
+                                        OfferCardView(offer: offer)
+                                    }
+                                    .buttonStyle(DSPressableStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(.horizontal, DS.Space.screen)
+                            .padding(.top, DS.Space.xs)
+                            .padding(.bottom, DS.Space.xxl)
                         }
-                        .padding(.bottom)
                     }
                 }
             }
-            .navigationTitle(localization.localized("myOffers"))
+            .navigationTitle(L10n.Action.myOffers.string)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(perform: loadOffers)
         }
     }
-    
+
+    // MARK: - Filter chips
+
+    private var filterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DS.Space.s) {
+                DSChip(
+                    title: L10n.Filter.all.string,
+                    isSelected: selectedFilter == nil
+                ) {
+                    selectedFilter = nil
+                }
+
+                ForEach(statusFilters, id: \.rawValue) { status in
+                    DSChip(
+                        title: status.localized,
+                        isSelected: selectedFilter == status
+                    ) {
+                        selectedFilter = status
+                    }
+                }
+            }
+            .padding(.horizontal, DS.Space.screen)
+            .padding(.vertical, DS.Space.m)
+        }
+    }
+
     private var filteredOffers: [Offer] {
         if let filter = selectedFilter {
             return offers.filter { $0.status == filter }
         }
         return offers
     }
-    
+
     private func loadOffers() {
         guard let userId = authViewModel.currentUser?.uid else { return }
-        
+
         FirestoreService.shared.fetchOffersByContractor(contractorId: userId) { result in
             isLoading = false
             switch result {
@@ -109,25 +105,6 @@ struct MyOffersView: View {
             case .failure(let error):
                 print("Error loading offers: \(error.localizedDescription)")
             }
-        }
-    }
-}
-
-struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color.blue : Color(.systemGray6))
-                .cornerRadius(8)
         }
     }
 }

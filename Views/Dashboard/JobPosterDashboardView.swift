@@ -2,7 +2,8 @@
 //  JobPosterDashboardView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Job-poster home: greeting, hero "post a job" CTA, live stats and
+//  recent jobs — all driven by the live repository listeners.
 //
 
 import SwiftUI
@@ -10,290 +11,229 @@ import SwiftUI
 struct JobPosterDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
-    @State private var jobs: [Job] = []
-    @State private var offersWithJobs: [OfferWithJob] = []
-    @State private var isLoading = true
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var offersRepo: OffersRepository
+
+    @State private var pendingOffersCount = 0
     @State private var showPostJob = false
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Welcome Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("welcome"))
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        if let userName = authViewModel.currentUserData?.displayName {
-                            Text(userName)
-                                .font(.title3)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    // Action Cards
-                    VStack(spacing: 16) {
-                        ActionCard(
-                            title: localization.localized("postJob"),
-                            subtitle: "Post a new job and receive offers",
-                            icon: "plus.circle.fill",
-                            color: .blue
-                        ) {
-                            showPostJob = true
-                        }
-                        
-                        NavigationLink(destination: ContractorListView()) {
-                            ActionCard(
-                                title: localization.localized("findContractor"),
-                                subtitle: "Browse contractors by skills",
-                                icon: "magnifyingglass.circle.fill",
-                                color: .green
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        greetingHeader
+
+                        postJobHero
+
+                        HStack(spacing: DS.Space.m) {
+                            DSStatTile(
+                                value: "\(count(of: .open))",
+                                label: L10n.Dash.statOpenJobs.string,
+                                systemImage: "briefcase.fill",
+                                tint: .success, background: .successSoft
                             )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        NavigationLink(destination: ReceivedOffersView()) {
-                            ActionCard(
-                                title: "Received Offers",
-                                subtitle: "View offers from contractors",
-                                icon: "envelope.circle.fill",
-                                color: .purple
+                            DSStatTile(
+                                value: "\(count(of: .inProgress))",
+                                label: L10n.JobStatus.inProgress.string,
+                                systemImage: "clock.fill",
+                                tint: .warning, background: .warningSoft
                             )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    .padding(.horizontal)
-                    
-                    // Stats
-                    HStack(spacing: 16) {
-                        StatCard(
-                            title: localization.localized("open"),
-                            value: "\(openJobsCount)",
-                            icon: "doc.text.fill",
-                            color: .blue
-                        )
-                        
-                        StatCard(
-                            title: localization.localized("inProgress"),
-                            value: "\(inProgressJobsCount)",
-                            icon: "clock.fill",
-                            color: .orange
-                        )
-                        
-                        StatCard(
-                            title: localization.localized("completed"),
-                            value: "\(completedJobsCount)",
-                            icon: "checkmark.circle.fill",
-                            color: .green
-                        )
-                    }
-                    .padding(.horizontal)
-                    
-                    // Offers Stats
-                    if pendingOffersCount > 0 {
-                        HStack(spacing: 16) {
-                            StatCard(
-                                title: "Pending Offers",
+                            DSStatTile(
                                 value: "\(pendingOffersCount)",
-                                icon: "envelope.fill",
-                                color: .purple
+                                label: L10n.Dash.statOffers.string,
+                                systemImage: "tag.fill",
+                                tint: .info, background: .infoSoft
                             )
-                            .frame(maxWidth: .infinity)
                         }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Recent Jobs
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Recent Jobs")
-                            .font(.headline)
-                            .padding(.horizontal)
-                        
-                        if isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        } else if jobs.isEmpty {
-                            EmptyStateView(
-                                icon: "briefcase",
-                                title: "No jobs yet",
-                                subtitle: "Post your first job to get started"
-                            )
-                        } else {
-                            ForEach(jobs.prefix(5)) { job in
-                                NavigationLink(destination: JobDetailView(job: job)) {
-                                    JobCardView(job: job)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                    }
-                }
-                .padding(.bottom)
-            }
-            .navigationTitle(localization.localized("dashboard"))
-            .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showPostJob) {
-                JobFormView()
-            }
-            .onAppear {
-                loadJobs()
-                loadOffers()
-            }
-        }
-    }
-    
-    private var openJobsCount: Int {
-        jobs.filter { $0.status == .open }.count
-    }
-    
-    private var inProgressJobsCount: Int {
-        jobs.filter { $0.status == .inProgress }.count
-    }
-    
-    private var completedJobsCount: Int {
-        jobs.filter { $0.status == .completed }.count
-    }
-    
-    private var pendingOffersCount: Int {
-        offersWithJobs.filter { $0.offer.status == .pending }.count
-    }
-    
-    private func loadJobs() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchJobsByUser(userId: userId) { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedJobs):
-                jobs = fetchedJobs
-            case .failure(let error):
-                print("Error loading jobs: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    private func loadOffers() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-        
-        FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
-            switch result {
-            case .success(let fetchedOffers):
-                offersWithJobs = fetchedOffers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
-        }
-    }
-}
 
-struct ActionCard: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-    let color: Color
-    var action: (() -> Void)? = nil
-    
-    var body: some View {
-        Group {
-            if action != nil {
-                Button(action: action!) {
-                    cardContent
+                        quickActions
+
+                        recentJobs
+                    }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.bottom, DS.Space.xxl)
                 }
-            } else {
-                cardContent
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .sheet(isPresented: $showPostJob) { JobFormView() }
+            .task { await refreshPendingOffers() }
+            .onChange(of: jobsRepo.myPostedJobs) {
+                Task { await refreshPendingOffers() }
             }
         }
     }
-    
-    private var cardContent: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 30))
-                .foregroundColor(color)
-                .frame(width: 50, height: 50)
-                .background(color.opacity(0.1))
-                .cornerRadius(10)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+
+    // MARK: - Sections
+
+    private var greetingHeader: some View {
+        HStack(spacing: DS.Space.m) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.Dash.greetingNow.string)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                Text(authViewModel.currentUserData?.displayName ?? "")
+                    .font(.dsTitle)
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(1)
             }
-            
+
             Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundColor(.secondary)
+
+            DSAvatar(name: authViewModel.currentUserData?.displayName ?? "", size: 46)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .contentShape(Rectangle()) // Makes entire area tappable
+        .padding(.top, DS.Space.s)
+    }
+
+    private var postJobHero: some View {
+        Button { showPostJob = true } label: {
+            HStack(spacing: DS.Space.l) {
+                Image(systemName: "plus")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(Color.brandDeep)
+                    .frame(width: 52, height: 52)
+                    .background(Circle().fill(Color.white))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(L10n.Action.postJob.string)
+                        .font(.dsHeadline)
+                        .foregroundStyle(.white)
+                    Text(L10n.tagline.string)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.forward")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.8))
+                    .flipsForRightToLeftLayoutDirection(true)
+            }
+            .padding(DS.Space.l)
+            .background(
+                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                    .fill(LinearGradient.brandHero)
+            )
+            .shadow(color: Color.brandDeep.opacity(0.3), radius: 14, y: 6)
+        }
+        .buttonStyle(DSPressableStyle())
+    }
+
+    private var quickActions: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Dash.quickActions.string)
+
+            NavigationLink(destination: ContractorListView()) {
+                DashboardActionRow(
+                    title: L10n.Action.findContractor.string,
+                    systemImage: "person.2.fill",
+                    tint: .info, background: .infoSoft
+                )
+            }
+            .buttonStyle(DSPressableStyle())
+
+            NavigationLink(destination: ReceivedOffersView()) {
+                DashboardActionRow(
+                    title: L10n.Action.receivedOffers.string,
+                    systemImage: "tray.full.fill",
+                    tint: .accentWarm, background: .accentWarmSoft,
+                    badge: pendingOffersCount > 0 ? "\(pendingOffersCount)" : nil
+                )
+            }
+            .buttonStyle(DSPressableStyle())
+        }
+    }
+
+    private var recentJobs: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Section.recentJobs.string)
+
+            if jobsRepo.myPostedJobs.isEmpty {
+                DSEmptyState(
+                    systemImage: "briefcase",
+                    title: L10n.Empty.noJobs.string,
+                    message: L10n.Empty.postFirstJob.string,
+                    actionTitle: L10n.Action.postJob.string
+                ) { showPostJob = true }
+                .dsCard()
+            } else {
+                ForEach(jobsRepo.myPostedJobs.prefix(5)) { job in
+                    NavigationLink(destination: JobDetailView(job: job)) {
+                        JobCardView(job: job)
+                    }
+                    .buttonStyle(DSPressableStyle())
+                }
+            }
+        }
+    }
+
+    // MARK: - Data
+
+    private func count(of status: JobStatus) -> Int {
+        jobsRepo.myPostedJobs.filter { $0.status == status }.count
+    }
+
+    private func refreshPendingOffers() async {
+        guard let uid = authViewModel.currentUser?.uid else { return }
+        let offers = (try? await offersRepo.fetchOffersForJobPoster(uid, jobs: jobsRepo.myPostedJobs)) ?? []
+        pendingOffersCount = offers.filter { $0.offer.status == .pending }.count
     }
 }
 
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
+// MARK: - Shared dashboard row
 
-struct EmptyStateView: View {
-    let icon: String
+/// Icon + title row used for dashboard quick actions.
+struct DashboardActionRow: View {
     let title: String
-    let subtitle: String
-    
+    let systemImage: String
+    var tint: Color = .brand
+    var background: Color = .brandSoft
+    var badge: String?
+
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            
+        HStack(spacing: DS.Space.l) {
+            Image(systemName: systemImage)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 46, height: 46)
+                .background(
+                    RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous)
+                        .fill(background)
+                )
+
             Text(title)
-                .font(.headline)
-            
-            Text(subtitle)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+                .font(.dsHeadline)
+                .foregroundStyle(Color.ink)
+
+            Spacer()
+
+            if let badge {
+                Text(badge)
+                    .font(.dsMicro)
+                    .foregroundStyle(Color.onBrand)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Color.brand))
+            }
+
+            Image(systemName: "chevron.forward")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.inkFaint)
+                .flipsForRightToLeftLayoutDirection(true)
         }
-        .padding(40)
-        .frame(maxWidth: .infinity)
+        .dsCard(padding: DS.Space.m)
     }
 }
 
 #Preview {
     JobPosterDashboardView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
+        .environmentObject(OffersRepository.shared)
 }

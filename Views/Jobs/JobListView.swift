@@ -2,7 +2,8 @@
 //  JobListView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Browse screen: search, category chips and the live job feed.
+//  Job posters see their own jobs; contractors see open jobs.
 //
 
 import SwiftUI
@@ -10,162 +11,126 @@ import SwiftUI
 struct JobListView: View {
     @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State private var jobs: [Job] = []
-    @State private var isLoading = true
+    @EnvironmentObject var jobsRepo: JobsRepository
+
     @State private var searchText = ""
     @State private var selectedCategory: JobCategory?
     @State private var showMapView = false
-    
+    @State private var showPostJob = false
+
+    private var sourceJobs: [Job] {
+        authViewModel.isJobPoster ? jobsRepo.myPostedJobs : jobsRepo.openJobs
+    }
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Search Bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    
-                    TextField("Search jobs...", text: $searchText)
-                        .textFieldStyle(.plain)
-                    
-                    if !searchText.isEmpty {
-                        Button(action: { searchText = "" }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .padding()
-                
-                // Category Filter
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        CategoryChip(
-                            title: "All",
-                            isSelected: selectedCategory == nil
-                        ) {
-                            selectedCategory = nil
-                        }
-                        
-                        ForEach(JobCategory.allCases, id: \.self) { category in
-                            CategoryChip(
-                                title: category.rawValue,
-                                isSelected: selectedCategory == category
-                            ) {
-                                selectedCategory = category
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.bottom)
-                
-                // Jobs List
-                if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if filteredJobs.isEmpty {
-                    Spacer()
-                    EmptyStateView(
-                        icon: "briefcase",
-                        title: "No jobs found",
-                        subtitle: "Try adjusting your filters"
-                    )
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredJobs) { job in
-                                NavigationLink(destination: JobDetailView(job: job)) {
-                                    JobCardView(job: job)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Search + filters
+                    VStack(spacing: DS.Space.m) {
+                        DSSearchBar(text: $searchText, placeholder: L10n.Search.jobs.string)
+                            .padding(.horizontal, DS.Space.screen)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: DS.Space.s) {
+                                DSChip(
+                                    title: L10n.Filter.all.string,
+                                    systemImage: "square.grid.2x2",
+                                    isSelected: selectedCategory == nil
+                                ) { selectedCategory = nil }
+
+                                ForEach(JobCategory.allCases, id: \.self) { category in
+                                    DSChip(
+                                        title: category.localized,
+                                        systemImage: category.symbol,
+                                        isSelected: selectedCategory == category
+                                    ) {
+                                        selectedCategory = selectedCategory == category ? nil : category
+                                    }
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(.horizontal, DS.Space.screen)
                         }
-                        .padding(.bottom)
+                    }
+                    .padding(.top, DS.Space.s)
+                    .padding(.bottom, DS.Space.m)
+
+                    // Feed
+                    if jobsRepo.isLoadingOpenJobs && sourceJobs.isEmpty {
+                        ScrollView {
+                            LazyVStack(spacing: DS.Space.m) {
+                                ForEach(0..<4, id: \.self) { _ in JobCardPlaceholder() }
+                            }
+                            .padding(.horizontal, DS.Space.screen)
+                        }
+                    } else if filteredJobs.isEmpty {
+                        ScrollView {
+                            DSEmptyState(
+                                systemImage: "magnifyingglass",
+                                title: L10n.Empty.noJobsFound.string,
+                                message: L10n.Empty.tryFilters.string
+                            )
+                            .padding(.top, 60)
+                        }
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: DS.Space.m) {
+                                ForEach(filteredJobs) { job in
+                                    NavigationLink(destination: JobDetailView(job: job)) {
+                                        JobCardView(job: job)
+                                    }
+                                    .buttonStyle(DSPressableStyle())
+                                }
+                            }
+                            .padding(.horizontal, DS.Space.screen)
+                            .padding(.bottom, DS.Space.xxl)
+                        }
                     }
                 }
             }
-            .navigationTitle(localization.localized("jobs"))
+            .navigationTitle(L10n.Tab.jobs.string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showMapView = true }) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showMapView = true } label: {
                         Image(systemName: "map")
+                    }
+                }
+                if authViewModel.isJobPoster {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showPostJob = true } label: {
+                            Image(systemName: "plus.circle.fill")
+                        }
                     }
                 }
             }
             .sheet(isPresented: $showMapView) {
-                JobMapView(jobs: jobs)
+                JobMapView(jobs: filteredJobs)
             }
-            .onAppear(perform: loadJobs)
+            .sheet(isPresented: $showPostJob) {
+                JobFormView()
+            }
         }
     }
-    
+
     private var filteredJobs: [Job] {
-        jobs.filter { job in
+        sourceJobs.filter { job in
             let matchesSearch = searchText.isEmpty ||
                 job.title.localizedCaseInsensitiveContains(searchText) ||
                 job.description.localizedCaseInsensitiveContains(searchText)
-            
-            let matchesCategory = selectedCategory == nil || job.category == selectedCategory
-            
-            return matchesSearch && matchesCategory
-        }
-    }
-    
-    private func loadJobs() {
-        // Job Posters see only their own jobs, Contractors see all open jobs
-        if authViewModel.isJobPoster {
-            guard let userId = authViewModel.currentUser?.uid else { return }
-            FirestoreService.shared.fetchJobsByUser(userId: userId) { result in
-                isLoading = false
-                switch result {
-                case .success(let fetchedJobs):
-                    jobs = fetchedJobs
-                case .failure(let error):
-                    print("Error loading jobs: \(error.localizedDescription)")
-                }
-            }
-        } else {
-            // Contractors see all open jobs
-            FirestoreService.shared.fetchJobs(status: .open) { result in
-                isLoading = false
-                switch result {
-                case .success(let fetchedJobs):
-                    jobs = fetchedJobs
-                case .failure(let error):
-                    print("Error loading jobs: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-}
 
-struct CategoryChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .white : .primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color.blue : Color(.systemGray6))
-                .cornerRadius(8)
+            let matchesCategory = selectedCategory == nil || job.category == selectedCategory
+
+            return matchesSearch && matchesCategory
         }
     }
 }
 
 #Preview {
     JobListView()
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
         .environmentObject(AuthViewModel())
+        .environmentObject(JobsRepository.shared)
 }

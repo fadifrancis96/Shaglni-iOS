@@ -2,7 +2,8 @@
 //  OfferDetailView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  The negotiation hub: contractor identity, current effective price,
+//  the offer → counter → response timeline, and role-gated actions.
 //
 
 import SwiftUI
@@ -12,7 +13,7 @@ struct OfferDetailView: View {
     let jobId: String
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
-    
+
     @State private var showAcceptConfirmation = false
     @State private var showRejectConfirmation = false
     @State private var showNegotiation = false
@@ -21,405 +22,54 @@ struct OfferDetailView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var jobStatus: JobStatus = .open
-    
+
     // Counter offer response
     @State private var showAcceptCounterConfirmation = false
     @State private var showDeclineCounterConfirmation = false
-    
+
     // Negotiation fields
     @State private var counterPrice = ""
     @State private var negotiationMessage = ""
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Status Badge
-                    HStack {
-                        Spacer()
-                        statusBadge
-                        Spacer()
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        contractorCard
+
+                        priceCard
+
+                        timelineCard
+
+                        messageCard
+
+                        if let errorMessage = errorMessage {
+                            DSBanner(kind: .error, message: errorMessage)
+                        }
+
+                        if jobStatus != .open && (offer.status == .pending || offer.status == .counterOffer) {
+                            jobClosedBanner
+                        }
+
+                        actionSection
                     }
-                    .padding(.top)
-                    
-                    // Offer Details Card
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Offer Details")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                        
-                        // Price
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Offered Price")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Text("₪\(String(format: "%.0f", offer.price))")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.blue)
-                            }
-                            
-                            Spacer()
-                            
-                            if let counterPrice = offer.counterPrice {
-                                VStack(alignment: .trailing, spacing: 4) {
-                                    Text("Counter Offer")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text("₪\(String(format: "%.0f", counterPrice))")
-                                        .font(.title2)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                        }
-                        
-                        Divider()
-                        
-                        // Message
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Message")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Text(offer.message)
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        if let negotiationMsg = offer.negotiationMessage {
-                            Divider()
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("Negotiation Note", systemImage: "text.bubble.fill")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.orange)
-                                Text(negotiationMsg)
-                                    .font(.body)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Divider()
-                        
-                        // Dates
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "clock.fill")
-                                    .foregroundColor(.secondary)
-                                Text("Submitted: \(offer.createdAt, style: .date)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            if let respondedAt = offer.respondedAt {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                    Text("Responded: \(respondedAt, style: .date)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-                    
-                    // Contractor Info Card
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Contractor")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                        
-                        Button(action: { loadContractorProfile() }) {
-                            HStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.2))
-                                    .frame(width: 50, height: 50)
-                                    .overlay(
-                                        Image(systemName: "person.fill")
-                                            .foregroundColor(.blue)
-                                    )
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(offer.contractorName)
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                    
-                                    if let profile = contractorProfile {
-                                        HStack(spacing: 4) {
-                                            if let rating = profile.rating {
-                                                Image(systemName: "star.fill")
-                                                    .foregroundColor(.yellow)
-                                                    .font(.caption)
-                                                Text(String(format: "%.1f", rating))
-                                                    .font(.caption)
-                                            }
-                                            Text("• \(profile.completedJobsCount) jobs")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    } else {
-                                        Text("Tap to view profile")
-                                            .font(.caption)
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                        }
-                    }
-                    .padding(.horizontal)
-                    
-                    // Error Message
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding()
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal)
-                    }
-                    
-                    // Job Status Warning
-                    if jobStatus != .open && (offer.status == .pending || offer.status == .counterOffer) {
-                        VStack(spacing: 8) {
-                            HStack {
-                                Image(systemName: "info.circle.fill")
-                                    .foregroundColor(.orange)
-                                Text("Job Status: \(jobStatus == .inProgress ? "In Progress" : "Completed")")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.orange)
-                            }
-                            
-                            Text("This job is no longer accepting offer actions. Manage the job status from the job detail page.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding()
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(12)
-                        .padding()
-                    }
-                    
-                    // Action Buttons (only show if job is still open)
-                    if authViewModel.isJobPoster && offer.status == .pending && jobStatus == .open {
-                        // Job Poster Actions for Pending Offers
-                        VStack(spacing: 12) {
-                            // Accept Button
-                            Button(action: { showAcceptConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                    Text("Accept Offer")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                            
-                            // Negotiate Button
-                            Button(action: { showNegotiation = true }) {
-                                HStack {
-                                    Image(systemName: "arrow.triangle.2.circlepath")
-                                    Text("Negotiate Price")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.orange)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                            
-                            // Reject Button
-                            Button(action: { showRejectConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "xmark.circle.fill")
-                                    Text("Decline Offer")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.red.opacity(0.1))
-                                .foregroundColor(.red)
-                                .cornerRadius(12)
-                            }
-                        }
-                        .padding()
-                    } else if !authViewModel.isJobPoster && offer.status == .counterOffer && jobStatus == .open {
-                        // Contractor Actions for Counter Offers
-                        VStack(spacing: 12) {
-                            // Counter Offer Info
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Counter Offer Received")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.orange)
-                                
-                                if let counterPrice = offer.counterPrice {
-                                    HStack {
-                                        Text("Job Poster's Price:")
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                        Text("₪\(String(format: "%.0f", counterPrice))")
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.orange)
-                                    }
-                                }
-                                
-                                if let negotiationMsg = offer.negotiationMessage {
-                                    Text(negotiationMsg)
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
-                                        .padding(.top, 4)
-                                }
-                            }
-                            .padding()
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(12)
-                            
-                            // Accept Counter Offer Button
-                            Button(action: { showAcceptCounterConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                    Text("Accept Counter Offer")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                            
-                            // Decline Counter Offer Button
-                            Button(action: { showDeclineCounterConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "xmark.circle.fill")
-                                    Text("Decline Counter Offer")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.red.opacity(0.1))
-                                .foregroundColor(.red)
-                                .cornerRadius(12)
-                            }
-                        }
-                        .padding()
-                    } else if authViewModel.isJobPoster && offer.status == .counterOffer && offer.contractorAcceptedCounter == true && jobStatus == .open {
-                        // Job Poster Final Approval (contractor accepted counter offer)
-                        VStack(spacing: 12) {
-                            // Waiting info
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                    Text("Contractor Accepted Your Counter Offer!")
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                }
-                                
-                                if let counterPrice = offer.counterPrice {
-                                    HStack {
-                                        Text("Agreed Price:")
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                        Text("₪\(String(format: "%.0f", counterPrice))")
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                    }
-                                    .padding(.top, 4)
-                                }
-                                
-                                Text("Accept this offer to finalize the agreement. You can manage the job status from the job detail page.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 4)
-                            }
-                            .padding()
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(12)
-                            
-                            // Accept Button (to finalize the counter offer)
-                            Button(action: { showAcceptConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "checkmark.seal.fill")
-                                    Text("Accept & Finalize Offer")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                        }
-                        .padding()
-                    } else if authViewModel.isJobPoster && offer.status == .accepted {
-                        // Job Poster - Offer Accepted
-                        VStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .foregroundColor(.green)
-                                    Text("Offer Accepted")
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                }
-                                
-                                let displayPrice = offer.finalPrice ?? offer.counterPrice ?? offer.price
-                                HStack {
-                                    Text("Final Price:")
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                    Text("₪\(String(format: "%.0f", displayPrice))")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                }
-                                
-                                Text("Manage job status from the job detail page.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 4)
-                            }
-                            .padding()
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(12)
-                        }
-                        .padding()
-                    }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.top, DS.Space.l)
+                    .padding(.bottom, DS.Space.xxl)
                 }
             }
             .navigationTitle("Offer")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done.string) {
                         dismiss()
                     }
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.brand)
                 }
             }
             .sheet(isPresented: $showContractorProfile) {
@@ -430,8 +80,8 @@ struct OfferDetailView: View {
             .sheet(isPresented: $showNegotiation) {
                 negotiationSheet
             }
-            .alert("Decline Offer", isPresented: $showRejectConfirmation) {
-                Button("Cancel", role: .cancel) { }
+            .alert(L10n.Action.declineOffer.string, isPresented: $showRejectConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) { }
                 Button("Decline", role: .destructive) {
                     rejectOffer()
                 }
@@ -439,27 +89,27 @@ struct OfferDetailView: View {
                 Text("Are you sure you want to decline this offer?")
             }
             .alert("Accept Counter Offer", isPresented: $showAcceptCounterConfirmation) {
-                Button("Cancel", role: .cancel) { }
+                Button(L10n.Common.cancel.string, role: .cancel) { }
                 Button("Accept") {
                     acceptCounterOffer()
                 }
             } message: {
                 if let counterPrice = offer.counterPrice {
-                    Text("Accept the job poster's counter offer of ₪\(String(format: "%.0f", counterPrice))?")
+                    Text("Accept the job poster's counter offer of \(Money.string(counterPrice))?")
                 } else {
                     Text("Accept this counter offer?")
                 }
             }
             .alert("Decline Counter Offer", isPresented: $showDeclineCounterConfirmation) {
-                Button("Cancel", role: .cancel) { }
+                Button(L10n.Common.cancel.string, role: .cancel) { }
                 Button("Decline", role: .destructive) {
                     declineCounterOffer()
                 }
             } message: {
                 Text("Are you sure you want to decline this counter offer? This will remove your offer completely.")
             }
-            .alert("Accept Offer", isPresented: $showAcceptConfirmation) {
-                Button("Cancel", role: .cancel) { }
+            .alert(L10n.Action.acceptOffer.string, isPresented: $showAcceptConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) { }
                 Button("Accept") {
                     // If it's a counter offer that contractor accepted, finalize it
                     if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
@@ -471,12 +121,12 @@ struct OfferDetailView: View {
             } message: {
                 if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
                     if let counterPrice = offer.counterPrice {
-                        Text("Finalize this offer for ₪\(String(format: "%.0f", counterPrice))? All other offers will be automatically rejected.")
+                        Text("Finalize this offer for \(Money.string(counterPrice))? All other offers will be automatically rejected.")
                     } else {
                         Text("Finalize this offer? All other offers will be automatically rejected.")
                     }
                 } else {
-                    Text("Accept this offer for ₪\(String(format: "%.0f", offer.price))? All other offers for this job will be automatically rejected.")
+                    Text("Accept this offer for \(Money.string(offer.price))? All other offers for this job will be automatically rejected.")
                 }
             }
             .overlay {
@@ -485,6 +135,7 @@ struct OfferDetailView: View {
                         .ignoresSafeArea()
                     ProgressView()
                         .scaleEffect(1.5)
+                        .tint(Color.brand)
                 }
             }
             .onAppear {
@@ -492,7 +143,363 @@ struct OfferDetailView: View {
             }
         }
     }
-    
+
+    // MARK: - Contractor identity
+
+    private var contractorCard: some View {
+        Button(action: { loadContractorProfile() }) {
+            HStack(spacing: DS.Space.m) {
+                DSAvatar(
+                    name: offer.contractorName,
+                    urlString: contractorProfile?.profilePicture,
+                    size: 52
+                )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(offer.contractorName)
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                        .lineLimit(1)
+
+                    if let profile = contractorProfile {
+                        HStack(spacing: DS.Space.s) {
+                            if let rating = profile.rating {
+                                DSRatingStars(rating: rating)
+                            }
+                            Text("• \(profile.completedJobsCount) jobs")
+                                .font(.dsCaption)
+                                .foregroundStyle(Color.inkMuted)
+                        }
+                    } else {
+                        Text("Tap to view profile")
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.brand)
+                    }
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.forward")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.inkFaint)
+                    .flipsForRightToLeftLayoutDirection(true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dsCard()
+        }
+        .buttonStyle(DSPressableStyle())
+    }
+
+    // MARK: - Price
+
+    private var priceCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(priceLabel)
+                    .font(.dsMicro)
+                    .foregroundStyle(Color.inkMuted)
+                    .textCase(.uppercase)
+                    .kerning(0.6)
+
+                Spacer()
+
+                DSStatusPill(status: offer.status)
+            }
+
+            DSPriceText(amount: offer.displayPrice, font: .dsPriceLarge, tint: priceTint)
+
+            if offer.counterPrice != nil {
+                HStack(spacing: DS.Space.s) {
+                    Text(Money.string(offer.price))
+                        .font(.dsSub)
+                        .strikethrough()
+                        .foregroundStyle(Color.inkFaint)
+                    Text("Offered Price")
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkFaint)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private var priceLabel: String {
+        switch offer.negotiationState {
+        case .pending, .rejected:
+            return "Offered Price"
+        case .countered:
+            return L10n.OfferUI.posterCounter.string
+        case .contractorAcceptedCounter, .accepted:
+            return "Final Price"
+        }
+    }
+
+    private var priceTint: Color {
+        switch offer.negotiationState {
+        case .pending:                              return .brand
+        case .countered:                            return .warning
+        case .contractorAcceptedCounter, .accepted: return .success
+        case .rejected:                             return .inkFaint
+        }
+    }
+
+    // MARK: - Negotiation timeline
+
+    private var timelineCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TimelineStep(
+                icon: "paperplane.fill",
+                tint: .brand,
+                background: .brandSoft,
+                title: "Submitted",
+                detail: Money.string(offer.price),
+                date: offer.createdAt,
+                isLast: !hasCounterStep && !hasResponseStep
+            )
+
+            if hasCounterStep, let counter = offer.counterPrice {
+                TimelineStep(
+                    icon: "arrow.triangle.2.circlepath",
+                    tint: .warning,
+                    background: .warningSoft,
+                    title: L10n.OfferUI.posterCounter.string,
+                    detail: Money.string(counter),
+                    isLast: !hasResponseStep
+                )
+            }
+
+            if hasResponseStep {
+                responseStep
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private var hasCounterStep: Bool { offer.counterPrice != nil }
+
+    private var hasResponseStep: Bool {
+        switch offer.negotiationState {
+        case .pending: return false
+        default:       return true
+        }
+    }
+
+    @ViewBuilder
+    private var responseStep: some View {
+        switch offer.negotiationState {
+        case .accepted(let finalPrice):
+            TimelineStep(
+                icon: "checkmark.seal.fill",
+                tint: .success,
+                background: .successSoft,
+                title: OfferStatus.accepted.localized,
+                detail: Money.string(finalPrice),
+                date: offer.respondedAt,
+                isLast: true
+            )
+        case .rejected:
+            TimelineStep(
+                icon: "xmark.circle.fill",
+                tint: .danger,
+                background: .dangerSoft,
+                title: OfferStatus.rejected.localized,
+                date: offer.respondedAt,
+                isLast: true
+            )
+        case .contractorAcceptedCounter(let finalPrice):
+            TimelineStep(
+                icon: "checkmark.circle.fill",
+                tint: .success,
+                background: .successSoft,
+                title: "Contractor accepted your counter offer",
+                detail: Money.string(finalPrice),
+                isLast: true
+            )
+        case .countered:
+            TimelineStep(
+                icon: "clock.fill",
+                tint: .warning,
+                background: .warningSoft,
+                title: authViewModel.isJobPoster
+                    ? "Waiting for contractor response"
+                    : L10n.OfferUI.counterReceived.string,
+                isLast: true
+            )
+        case .pending:
+            EmptyView()
+        }
+    }
+
+    // MARK: - Message
+
+    private var messageCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            Text(L10n.Field.message.string)
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+
+            Text(offer.message)
+                .font(.dsBody)
+                .foregroundStyle(Color.ink)
+                .multilineTextAlignment(.leading)
+
+            if let negotiationMsg = offer.negotiationMessage {
+                VStack(alignment: .leading, spacing: DS.Space.s) {
+                    Label("Negotiation Note", systemImage: "text.bubble.fill")
+                        .font(.dsCaptionBold)
+                        .foregroundStyle(Color.warning)
+                    Text(negotiationMsg)
+                        .font(.dsSub)
+                        .foregroundStyle(Color.inkMuted)
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .dsInset()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    // MARK: - Job closed notice
+
+    private var jobClosedBanner: some View {
+        DSBanner(
+            kind: .info,
+            message: "Job Status: \(jobStatus.localized). This job is no longer accepting offer actions. Manage the job status from the job detail page."
+        )
+    }
+
+    // MARK: - Role-gated actions
+
+    @ViewBuilder
+    private var actionSection: some View {
+        if authViewModel.isJobPoster && offer.status == .pending && jobStatus == .open {
+            // Job Poster Actions for Pending Offers
+            VStack(spacing: DS.Space.m) {
+                Button(action: { showAcceptConfirmation = true }) {
+                    Label(L10n.Action.acceptOffer.string, systemImage: "checkmark.circle.fill")
+                }
+                .buttonStyle(DSPrimaryButtonStyle())
+
+                Button(action: { showNegotiation = true }) {
+                    Label(L10n.Action.negotiate.string, systemImage: "arrow.triangle.2.circlepath")
+                }
+                .buttonStyle(DSTonalButtonStyle(tint: .warning, background: .warningSoft))
+
+                Button(action: { showRejectConfirmation = true }) {
+                    Label(L10n.Action.declineOffer.string, systemImage: "xmark.circle.fill")
+                }
+                .buttonStyle(DSTonalButtonStyle(tint: .danger, background: .dangerSoft))
+            }
+        } else if !authViewModel.isJobPoster && offer.status == .counterOffer && jobStatus == .open {
+            // Contractor Actions for Counter Offers
+            VStack(spacing: DS.Space.m) {
+                DSBanner(kind: .info, message: L10n.OfferUI.counterReceived.string)
+
+                Button(action: { showAcceptCounterConfirmation = true }) {
+                    Label("Accept Counter Offer", systemImage: "checkmark.circle.fill")
+                }
+                .buttonStyle(DSPrimaryButtonStyle())
+
+                Button(action: { showDeclineCounterConfirmation = true }) {
+                    Label("Decline Counter Offer", systemImage: "xmark.circle.fill")
+                }
+                .buttonStyle(DSTonalButtonStyle(tint: .danger, background: .dangerSoft))
+            }
+        } else if authViewModel.isJobPoster && offer.status == .counterOffer && offer.contractorAcceptedCounter == true && jobStatus == .open {
+            // Job Poster Final Approval (contractor accepted counter offer)
+            VStack(spacing: DS.Space.m) {
+                DSBanner(kind: .success, message: "Contractor Accepted Your Counter Offer!")
+
+                Text("Accept this offer to finalize the agreement. You can manage the job status from the job detail page.")
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkMuted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button(action: { showAcceptConfirmation = true }) {
+                    Label("Accept & Finalize Offer", systemImage: "checkmark.seal.fill")
+                }
+                .buttonStyle(DSPrimaryButtonStyle())
+            }
+        } else if authViewModel.isJobPoster && offer.status == .accepted {
+            // Job Poster - Offer Accepted
+            VStack(spacing: DS.Space.m) {
+                DSBanner(kind: .success, message: "Offer Accepted")
+
+                Text("Manage job status from the job detail page.")
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkMuted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    // MARK: - Negotiation sheet
+
+    private var negotiationSheet: some View {
+        NavigationStack {
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        VStack(spacing: DS.Space.l) {
+                            DSTextField(
+                                label: "Your Price",
+                                systemImage: "banknote",
+                                text: $counterPrice,
+                                placeholder: L10n.Field.price.string,
+                                keyboard: .decimalPad
+                            )
+
+                            DSTextEditor(
+                                label: L10n.Field.message.string,
+                                text: $negotiationMessage,
+                                placeholder: "Explain your counter offer..."
+                            )
+                        }
+
+                        HStack {
+                            Text("Original Price:")
+                                .font(.dsSub)
+                                .foregroundStyle(Color.inkMuted)
+                            Spacer()
+                            DSPriceText(amount: offer.price, tint: .inkMuted)
+                        }
+                        .dsInset()
+                    }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.top, DS.Space.l)
+                    .padding(.bottom, DS.Space.xxl)
+                }
+            }
+            .navigationTitle(L10n.Action.negotiate.string)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(L10n.Common.cancel.string) {
+                        showNegotiation = false
+                    }
+                    .foregroundStyle(Color.inkMuted)
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Send") {
+                        sendCounterOffer()
+                    }
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.brand)
+                    .disabled(counterPrice.isEmpty || negotiationMessage.isEmpty)
+                }
+            }
+        }
+    }
+
+    // MARK: - Data
+
     private func loadJobStatus() {
         FirestoreService.shared.fetchJob(jobId: jobId) { result in
             switch result {
@@ -503,94 +510,7 @@ struct OfferDetailView: View {
             }
         }
     }
-    
-    private var statusBadge: some View {
-        HStack {
-            Image(systemName: statusIcon)
-            Text(statusText)
-                .fontWeight(.semibold)
-        }
-        .font(.subheadline)
-        .foregroundColor(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(statusColor)
-        .cornerRadius(20)
-    }
-    
-    private var statusColor: Color {
-        switch offer.status {
-        case .pending: return .orange
-        case .accepted: return .green
-        case .rejected: return .red
-        case .counterOffer: return .blue
-        }
-    }
-    
-    private var statusText: String {
-        switch offer.status {
-        case .pending: return "Pending"
-        case .accepted: return "Accepted"
-        case .rejected: return "Declined"
-        case .counterOffer: return "Counter Offer"
-        }
-    }
-    
-    private var statusIcon: String {
-        switch offer.status {
-        case .pending: return "clock.fill"
-        case .accepted: return "checkmark.circle.fill"
-        case .rejected: return "xmark.circle.fill"
-        case .counterOffer: return "arrow.triangle.2.circlepath"
-        }
-    }
-    
-    private var negotiationSheet: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("Counter Offer")) {
-                    TextField("Your Price", text: $counterPrice)
-                        .keyboardType(.decimalPad)
-                    
-                    TextEditor(text: $negotiationMessage)
-                        .frame(minHeight: 100)
-                        .overlay(
-                            Group {
-                                if negotiationMessage.isEmpty {
-                                    Text("Explain your counter offer...")
-                                        .foregroundColor(.secondary)
-                                        .padding(.leading, 4)
-                                        .padding(.top, 8)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                }
-                            }
-                        )
-                }
-                
-                Section {
-                    Text("Original Price: ₪\(String(format: "%.0f", offer.price))")
-                        .foregroundColor(.secondary)
-                }
-            }
-            .navigationTitle("Negotiate Price")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        showNegotiation = false
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Send") {
-                        sendCounterOffer()
-                    }
-                    .disabled(counterPrice.isEmpty || negotiationMessage.isEmpty)
-                }
-            }
-        }
-    }
-    
+
     private func loadContractorProfile() {
         FirestoreService.shared.fetchContractorProfile(userId: offer.contractorId) { result in
             switch result {
@@ -602,7 +522,7 @@ struct OfferDetailView: View {
             }
         }
     }
-    
+
     private func acceptOffer() {
         guard let offerId = offer.id else { return }
         isLoading = true
@@ -643,10 +563,10 @@ struct OfferDetailView: View {
             AppLogger.chat.warning("Failed to seed chat thread: \(error.localizedDescription, privacy: .public)")
         }
     }
-    
+
     private func rejectOffer() {
         guard let offerId = offer.id else { return }
-        
+
         isLoading = true
         FirestoreService.shared.updateOfferStatus(jobId: jobId, offerId: offerId, status: .rejected) { result in
             isLoading = false
@@ -658,14 +578,14 @@ struct OfferDetailView: View {
             }
         }
     }
-    
+
     private func sendCounterOffer() {
         guard let offerId = offer.id,
               let price = Double(counterPrice) else { return }
-        
+
         isLoading = true
         showNegotiation = false
-        
+
         FirestoreService.shared.sendCounterOffer(
             jobId: jobId,
             offerId: offerId,
@@ -681,10 +601,10 @@ struct OfferDetailView: View {
             }
         }
     }
-    
+
     private func acceptCounterOffer() {
         guard let offerId = offer.id else { return }
-        
+
         isLoading = true
         FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: true, counterPrice: offer.counterPrice) { result in
             isLoading = false
@@ -696,10 +616,10 @@ struct OfferDetailView: View {
             }
         }
     }
-    
+
     private func declineCounterOffer() {
         guard let offerId = offer.id else { return }
-        
+
         isLoading = true
         FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: false, counterPrice: nil) { result in
             isLoading = false
@@ -711,7 +631,7 @@ struct OfferDetailView: View {
             }
         }
     }
-    
+
     private func finalizeCounterOffer() {
         guard let offerId = offer.id else { return }
         let finalPrice = offer.counterPrice ?? offer.price
@@ -735,6 +655,63 @@ struct OfferDetailView: View {
     }
 }
 
+// MARK: - Timeline step
+
+/// One row of the negotiation timeline: tinted icon bubble, connector line,
+/// title, optional price detail and date.
+private struct TimelineStep: View {
+    let icon: String
+    let tint: Color
+    let background: Color
+    let title: String
+    var detail: String? = nil
+    var date: Date? = nil
+    var isLast = false
+
+    var body: some View {
+        HStack(alignment: .top, spacing: DS.Space.m) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(background))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.ink)
+                    .multilineTextAlignment(.leading)
+
+                if let detail {
+                    Text(detail)
+                        .font(.dsPrice)
+                        .foregroundStyle(tint)
+                }
+
+                if let date {
+                    Text(date, style: .date)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkFaint)
+                }
+            }
+            .padding(.top, DS.Space.xs)
+            .padding(.bottom, isLast ? 0 : DS.Space.l)
+
+            Spacer(minLength: 0)
+        }
+        .background(alignment: .topLeading) {
+            // Connector line from this step's icon down to the next step.
+            if !isLast {
+                Rectangle()
+                    .fill(Color.divider)
+                    .frame(width: 2)
+                    .padding(.top, 36)
+                    .padding(.leading, 15)
+            }
+        }
+    }
+}
+
 #Preview {
     OfferDetailView(
         offer: Offer(
@@ -751,4 +728,3 @@ struct OfferDetailView: View {
     )
     .environmentObject(AuthViewModel())
 }
-

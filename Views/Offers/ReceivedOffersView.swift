@@ -2,7 +2,8 @@
 //  ReceivedOffersView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Job poster's inbox of contractor offers: status filter chips over
+//  cards pairing each offer with its job.
 //
 
 import SwiftUI
@@ -13,99 +14,94 @@ struct ReceivedOffersView: View {
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
     @State private var selectedFilter: OfferStatus?
-    
+
+    private let statusFilters: [OfferStatus] = [.pending, .accepted, .rejected, .counterOffer]
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Filter Chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        FilterChip(
-                            title: "All",
-                            isSelected: selectedFilter == nil
-                        ) {
-                            selectedFilter = nil
-                        }
-                        
-                        FilterChip(
-                            title: localization.localized("pending"),
-                            isSelected: selectedFilter == .pending
-                        ) {
-                            selectedFilter = .pending
-                        }
-                        
-                        FilterChip(
-                            title: localization.localized("accepted"),
-                            isSelected: selectedFilter == .accepted
-                        ) {
-                            selectedFilter = .accepted
-                        }
-                        
-                        FilterChip(
-                            title: localization.localized("rejected"),
-                            isSelected: selectedFilter == .rejected
-                        ) {
-                            selectedFilter = .rejected
-                        }
-                        
-                        FilterChip(
-                            title: "Counter Offer",
-                            isSelected: selectedFilter == .counterOffer
-                        ) {
-                            selectedFilter = .counterOffer
-                        }
-                    }
-                    .padding()
-                }
-                
-                // Offers List
-                if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if filteredOffers.isEmpty {
-                    Spacer()
-                    EmptyStateView(
-                        icon: "doc.text",
-                        title: "No offers received",
-                        subtitle: "Offers from contractors will appear here when they submit offers to your jobs"
-                    )
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredOffers) { offerWithJob in
-                                NavigationLink(
-                                    destination: OfferDetailView(
-                                        offer: offerWithJob.offer,
-                                        jobId: offerWithJob.job.id ?? offerWithJob.offer.jobId
-                                    )
-                                ) {
-                                    ReceivedOfferCardView(offerWithJob: offerWithJob)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    filterBar
+
+                    if isLoading {
+                        Spacer()
+                        ProgressView()
+                            .tint(Color.brand)
+                        Spacer()
+                    } else if filteredOffers.isEmpty {
+                        Spacer()
+                        DSEmptyState(
+                            systemImage: "tray",
+                            title: "No offers received",
+                            message: "Offers from contractors will appear here when they submit offers to your jobs"
+                        )
+                        Spacer()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: DS.Space.m) {
+                                ForEach(filteredOffers) { offerWithJob in
+                                    NavigationLink(
+                                        destination: OfferDetailView(
+                                            offer: offerWithJob.offer,
+                                            jobId: offerWithJob.job.id ?? offerWithJob.offer.jobId
+                                        )
+                                    ) {
+                                        ReceivedOfferCardView(offerWithJob: offerWithJob)
+                                    }
+                                    .buttonStyle(DSPressableStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(.horizontal, DS.Space.screen)
+                            .padding(.top, DS.Space.xs)
+                            .padding(.bottom, DS.Space.xxl)
                         }
-                        .padding(.bottom)
                     }
                 }
             }
-            .navigationTitle("Received Offers")
+            .navigationTitle(L10n.Action.receivedOffers.string)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(perform: loadOffers)
         }
     }
-    
+
+    // MARK: - Filter chips
+
+    private var filterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DS.Space.s) {
+                DSChip(
+                    title: L10n.Filter.all.string,
+                    isSelected: selectedFilter == nil
+                ) {
+                    selectedFilter = nil
+                }
+
+                ForEach(statusFilters, id: \.rawValue) { status in
+                    DSChip(
+                        title: status.localized,
+                        isSelected: selectedFilter == status
+                    ) {
+                        selectedFilter = status
+                    }
+                }
+            }
+            .padding(.horizontal, DS.Space.screen)
+            .padding(.vertical, DS.Space.m)
+        }
+    }
+
     private var filteredOffers: [OfferWithJob] {
         if let filter = selectedFilter {
             return offersWithJobs.filter { $0.offer.status == filter }
         }
         return offersWithJobs
     }
-    
+
     private func loadOffers() {
         guard let userId = authViewModel.currentUser?.uid else { return }
-        
+
         FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
             isLoading = false
             switch result {
@@ -118,128 +114,91 @@ struct ReceivedOffersView: View {
     }
 }
 
-struct ReceivedOfferCardView: View {
+// MARK: - Card
+
+/// Offer row for the job poster: job title, contractor identity, negotiation
+/// state notice, message preview and the price transition.
+private struct ReceivedOfferCardView: View {
     let offerWithJob: OfferWithJob
-    @EnvironmentObject var localization: LocalizationManager
-    
+
+    private var offer: Offer { offerWithJob.offer }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Job Title Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(spacing: DS.Space.m) {
+                DSAvatar(name: offer.contractorName, size: 40)
+
+                VStack(alignment: .leading, spacing: 2) {
                     Text(offerWithJob.job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text("From: \(offerWithJob.offer.contractorName)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                        .lineLimit(1)
+                    Text(offer.contractorName)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkMuted)
+                        .lineLimit(1)
                 }
-                
+
                 Spacer()
-                
-                OfferStatusBadge(status: offerWithJob.offer.status)
+
+                DSStatusPill(status: offer.status)
             }
-            
-            // Counter Offer Alert
-            if offerWithJob.offer.status == .counterOffer && offerWithJob.offer.contractorAcceptedCounter == true {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("Contractor accepted your counter offer")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.green)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.green.opacity(0.1))
-                .cornerRadius(6)
-            } else if offerWithJob.offer.status == .counterOffer {
-                HStack {
-                    Image(systemName: "clock.fill")
-                        .foregroundColor(.orange)
-                    Text("Waiting for contractor response")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(6)
+
+            if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
+                DSBanner(kind: .success, message: "Contractor accepted your counter offer")
+            } else if offer.status == .counterOffer {
+                DSBanner(kind: .info, message: "Waiting for contractor response")
             }
-            
-            // Message
-            Text(offerWithJob.offer.message)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-            
-            // Price and Date
-            HStack {
+
+            if !offer.message.isEmpty {
+                Text(offer.message)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+
+            Divider().overlay(Color.divider)
+
+            HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("₪\(Int(offerWithJob.offer.price))")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                        
-                        if let counterPrice = offerWithJob.offer.counterPrice {
-                            Image(systemName: "arrow.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("₪\(Int(counterPrice))")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(.orange)
+                    HStack(spacing: DS.Space.s) {
+                        DSPriceText(
+                            amount: offer.price,
+                            tint: offer.counterPrice == nil ? .brand : .inkFaint
+                        )
+
+                        if let counterPrice = offer.counterPrice {
+                            Image(systemName: "arrow.forward")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.inkFaint)
+                            DSPriceText(amount: counterPrice, tint: .warning)
                         }
                     }
-                    
-                    if offerWithJob.offer.counterPrice != nil {
+
+                    if offer.counterPrice != nil {
                         Text("Your counter offer")
-                            .font(.caption)
-                            .foregroundColor(.orange)
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.warning)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(offerWithJob.offer.createdAt, style: .relative)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let respondedAt = offerWithJob.offer.respondedAt {
+                    Text(offer.createdAt, style: .relative)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkFaint)
+
+                    if let respondedAt = offer.respondedAt {
                         Text("Responded \(respondedAt, style: .relative)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.inkFaint)
                     }
                 }
             }
         }
-        .padding()
-        .background(
-            offerWithJob.offer.status == .counterOffer && offerWithJob.offer.contractorAcceptedCounter == true
-                ? Color.green.opacity(0.05)
-                : offerWithJob.offer.status == .counterOffer
-                    ? Color.orange.opacity(0.05)
-                    : Color(.systemGray6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                    offerWithJob.offer.status == .counterOffer && offerWithJob.offer.contractorAcceptedCounter == true
-                        ? Color.green.opacity(0.3)
-                        : offerWithJob.offer.status == .counterOffer
-                            ? Color.orange.opacity(0.3)
-                            : Color.clear,
-                    lineWidth: 1
-                )
-        )
-        .cornerRadius(12)
-        .padding(.horizontal)
+        .dsCard()
     }
 }
 
@@ -248,8 +207,3 @@ struct ReceivedOfferCardView: View {
         .environmentObject(AuthViewModel())
         .environmentObject(LocalizationManager())
 }
-
-
-
-
-

@@ -20,75 +20,77 @@ struct MyPortfolioView: View {
     @State private var jobToDelete: CompletedJob?
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
-    
+
+    private let gridColumns = [
+        GridItem(.flexible(), spacing: DS.Space.m),
+        GridItem(.flexible(), spacing: DS.Space.m)
+    ]
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("My Portfolio")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        Text("Showcase your completed work")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    // Portfolio Jobs (Already Added)
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Portfolio Items")
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            if !portfolioJobs.isEmpty {
-                                Button(action: {
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        // Header
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(L10n.Action.myPortfolio.string)
+                                .font(.dsTitle)
+                                .foregroundStyle(Color.ink)
+
+                            Text("Showcase your completed work")
+                                .font(.dsSub)
+                                .foregroundStyle(Color.inkMuted)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, DS.Space.s)
+
+                        // Portfolio Jobs (Already Added)
+                        VStack(spacing: DS.Space.m) {
+                            DSSectionHeader(
+                                title: "Portfolio Items",
+                                actionTitle: portfolioJobs.isEmpty ? nil : (isEditMode ? L10n.Common.done.string : L10n.Common.edit.string),
+                                action: portfolioJobs.isEmpty ? nil : {
                                     withAnimation {
                                         isEditMode.toggle()
                                     }
-                                }) {
-                                    Text(isEditMode ? "Done" : "Edit")
-                                        .font(.subheadline)
-                                        .foregroundColor(.blue)
+                                }
+                            )
+
+                            if isLoading {
+                                LazyVGrid(columns: gridColumns, spacing: DS.Space.m) {
+                                    ForEach(0..<4, id: \.self) { _ in
+                                        PortfolioCardPlaceholder()
+                                    }
+                                }
+                            } else if portfolioJobs.isEmpty {
+                                DSEmptyState(
+                                    systemImage: "photo.stack.fill",
+                                    title: "No Portfolio Items Yet",
+                                    message: "Add completed jobs to showcase your work to potential clients"
+                                )
+                            } else {
+                                LazyVGrid(columns: gridColumns, spacing: DS.Space.m) {
+                                    ForEach(portfolioJobs) { job in
+                                        PortfolioJobCard(
+                                            job: job,
+                                            isEditMode: isEditMode,
+                                            onDelete: {
+                                                jobToDelete = job
+                                                showDeleteConfirmation = true
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
-                        .padding(.horizontal)
-                        
-                        if isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        } else if portfolioJobs.isEmpty {
-                            EmptyStateView(
-                                icon: "photo.stack.fill",
-                                title: "No Portfolio Items Yet",
-                                subtitle: "Add completed jobs to showcase your work to potential clients"
-                            )
-                        } else {
-                            ForEach(portfolioJobs) { job in
-                                PortfolioJobCard(
-                                    job: job,
-                                    isEditMode: isEditMode,
-                                    onDelete: {
-                                        jobToDelete = job
-                                        showDeleteConfirmation = true
-                                    }
-                                )
-                                .padding(.horizontal)
-                            }
-                        }
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.bottom, DS.Space.xxl)
                 }
-                .padding(.bottom)
             }
-            .navigationTitle("My Portfolio")
+            .navigationTitle(L10n.Action.myPortfolio.string)
             .navigationBarTitleDisplayMode(.inline)
             .refreshable {
                 loadData()
@@ -112,10 +114,10 @@ struct MyPortfolioView: View {
                 PortfolioJobDetailView(job: job)
             }
             .alert("Delete Portfolio Item", isPresented: $showDeleteConfirmation) {
-                Button("Cancel", role: .cancel) {
+                Button(L10n.Common.cancel.string, role: .cancel) {
                     jobToDelete = nil
                 }
-                Button("Delete", role: .destructive) {
+                Button(L10n.Common.delete.string, role: .destructive) {
                     if let job = jobToDelete {
                         deletePortfolioJob(job)
                     }
@@ -125,25 +127,25 @@ struct MyPortfolioView: View {
             }
         }
     }
-    
+
     private func loadData() {
         guard let contractorId = authViewModel.currentUser?.uid else { return }
-        
+
         isLoading = true
-        
+
         // Load portfolio jobs (already added)
         FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { [self] result in
             switch result {
             case .success(let jobs):
                 portfolioJobs = jobs
-                
+
                 // Now load completed jobs that aren't in portfolio yet
                 FirestoreService.shared.fetchJobsWithAcceptedOffer(contractorId: contractorId) { result in
                     isLoading = false
                     switch result {
                     case .success(let jobsWithOffers):
                         let completedJobs = jobsWithOffers.filter { $0.job.status == .completed }
-                        
+
                         // Filter out jobs that are already in portfolio
                         let portfolioJobIds = Set(portfolioJobs.compactMap { $0.jobId })
                         completedButNotAdded = completedJobs.filter { jobWithOffer in
@@ -160,7 +162,7 @@ struct MyPortfolioView: View {
             }
         }
     }
-    
+
     private func deletePortfolioJob(_ job: CompletedJob) {
         guard !isDeleting else { return }
         isDeleting = true
@@ -188,275 +190,184 @@ struct MyPortfolioView: View {
     }
 }
 
-struct CompletedJobToAddCard: View {
-    let jobWithOffer: JobWithOffer
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(jobWithOffer.job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    if let category = jobWithOffer.job.category {
-                        Text(category.rawValue)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.orange)
-                    Text("Add")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(8)
-            }
-            
-            Text(jobWithOffer.job.description)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-            
-            HStack {
-                let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                Text("Price: ₪\(String(format: "%.0f", finalPrice))")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.green)
-                
-                Spacer()
-                
-                Label(jobWithOffer.job.location, systemImage: "mappin.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Text("Tap to add photos and create before/after comparison")
-                .font(.caption)
-                .foregroundColor(.blue)
-        }
-        .padding()
-        .background(
-            LinearGradient(
-                colors: [Color.orange.opacity(0.05), Color.blue.opacity(0.05)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.orange.opacity(0.3), lineWidth: 2)
-        )
-        .cornerRadius(12)
-    }
-}
-
-struct PortfolioJobCard: View {
+private struct PortfolioJobCard: View {
     let job: CompletedJob
     var isEditMode: Bool = false
     var onDelete: (() -> Void)? = nil
-    
+
+    private var coverImageURL: String? {
+        job.images.first ?? job.beforeAfterGridImage
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    if let category = job.category {
-                        Text(category.rawValue)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 8) {
-                    if isEditMode {
-                        Button(action: {
-                            onDelete?()
-                        }) {
-                            Image(systemName: "trash.fill")
-                                .foregroundColor(.red)
-                                .font(.title3)
-                                .padding(8)
-                                .background(Color.red.opacity(0.1))
-                                .clipShape(Circle())
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            // Cover image
+            ZStack(alignment: .topTrailing) {
+                Group {
+                    if let urlString = coverImageURL {
+                        AsyncImage(url: URL(string: urlString)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Color.surfaceAlt
                         }
                     } else {
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(.green)
-                            Text("In Portfolio")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundColor(.green)
+                        ZStack {
+                            Color.surfaceAlt
+                            DSCategoryIcon(category: job.category ?? .other, size: 40)
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.1))
-                        .cornerRadius(6)
                     }
                 }
+                .frame(height: 110)
+                .frame(maxWidth: .infinity)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
+
+                if isEditMode {
+                    Button {
+                        onDelete?()
+                    } label: {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.danger)
+                            .frame(width: 30, height: 30)
+                            .background(Circle().fill(Color.dangerSoft))
+                    }
+                    .padding(DS.Space.xs)
+                } else if job.images.count > 1 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 9, weight: .semibold))
+                        Text("\(job.images.count)")
+                            .font(.dsMicro)
+                    }
+                    .foregroundStyle(Color.onBrand)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(Color.brand.opacity(0.85)))
+                    .padding(DS.Space.xs)
+                }
             }
-            
-            Text(job.description)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+
+            Text(job.title)
+                .font(.dsHeadline)
+                .foregroundStyle(Color.ink)
                 .lineLimit(2)
-            
-            // Images Preview
-            if !job.images.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(job.images.prefix(3), id: \.self) { imageUrl in
-                            AsyncImage(url: URL(string: imageUrl)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            } placeholder: {
-                                Color.gray.opacity(0.3)
-                            }
-                            .frame(width: 80, height: 80)
-                            .clipped()
-                            .cornerRadius(8)
-                        }
-                        
-                        if job.images.count > 3 {
-                            Text("+\(job.images.count - 3) more")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .frame(width: 80, height: 80)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(8)
-                        }
-                    }
-                }
+                .multilineTextAlignment(.leading)
+
+            if let category = job.category {
+                DSTag(title: category.localized)
             }
-            
-            // Before/After Grid Preview
-            if let gridImageUrl = job.beforeAfterGridImage {
-                AsyncImage(url: URL(string: gridImageUrl)) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                } placeholder: {
-                    Color.gray.opacity(0.3)
-                        .frame(height: 150)
-                }
-                .frame(maxHeight: 150)
-                .cornerRadius(8)
+
+            Spacer(minLength: 0)
+
+            if let price = job.finalPrice {
+                DSPriceText(amount: price, tint: .success)
             }
-            
-            HStack {
-                if let price = job.finalPrice {
-                    Text("₪\(String(format: "%.0f", price))")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
-                
-                Spacer()
-                
-                Text("Completed: \(formatDate(job.completedDate))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+
+            Text(job.completedDate, style: .date)
+                .font(.dsCaption)
+                .foregroundStyle(Color.inkFaint)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .onTapGesture {
-            // Could add detail view later
-        }
-    }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard(padding: DS.Space.m)
     }
 }
 
-struct PortfolioJobDetailView: View {
+private struct PortfolioCardPlaceholder: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            RoundedRectangle(cornerRadius: DS.Radius.thumb).fill(Color.surfaceAlt)
+                .frame(height: 110)
+                .frame(maxWidth: .infinity)
+            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceAlt)
+                .frame(width: 110, height: 14)
+            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceAlt)
+                .frame(width: 70, height: 10)
+        }
+        .dsCard(padding: DS.Space.m)
+        .dsSkeleton(when: true)
+    }
+}
+
+private struct PortfolioJobDetailView: View {
     let job: CompletedJob
     @Environment(\.dismiss) var dismiss
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(job.title)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text(job.description)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                    
-                    // All Images
-                    if !job.images.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Photos")
-                                .font(.headline)
-                            
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                                ForEach(job.images, id: \.self) { imageUrl in
-                                    AsyncImage(url: URL(string: imageUrl)) { image in
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    } placeholder: {
-                                        Color.gray.opacity(0.3)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: DS.Space.xl) {
+                        VStack(alignment: .leading, spacing: DS.Space.s) {
+                            Text(job.title)
+                                .font(.dsTitle2)
+                                .foregroundStyle(Color.ink)
+
+                            Text(job.description)
+                                .font(.dsBody)
+                                .foregroundStyle(Color.inkMuted)
+                        }
+
+                        // All Images
+                        if !job.images.isEmpty {
+                            VStack(alignment: .leading, spacing: DS.Space.m) {
+                                Text("Photos")
+                                    .font(.dsHeadline)
+                                    .foregroundStyle(Color.ink)
+
+                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: DS.Space.m) {
+                                    ForEach(job.images, id: \.self) { imageUrl in
+                                        AsyncImage(url: URL(string: imageUrl)) { image in
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                        } placeholder: {
+                                            Color.surfaceAlt
+                                        }
+                                        .frame(height: 120)
+                                        .clipped()
+                                        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
                                     }
-                                    .frame(height: 120)
-                                    .clipped()
-                                    .cornerRadius(8)
                                 }
                             }
                         }
-                    }
-                    
-                    // Before/After Grid
-                    if let gridImageUrl = job.beforeAfterGridImage {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Before & After")
-                                .font(.headline)
-                            
-                            AsyncImage(url: URL(string: gridImageUrl)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                            } placeholder: {
-                                Color.gray.opacity(0.3)
-                                    .frame(height: 300)
+
+                        // Before/After Grid
+                        if let gridImageUrl = job.beforeAfterGridImage {
+                            VStack(alignment: .leading, spacing: DS.Space.m) {
+                                Text("Before & After")
+                                    .font(.dsHeadline)
+                                    .foregroundStyle(Color.ink)
+
+                                AsyncImage(url: URL(string: gridImageUrl)) { image in
+                                    image
+                                        .resizable()
+                                        .scaledToFit()
+                                } placeholder: {
+                                    Color.surfaceAlt
+                                        .frame(height: 300)
+                                }
+                                .frame(maxHeight: 400)
+                                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
                             }
-                            .frame(maxHeight: 400)
-                            .cornerRadius(12)
                         }
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.vertical, DS.Space.l)
                 }
-                .padding()
             }
             .navigationTitle("Portfolio Item")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done.string) {
                         dismiss()
                     }
+                    .foregroundStyle(Color.brand)
                 }
             }
         }
@@ -468,4 +379,3 @@ struct PortfolioJobDetailView: View {
         .environmentObject(AuthViewModel())
         .environmentObject(LocalizationManager())
 }
-

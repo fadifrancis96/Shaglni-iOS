@@ -25,264 +25,54 @@ struct JobDetailView: View {
     @State private var acceptedOffer: Offer?
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) var scenePhase
-    
+
     init(job: Job) {
         self.job = job
         _currentJobStatus = State(initialValue: job.status)
     }
-    
+
+    private var isOwner: Bool {
+        authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(job.title)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        Spacer()
-                        
-                        StatusBadge(status: currentJobStatus)
+        ZStack {
+            Color.bgCanvas.ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: DS.Space.xl) {
+                    heroCard
+
+                    descriptionCard
+
+                    if let photoURLs = job.photoURLs, !photoURLs.isEmpty {
+                        PhotoGalleryView(
+                            photoURLs: photoURLs,
+                            title: "Job Requirements"
+                        )
                     }
-                    
-                    if let category = job.category {
-                        Label(category.rawValue, systemImage: "tag.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+
+                    locationCard
+
+                    if let budget = job.budget {
+                        budgetCard(budget)
                     }
-                }
-                .padding()
-                
-                Divider()
-                
-                // Description
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(localization.localized("description"))
-                        .font(.headline)
-                    
-                    Text(job.description)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-                
-                // Photos
-                if let photoURLs = job.photoURLs, !photoURLs.isEmpty {
-                    PhotoGalleryView(
-                        photoURLs: photoURLs,
-                        title: "Job Requirements"
-                    )
-                }
-                
-                // Location
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(localization.localized("location"))
-                        .font(.headline)
-                    
-                    Label(job.location, systemImage: "mappin.circle.fill")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                    
-                    // Map Preview
-                    if let coordinate = job.coordinate {
-                        Map(position: .constant(.region(MKCoordinateRegion(
-                            center: coordinate,
-                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                        )))) {
-                            Marker(job.title, coordinate: coordinate)
-                        }
-                        .frame(height: 200)
-                        .cornerRadius(12)
+
+                    if isOwner {
+                        ownerStatusSection
+
+                        offersSection
                     }
                 }
-                .padding(.horizontal)
-                
-                // Budget
-                if let budget = job.budget {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("budget"))
-                            .font(.headline)
-                        
-                        Text(Money.string(budget))
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.accentColor)
-                    }
-                    .padding(.horizontal)
-                }
-                
-                // Date Posted
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Posted")
-                        .font(.headline)
-                    
-                    Text(job.datePosted, style: .date)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-                
-                // Job Status Management (for job poster)
-                if authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy {
-                    Divider()
-                        .padding(.vertical)
-                    
-                    // Job Status Actions
-                    if currentJobStatus == .open {
-                        // Check if there's an accepted offer (check both offers array and acceptedOffer state)
-                        let accepted = acceptedOffer ?? offers.first(where: { $0.status == .accepted })
-                        if let accepted = accepted {
-                            VStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack {
-                                        Image(systemName: "checkmark.seal.fill")
-                                            .foregroundColor(.green)
-                                        Text("Offer Accepted")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                    }
-                                    
-                                    let displayPrice = accepted.finalPrice ?? accepted.counterPrice ?? accepted.price
-                                    HStack {
-                                        Text("Accepted Price:")
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                        Text("₪\(String(format: "%.0f", displayPrice))")
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                    }
-                                    
-                                    Text("By: \(accepted.contractorName)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding()
-                                .background(Color.green.opacity(0.1))
-                                .cornerRadius(12)
-                                
-                                Button(action: { showMarkInProgressConfirmation = true }) {
-                                    HStack {
-                                        Image(systemName: "hammer.fill")
-                                        Text("Mark Job as In Progress")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                }
-                            }
-                            .padding()
-                        }
-                    } else if currentJobStatus == .inProgress {
-                        VStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "clock.fill")
-                                        .foregroundColor(.orange)
-                                    Text("Job In Progress")
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.orange)
-                                }
-                                
-                                Text("The job is currently being worked on. Mark as done when the work is completed.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(12)
-                            
-                            Button(action: { showMarkDoneConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                    Text("Mark Job as Done")
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                        }
-                        .padding()
-                    } else if currentJobStatus == .completed {
-                        VStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .foregroundColor(.green)
-                                    Text("Job Completed")
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                }
-                                
-                                Text("This job has been marked as completed.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(12)
-                        }
-                        .padding()
-                    }
-                    
-                    Divider()
-                        .padding(.vertical)
-                    
-                    // Offers Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Offers (\(offers.count))")
-                            .font(.headline)
-                            .padding(.horizontal)
-                        
-                        if isLoadingOffers {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else if offers.isEmpty {
-                            EmptyStateView(
-                                icon: "doc.text",
-                                title: "No offers yet",
-                                subtitle: "Wait for contractors to submit offers"
-                            )
-                        } else {
-                            ForEach(offers) { offer in
-                                NavigationLink(destination: OfferDetailView(offer: offer, jobId: job.id ?? "")) {
-                                    OfferCardView(offer: offer)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                    }
-                }
-                
-                // Submit Offer Button (for contractors)
-                if authViewModel.isContractor && currentJobStatus == .open {
-                    Button(action: { showOfferForm = true }) {
-                        Text(localization.localized("submitOffer"))
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                    }
-                    .padding()
-                }
+                .padding(.horizontal, DS.Space.screen)
+                .padding(.top, DS.Space.m)
+                .padding(.bottom, DS.Space.xxl)
             }
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             // Delete button for job owner
-            if authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy {
+            if isOwner {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(role: .destructive, action: { showDeleteConfirmation = true }) {
                         if isDeleting {
@@ -290,11 +80,27 @@ struct JobDetailView: View {
                                 .progressViewStyle(.circular)
                         } else {
                             Image(systemName: "trash")
-                                .foregroundColor(.red)
+                                .foregroundStyle(Color.danger)
                         }
                     }
                     .disabled(isDeleting)
                 }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            // Submit Offer Button (for contractors)
+            if authViewModel.isContractor && currentJobStatus == .open {
+                VStack(spacing: 0) {
+                    Divider().overlay(Color.divider)
+
+                    Button(action: { showOfferForm = true }) {
+                        Text(L10n.Action.submitOffer.string)
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.vertical, DS.Space.m)
+                }
+                .background(Color.bgCanvas.ignoresSafeArea(edges: .bottom))
             }
         }
         .sheet(isPresented: $showOfferForm) {
@@ -354,11 +160,249 @@ struct JobDetailView: View {
             }
         }
     }
-    
+
+    // MARK: - Sections
+
+    private var heroCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .top, spacing: DS.Space.m) {
+                DSCategoryIcon(category: job.category ?? .other, size: 52)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(job.title)
+                        .font(.dsTitle2)
+                        .foregroundStyle(Color.ink)
+                        .multilineTextAlignment(.leading)
+
+                    HStack(spacing: DS.Space.s) {
+                        DSStatusPill(status: currentJobStatus)
+
+                        if let category = job.category {
+                            DSTag(title: category.localized, systemImage: "tag.fill")
+                        }
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            Divider().overlay(Color.divider)
+
+            HStack(spacing: 5) {
+                Image(systemName: "clock")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Posted")
+                Text(job.datePosted, style: .date)
+            }
+            .font(.dsCaption)
+            .foregroundStyle(Color.inkMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private var descriptionCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            Text(localization.localized("description"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+                .textCase(.uppercase)
+
+            Text(job.description)
+                .font(.dsSub)
+                .foregroundStyle(Color.ink)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private var locationCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            Text(localization.localized("location"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+                .textCase(.uppercase)
+
+            HStack(spacing: 6) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.brand)
+                Text(job.location)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.ink)
+                    .multilineTextAlignment(.leading)
+            }
+
+            // Map Preview
+            if let coordinate = job.coordinate {
+                Map(position: .constant(.region(MKCoordinateRegion(
+                    center: coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                )))) {
+                    Marker(job.title, coordinate: coordinate)
+                }
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private func budgetCard(_ budget: Double) -> some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            Text(localization.localized("budget"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+                .textCase(.uppercase)
+
+            DSPriceText(amount: budget, font: .dsPriceLarge)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    // MARK: - Owner status management
+
+    @ViewBuilder
+    private var ownerStatusSection: some View {
+        if currentJobStatus == .open {
+            // Check if there's an accepted offer (check both offers array and acceptedOffer state)
+            let accepted = acceptedOffer ?? offers.first(where: { $0.status == .accepted })
+            if let accepted = accepted {
+                VStack(spacing: DS.Space.m) {
+                    acceptedOfferCard(accepted)
+
+                    Button(action: { showMarkInProgressConfirmation = true }) {
+                        Label(L10n.Action.markInProgress.string, systemImage: "hammer.fill")
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                }
+            }
+        } else if currentJobStatus == .inProgress {
+            VStack(spacing: DS.Space.m) {
+                statusInfoCard(
+                    systemImage: "clock.fill",
+                    title: "Job In Progress",
+                    message: "The job is currently being worked on. Mark as done when the work is completed.",
+                    tint: .warning,
+                    background: .warningSoft
+                )
+
+                Button(action: { showMarkDoneConfirmation = true }) {
+                    Label(L10n.Action.markDone.string, systemImage: "checkmark.circle.fill")
+                }
+                .buttonStyle(DSPrimaryButtonStyle())
+            }
+        } else if currentJobStatus == .completed {
+            statusInfoCard(
+                systemImage: "checkmark.seal.fill",
+                title: "Job Completed",
+                message: "This job has been marked as completed.",
+                tint: .success,
+                background: .successSoft
+            )
+        }
+    }
+
+    private func acceptedOfferCard(_ accepted: Offer) -> some View {
+        let displayPrice = accepted.finalPrice ?? accepted.counterPrice ?? accepted.price
+
+        return VStack(alignment: .leading, spacing: DS.Space.s) {
+            HStack(spacing: DS.Space.s) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.success)
+                Text("Offer Accepted")
+                    .font(.dsHeadline)
+                    .foregroundStyle(Color.success)
+            }
+
+            HStack {
+                Text("Accepted Price:")
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                Spacer()
+                DSPriceText(amount: displayPrice, tint: .success)
+            }
+
+            Text("By: \(accepted.contractorName)")
+                .font(.dsCaption)
+                .foregroundStyle(Color.inkMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Space.l)
+        .background(
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(Color.successSoft)
+        )
+    }
+
+    private func statusInfoCard(
+        systemImage: String,
+        title: String,
+        message: String,
+        tint: Color,
+        background: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            HStack(spacing: DS.Space.s) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint)
+                Text(title)
+                    .font(.dsHeadline)
+                    .foregroundStyle(tint)
+            }
+
+            Text(message)
+                .font(.dsCaption)
+                .foregroundStyle(Color.inkMuted)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Space.l)
+        .background(
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(background)
+        )
+    }
+
+    // MARK: - Offers
+
+    private var offersSection: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Section.offersCount(offers.count))
+
+            if isLoadingOffers {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DS.Space.xl)
+            } else if offers.isEmpty {
+                DSEmptyState(
+                    systemImage: "doc.text",
+                    title: L10n.Empty.noOffers.string,
+                    message: "Wait for contractors to submit offers"
+                )
+                .dsCard()
+            } else {
+                ForEach(offers) { offer in
+                    NavigationLink(destination: OfferDetailView(offer: offer, jobId: job.id ?? "")) {
+                        OfferCardView(offer: offer)
+                    }
+                    .buttonStyle(DSPressableStyle())
+                }
+            }
+        }
+    }
+
+    // MARK: - Data
+
     private func loadOffers() {
         guard let jobId = job.id else { return }
         guard authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy else { return }
-        
+
         isLoadingOffers = true
         FirestoreService.shared.fetchOffersForJob(jobId: jobId) { result in
             isLoadingOffers = false
@@ -375,10 +419,10 @@ struct JobDetailView: View {
             }
         }
     }
-    
+
     private func refreshJobStatus() {
         guard let jobId = job.id else { return }
-        
+
         FirestoreService.shared.fetchJob(jobId: jobId) { result in
             switch result {
             case .success(let updatedJob):
@@ -389,10 +433,10 @@ struct JobDetailView: View {
             }
         }
     }
-    
+
     private func markJobInProgress() {
         guard let jobId = job.id else { return }
-        
+
         isUpdatingStatus = true
         FirestoreService.shared.updateJobStatus(jobId: jobId, status: .inProgress) { result in
             isUpdatingStatus = false
@@ -405,10 +449,10 @@ struct JobDetailView: View {
             }
         }
     }
-    
+
     private func markJobAsDone() {
         guard let jobId = job.id else { return }
-        
+
         isUpdatingStatus = true
         FirestoreService.shared.updateJobStatus(jobId: jobId, status: .completed) { result in
             isUpdatingStatus = false
@@ -416,7 +460,7 @@ struct JobDetailView: View {
             case .success:
                 currentJobStatus = .completed
                 refreshJobStatus()
-                
+
                 // Notify contractor that job is completed
                 NotificationCenter.default.post(
                     name: NSNotification.Name("JobCompleted"),
@@ -427,10 +471,10 @@ struct JobDetailView: View {
             }
         }
     }
-    
+
     private func deleteJob() {
         guard let jobId = job.id else { return }
-        
+
         isDeleting = true
         FirestoreService.shared.deleteJob(jobId: jobId) { result in
             isDeleting = false

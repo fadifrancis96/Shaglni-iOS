@@ -173,6 +173,60 @@ extension L10n {
     enum Chat {
         static let placeholder = L10n(key: "chat.placeholder")
     }
+
+    enum OfferUI {
+        static let counterReceived = L10n(key: "offer.counterReceived")
+        static let posterCounter   = L10n(key: "offer.posterCounter")
+    }
+
+    enum Onboarding {
+        static let skip           = L10n(key: "onboarding.skip")
+        static let chooseLanguage = L10n(key: "onboarding.chooseLanguage")
+        static let page1Title     = L10n(key: "onboarding.page1.title")
+        static let page1Subtitle  = L10n(key: "onboarding.page1.subtitle")
+        static let page2Title     = L10n(key: "onboarding.page2.title")
+        static let page2Subtitle  = L10n(key: "onboarding.page2.subtitle")
+        static let page3Title     = L10n(key: "onboarding.page3.title")
+        static let page3Subtitle  = L10n(key: "onboarding.page3.subtitle")
+    }
+
+    enum AuthUI {
+        static let welcomeBack      = L10n(key: "auth.welcomeBack")
+        static let loginSubtitle    = L10n(key: "auth.loginSubtitle")
+        static let createAccount    = L10n(key: "auth.createAccount")
+        static let registerSubtitle = L10n(key: "auth.registerSubtitle")
+        static let noAccount        = L10n(key: "auth.noAccount")
+        static let jobPosterDesc    = L10n(key: "role.jobPoster.desc")
+        static let contractorDesc   = L10n(key: "role.contractor.desc")
+    }
+
+    enum Dash {
+        static let greetingMorning   = L10n(key: "dash.greetingMorning")
+        static let greetingAfternoon = L10n(key: "dash.greetingAfternoon")
+        static let greetingEvening   = L10n(key: "dash.greetingEvening")
+
+        /// Time-of-day appropriate greeting.
+        static var greetingNow: L10n {
+            switch Calendar.current.component(.hour, from: Date()) {
+            case 5..<12:  return greetingMorning
+            case 12..<18: return greetingAfternoon
+            default:      return greetingEvening
+            }
+        }
+        static let quickActions      = L10n(key: "dash.quickActions")
+        static let statOpenJobs      = L10n(key: "dash.stats.openJobs")
+        static let statOffers        = L10n(key: "dash.stats.offers")
+    }
+
+    enum ProfileUI {
+        static let memberSince = L10n(key: "profile.memberSince")
+        static let language    = L10n(key: "profile.language")
+        static let account     = L10n(key: "profile.account")
+        static let about       = L10n(key: "profile.about")
+        static let version     = L10n(key: "profile.version")
+        static let privacy     = L10n(key: "profile.privacy")
+        static let terms       = L10n(key: "profile.terms")
+    }
 }
 
 // MARK: - Status helpers

@@ -17,62 +17,63 @@ struct MyActiveJobsView: View {
     @State private var showJobDetail = false
     @State private var newlyCompletedJob: JobWithOffer?
     @State private var showCompletionPreview = false
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    if isLoading && activeJobs.isEmpty && completedJobs.isEmpty {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, minHeight: 400)
-                            .padding()
-                    } else if !isLoading && activeJobs.isEmpty && completedJobs.isEmpty {
-                        EmptyStateView(
-                            icon: "briefcase.fill",
-                            title: "No Active Jobs",
-                            subtitle: "You don't have any active jobs right now. Your in-progress jobs will appear here."
-                        )
-                    } else {
-                        // Active Jobs Section
-                        if !activeJobs.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("In Progress")
-                                    .font(.headline)
-                                    .padding(.horizontal)
-                                
-                                ForEach(activeJobs) { jobWithOffer in
-                                    ActiveJobCard(jobWithOffer: jobWithOffer)
-                                        .onTapGesture {
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        if isLoading && activeJobs.isEmpty && completedJobs.isEmpty {
+                            ForEach(0..<3, id: \.self) { _ in
+                                JobCardPlaceholder()
+                            }
+                        } else if !isLoading && activeJobs.isEmpty && completedJobs.isEmpty {
+                            DSEmptyState(
+                                systemImage: "briefcase.fill",
+                                title: L10n.Empty.noActiveJobs.string,
+                                message: L10n.Empty.noActiveJobsSubtitle.string
+                            )
+                        } else {
+                            // Active Jobs Section
+                            if !activeJobs.isEmpty {
+                                VStack(spacing: DS.Space.m) {
+                                    DSSectionHeader(title: L10n.JobStatus.inProgress.string)
+
+                                    ForEach(activeJobs) { jobWithOffer in
+                                        Button {
                                             selectedJob = jobWithOffer
                                             showJobDetail = true
+                                        } label: {
+                                            ActiveJobCard(jobWithOffer: jobWithOffer)
                                         }
+                                        .buttonStyle(DSPressableStyle())
+                                    }
                                 }
                             }
-                        }
-                        
-                        // Completed Jobs Section
-                        if !completedJobs.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Completed - Add to Profile")
-                                    .font(.headline)
-                                    .padding(.horizontal)
-                                    .padding(.top)
-                                
-                                ForEach(completedJobs) { jobWithOffer in
-                                    CompletedJobCard(jobWithOffer: jobWithOffer)
-                                        .onTapGesture {
+
+                            // Completed Jobs Section
+                            if !completedJobs.isEmpty {
+                                VStack(spacing: DS.Space.m) {
+                                    DSSectionHeader(title: "Completed - Add to Profile")
+
+                                    ForEach(completedJobs) { jobWithOffer in
+                                        CompletedJobCard(jobWithOffer: jobWithOffer) {
                                             // Open to job detail view so contractor can view the job first
                                             selectedJob = jobWithOffer
                                             showJobDetail = true
                                         }
+                                    }
                                 }
                             }
                         }
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.vertical, DS.Space.l)
                 }
-                .padding()
             }
-            .navigationTitle("My Active Jobs")
+            .navigationTitle(L10n.Action.myActiveJobs.string)
             .navigationBarTitleDisplayMode(.inline)
             .refreshable {
                 loadActiveJobs()
@@ -108,26 +109,26 @@ struct MyActiveJobsView: View {
             }
         }
     }
-    
+
     private func loadActiveJobs() {
         guard let contractorId = authViewModel.currentUser?.uid else {
             print("❌ No contractor ID available")
             return
         }
-        
+
         print("🔍 Loading active jobs for contractor: \(contractorId)")
         isLoading = true
-        
+
         // Fetch all jobs where contractor has an accepted offer
         FirestoreService.shared.fetchJobsWithAcceptedOffer(contractorId: contractorId) { [self] result in
             switch result {
             case .success(let jobs):
                 print("📊 Fetched \(jobs.count) jobs total")
-                
+
                 // Separate active and completed jobs
                 activeJobs = jobs.filter { $0.job.status == .inProgress || $0.job.status == .open }
                 let allCompletedJobs = jobs.filter { $0.job.status == .completed }
-                
+
                 // Fetch portfolio jobs to filter out already added ones
                 FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { portfolioResult in
                     isLoading = false
@@ -135,15 +136,15 @@ struct MyActiveJobsView: View {
                     case .success(let portfolioJobs):
                         // Get set of job IDs that are already in portfolio
                         let portfolioJobIds = Set(portfolioJobs.compactMap { $0.jobId })
-                        
+
                         // Filter out completed jobs that are already in portfolio
                         completedJobs = allCompletedJobs.filter { jobWithOffer in
                             guard let jobId = jobWithOffer.job.id else { return true }
                             return !portfolioJobIds.contains(jobId)
                         }
-                        
+
                         print("✅ Active jobs: \(activeJobs.count), Completed (not in portfolio): \(completedJobs.count)")
-                        
+
                         // Check if there's a newly completed job to show preview
                         if let firstCompleted = completedJobs.first,
                            newlyCompletedJob == nil {
@@ -168,150 +169,133 @@ struct MyActiveJobsView: View {
     }
 }
 
-struct CompletedJobCard: View {
+private struct CompletedJobCard: View {
     let jobWithOffer: JobWithOffer
-    
+    let action: () -> Void
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .top, spacing: DS.Space.m) {
+                DSCategoryIcon(category: jobWithOffer.job.category ?? .other)
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(jobWithOffer.job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
                     if let category = jobWithOffer.job.category {
-                        Text(category.rawValue)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(category.localized)
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.inkMuted)
                     }
                 }
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .foregroundColor(.green)
-                    Text("Completed")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.green)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.green.opacity(0.1))
-                .cornerRadius(6)
+
+                Spacer(minLength: DS.Space.s)
+
+                DSStatusPill(status: JobStatus.completed)
             }
-            
+
             Text(jobWithOffer.job.description)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.dsSub)
+                .foregroundStyle(Color.inkMuted)
                 .lineLimit(2)
-            
+                .multilineTextAlignment(.leading)
+
             HStack {
-                let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                Text("Final Price: ₪\(String(format: "%.0f", finalPrice))")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.green)
-                
+                Text("Final Price")
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkMuted)
                 Spacer()
-                
-                Image(systemName: "arrow.right.circle.fill")
-                    .foregroundColor(.blue)
-                    .font(.title3)
+                DSPriceText(amount: finalPrice, tint: .success)
             }
-            
-            HStack {
-                Image(systemName: "eye.fill")
-                    .font(.caption)
-                Text("Tap to view job details and add to profile")
-                    .font(.caption)
-                    .foregroundColor(.blue)
+
+            Button(action: action) {
+                HStack(spacing: DS.Space.s) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text("Add to Profile")
+                }
             }
+            .buttonStyle(DSTonalButtonStyle(tint: .success, background: .successSoft))
         }
-        .padding()
+        .padding(DS.Space.l)
         .background(
-            LinearGradient(
-                colors: [Color.green.opacity(0.05), Color.blue.opacity(0.05)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(Color.surface)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.green.opacity(0.3), lineWidth: 2)
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .strokeBorder(Color.success.opacity(0.35), lineWidth: 1.5)
         )
-        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4)
+        .contentShape(RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous))
+        .onTapGesture(perform: action)
+    }
+
+    private var finalPrice: Double {
+        jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
     }
 }
 
-struct ActiveJobCard: View {
+private struct ActiveJobCard: View {
     let jobWithOffer: JobWithOffer
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .top, spacing: DS.Space.m) {
+                DSCategoryIcon(category: jobWithOffer.job.category ?? .other)
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(jobWithOffer.job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
                     if let category = jobWithOffer.job.category {
-                        Text(category.rawValue)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(category.localized)
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.inkMuted)
                     }
                 }
-                
-                Spacer()
-                
-                StatusBadge(status: jobWithOffer.job.status)
+
+                Spacer(minLength: DS.Space.s)
+
+                DSStatusPill(status: jobWithOffer.job.status)
             }
-            
+
             Text(jobWithOffer.job.description)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.dsSub)
+                .foregroundStyle(Color.inkMuted)
                 .lineLimit(2)
-            
-            HStack {
-                Label(jobWithOffer.job.location, systemImage: "mappin.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                if jobWithOffer.job.status == .inProgress {
-                    HStack(spacing: 4) {
-                        Image(systemName: "clock.fill")
-                            .font(.caption)
-                        Text("In Progress")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                    }
-                    .foregroundColor(.orange)
-                }
+                .multilineTextAlignment(.leading)
+
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 11))
+                Text(jobWithOffer.job.location)
+                    .lineLimit(1)
             }
-            
-            Divider()
-            
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Accepted Price")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                    Text("₪\(String(format: "%.0f", finalPrice))")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
-                
+            .font(.dsCaption)
+            .foregroundStyle(Color.inkMuted)
+
+            Divider().overlay(Color.divider)
+
+            HStack(alignment: .firstTextBaseline) {
+                Text("Accepted Price")
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkMuted)
                 Spacer()
+                DSPriceText(amount: finalPrice)
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .dsCard()
+    }
+
+    private var finalPrice: Double {
+        jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
     }
 }
 
@@ -320,4 +304,3 @@ struct ActiveJobCard: View {
         .environmentObject(AuthViewModel())
         .environmentObject(LocalizationManager())
 }
-

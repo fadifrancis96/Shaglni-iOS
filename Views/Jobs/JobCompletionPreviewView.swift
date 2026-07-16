@@ -22,7 +22,7 @@ struct JobCompletionPreviewView: View {
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var isGeneratingGrid = false
     @State private var skippedBeforeAfter = false
-    
+
     enum CompletionStep {
         case preview
         case photoGallery
@@ -30,26 +30,32 @@ struct JobCompletionPreviewView: View {
         case review
         case success
     }
-    
+
+    private var stepIndex: Int {
+        switch currentStep {
+        case .preview:              return 0
+        case .photoGallery:         return 1
+        case .beforeAfterSelection: return 2
+        case .review, .success:     return 3
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
+                Color.bgCanvas.ignoresSafeArea()
+
                 VStack(spacing: 0) {
                     // Progress Indicator
-                    ProgressBar(currentStep: currentStep)
-                        .padding()
-                    
+                    if currentStep != .success {
+                        StepProgressBar(current: stepIndex, total: 4)
+                            .padding(.horizontal, DS.Space.screen)
+                            .padding(.vertical, DS.Space.l)
+                    }
+
                     // Content
                     ScrollView {
-                        VStack(spacing: 24) {
+                        VStack(spacing: DS.Space.xl) {
                             switch currentStep {
                             case .preview:
                                 previewStep
@@ -63,198 +69,13 @@ struct JobCompletionPreviewView: View {
                                 successStep
                             }
                         }
-                        .padding()
+                        .padding(.horizontal, DS.Space.screen)
+                        .padding(.vertical, DS.Space.l)
                     }
-                    
+
                     // Navigation Buttons
                     if currentStep != .success {
-                        VStack(spacing: 12) {
-                            if currentStep == .preview {
-                                Button(action: {
-                                    withAnimation {
-                                        currentStep = .photoGallery
-                                    }
-                                }) {
-                                    HStack {
-                                        Text("Add Photos")
-                                            .fontWeight(.semibold)
-                                        Image(systemName: "arrow.right")
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                }
-                                
-                                Button(action: {
-                                    dismiss()
-                                }) {
-                                    Text("Skip for Now")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .foregroundColor(.secondary)
-                                }
-                            } else if currentStep == .photoGallery {
-                                VStack(spacing: 12) {
-                                    HStack(spacing: 12) {
-                                        Button(action: {
-                                            withAnimation {
-                                                currentStep = .preview
-                                            }
-                                        }) {
-                                            Text("Back")
-                                                .frame(maxWidth: .infinity)
-                                                .padding()
-                                                .background(Color(.systemGray6))
-                                                .foregroundColor(.primary)
-                                                .cornerRadius(12)
-                                        }
-                                        
-                                        if !selectedPhotos.isEmpty {
-                                            Button(action: {
-                                                skippedBeforeAfter = false
-                                                withAnimation {
-                                                    currentStep = .beforeAfterSelection
-                                                }
-                                            }) {
-                                                Text("Create Before/After")
-                                                    .fontWeight(.semibold)
-                                                    .frame(maxWidth: .infinity)
-                                                    .padding()
-                                                    .background(Color.blue)
-                                                    .foregroundColor(.white)
-                                                    .cornerRadius(12)
-                                            }
-                                        }
-                                    }
-                                    
-                                    // Skip button - goes directly to review
-                                    Button(action: {
-                                        skippedBeforeAfter = true
-                                        withAnimation {
-                                            currentStep = .review
-                                        }
-                                    }) {
-                                        Text("Skip Before/After")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .disabled(selectedPhotos.isEmpty)
-                                }
-                            } else if currentStep == .beforeAfterSelection {
-                                VStack(spacing: 12) {
-                                    HStack(spacing: 12) {
-                                        Button(action: {
-                                            withAnimation {
-                                                currentStep = .photoGallery
-                                            }
-                                        }) {
-                                            Text("Back")
-                                                .frame(maxWidth: .infinity)
-                                                .padding()
-                                                .background(Color(.systemGray6))
-                                                .foregroundColor(.primary)
-                                                .cornerRadius(12)
-                                        }
-                                        
-                                        Button(action: {
-                                            if beforePhotoIndex != nil && afterPhotoIndex != nil {
-                                                generateBeforeAfterGrid()
-                                            }
-                                        }) {
-                                            if isGeneratingGrid {
-                                                ProgressView()
-                                                    .frame(maxWidth: .infinity)
-                                                    .padding()
-                                                    .background(Color.blue.opacity(0.7))
-                                                    .cornerRadius(12)
-                                            } else {
-                                                Text(beforePhotoIndex != nil && afterPhotoIndex != nil ? "Generate Grid" : "Select Both Photos")
-                                                    .fontWeight(.semibold)
-                                                    .frame(maxWidth: .infinity)
-                                                    .padding()
-                                                    .background(beforePhotoIndex != nil && afterPhotoIndex != nil ? Color.blue : Color.gray)
-                                                    .foregroundColor(.white)
-                                                    .cornerRadius(12)
-                                            }
-                                        }
-                                        .disabled(beforePhotoIndex == nil || afterPhotoIndex == nil || isGeneratingGrid)
-                                    }
-                                    
-                                    if generatedGridImage != nil {
-                                        Button(action: {
-                                            withAnimation {
-                                                currentStep = .review
-                                            }
-                                        }) {
-                                            Text("Continue to Review")
-                                                .fontWeight(.semibold)
-                                                .frame(maxWidth: .infinity)
-                                                .padding()
-                                                .background(Color.green)
-                                                .foregroundColor(.white)
-                                                .cornerRadius(12)
-                                        }
-                                    }
-                                    
-                                    // Skip button - goes to review without grid
-                                    Button(action: {
-                                        skippedBeforeAfter = true
-                                        withAnimation {
-                                            currentStep = .review
-                                        }
-                                    }) {
-                                        Text("Skip Before/After")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            } else if currentStep == .review {
-                                HStack(spacing: 12) {
-                                    Button(action: {
-                                        withAnimation {
-                                            // Go back to before/after if they didn't skip, otherwise go to photo gallery
-                                            currentStep = skippedBeforeAfter ? .photoGallery : .beforeAfterSelection
-                                        }
-                                    }) {
-                                        Text("Back")
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            .background(Color(.systemGray6))
-                                            .foregroundColor(.primary)
-                                            .cornerRadius(12)
-                                    }
-                                    
-                                    Button(action: {
-                                        saveToProfile()
-                                    }) {
-                                        if isUploading {
-                                            HStack {
-                                                ProgressView()
-                                                Text("\(Int(uploadProgress * 100))%")
-                                            }
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            .background(Color.blue.opacity(0.7))
-                                            .foregroundColor(.white)
-                                            .cornerRadius(12)
-                                        } else {
-                                            Text("Add to Profile")
-                                                .fontWeight(.semibold)
-                                                .frame(maxWidth: .infinity)
-                                                .padding()
-                                                .background(Color.green)
-                                                .foregroundColor(.white)
-                                                .cornerRadius(12)
-                                        }
-                                    }
-                                    .disabled(isUploading)
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color(.systemBackground))
+                        navigationButtons
                     }
                 }
             }
@@ -265,88 +86,268 @@ struct JobCompletionPreviewView: View {
             }
         }
     }
-    
-    // MARK: - Step Views
-    
-    private var previewStep: some View {
-        VStack(spacing: 20) {
-            // Celebration Icon
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.green)
-            
-            Text("Job Completed!")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text("Great work! Add this job to your profile to showcase your skills and build your reputation.")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            // Job Preview Card
-            VStack(alignment: .leading, spacing: 12) {
-                Text(jobWithOffer.job.title)
-                    .font(.headline)
-                
-                Text(jobWithOffer.job.description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(3)
-                
-                if let category = jobWithOffer.job.category {
-                    Label(category.rawValue, systemImage: "tag.fill")
-                        .font(.caption)
-                        .foregroundColor(.blue)
+
+    // MARK: - Bottom navigation bar
+
+    private var navigationButtons: some View {
+        VStack(spacing: DS.Space.m) {
+            if currentStep == .preview {
+                Button {
+                    withAnimation {
+                        currentStep = .photoGallery
+                    }
+                } label: {
+                    HStack(spacing: DS.Space.s) {
+                        Text("Add Photos")
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .semibold))
+                            .flipsForRightToLeftLayoutDirection(true)
+                    }
                 }
-                
-                let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                HStack {
-                    Text("Price:")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text("₪\(String(format: "%.0f", finalPrice))")
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
+                .buttonStyle(DSPrimaryButtonStyle())
+
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Skip for Now")
+                        .font(.dsSub)
+                        .foregroundStyle(Color.inkMuted)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Space.s)
+                }
+            } else if currentStep == .photoGallery {
+                HStack(spacing: DS.Space.m) {
+                    Button {
+                        withAnimation {
+                            currentStep = .preview
+                        }
+                    } label: {
+                        Text(L10n.Common.back.string)
+                    }
+                    .buttonStyle(DSOutlineButtonStyle())
+
+                    if !selectedPhotos.isEmpty {
+                        Button {
+                            skippedBeforeAfter = false
+                            withAnimation {
+                                currentStep = .beforeAfterSelection
+                            }
+                        } label: {
+                            Text("Create Before/After")
+                        }
+                        .buttonStyle(DSPrimaryButtonStyle())
+                    }
+                }
+
+                // Skip button - goes directly to review
+                Button {
+                    skippedBeforeAfter = true
+                    withAnimation {
+                        currentStep = .review
+                    }
+                } label: {
+                    Text("Skip Before/After")
+                        .font(.dsSub)
+                        .foregroundStyle(Color.inkMuted)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Space.s)
+                }
+                .disabled(selectedPhotos.isEmpty)
+            } else if currentStep == .beforeAfterSelection {
+                HStack(spacing: DS.Space.m) {
+                    Button {
+                        withAnimation {
+                            currentStep = .photoGallery
+                        }
+                    } label: {
+                        Text(L10n.Common.back.string)
+                    }
+                    .buttonStyle(DSOutlineButtonStyle())
+
+                    Button {
+                        if beforePhotoIndex != nil && afterPhotoIndex != nil {
+                            generateBeforeAfterGrid()
+                        }
+                    } label: {
+                        if isGeneratingGrid {
+                            ProgressView()
+                                .tint(Color.onBrand)
+                        } else {
+                            Text(beforePhotoIndex != nil && afterPhotoIndex != nil ? "Generate Grid" : "Select Both Photos")
+                        }
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                    .disabled(beforePhotoIndex == nil || afterPhotoIndex == nil || isGeneratingGrid)
+                    .opacity(beforePhotoIndex == nil || afterPhotoIndex == nil ? 0.5 : 1)
+                }
+
+                if generatedGridImage != nil {
+                    Button {
+                        withAnimation {
+                            currentStep = .review
+                        }
+                    } label: {
+                        Text("Continue to Review")
+                    }
+                    .buttonStyle(DSTonalButtonStyle(tint: .success, background: .successSoft))
+                }
+
+                // Skip button - goes to review without grid
+                Button {
+                    skippedBeforeAfter = true
+                    withAnimation {
+                        currentStep = .review
+                    }
+                } label: {
+                    Text("Skip Before/After")
+                        .font(.dsSub)
+                        .foregroundStyle(Color.inkMuted)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DS.Space.s)
+                }
+            } else if currentStep == .review {
+                HStack(spacing: DS.Space.m) {
+                    Button {
+                        withAnimation {
+                            // Go back to before/after if they didn't skip, otherwise go to photo gallery
+                            currentStep = skippedBeforeAfter ? .photoGallery : .beforeAfterSelection
+                        }
+                    } label: {
+                        Text(L10n.Common.back.string)
+                    }
+                    .buttonStyle(DSOutlineButtonStyle())
+
+                    Button {
+                        saveToProfile()
+                    } label: {
+                        if isUploading {
+                            HStack(spacing: DS.Space.s) {
+                                ProgressView()
+                                    .tint(Color.onBrand)
+                                Text("\(Int(uploadProgress * 100))%")
+                            }
+                        } else {
+                            Text("Add to Profile")
+                        }
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                    .disabled(isUploading)
                 }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
+        }
+        .padding(.horizontal, DS.Space.screen)
+        .padding(.vertical, DS.Space.l)
+        .background(
+            Color.surface
+                .ignoresSafeArea(edges: .bottom)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -2)
+        )
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.divider)
+                .frame(height: 1)
         }
     }
-    
+
+    // MARK: - Step Views
+
+    private var previewStep: some View {
+        VStack(spacing: DS.Space.xl) {
+            // Celebration Icon
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 44, weight: .semibold))
+                .foregroundStyle(Color.success)
+                .frame(width: 96, height: 96)
+                .background(Circle().fill(Color.successSoft))
+
+            VStack(spacing: DS.Space.s) {
+                Text("Job Completed!")
+                    .font(.dsTitle2)
+                    .foregroundStyle(Color.ink)
+
+                Text("Great work! Add this job to your profile to showcase your skills and build your reputation.")
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                    .multilineTextAlignment(.center)
+            }
+
+            // Job Preview Card
+            VStack(alignment: .leading, spacing: DS.Space.m) {
+                HStack(alignment: .top, spacing: DS.Space.m) {
+                    DSCategoryIcon(category: jobWithOffer.job.category ?? .other)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(jobWithOffer.job.title)
+                            .font(.dsHeadline)
+                            .foregroundStyle(Color.ink)
+
+                        if let category = jobWithOffer.job.category {
+                            DSTag(title: category.localized)
+                        }
+                    }
+
+                    Spacer(minLength: 0)
+                }
+
+                Text(jobWithOffer.job.description)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                    .lineLimit(3)
+
+                Divider().overlay(Color.divider)
+
+                HStack(alignment: .firstTextBaseline) {
+                    Text(L10n.Field.price.string)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkMuted)
+                    Spacer()
+                    DSPriceText(amount: finalPrice, tint: .success)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dsCard()
+        }
+    }
+
     private var photoGalleryStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: DS.Space.l) {
             Text("Add Job Photos")
-                .font(.title2)
-                .fontWeight(.bold)
-            
+                .font(.dsTitle2)
+                .foregroundStyle(Color.ink)
+
             Text("Upload photos of your completed work. You can select up to 10 photos.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
+                .font(.dsSub)
+                .foregroundStyle(Color.inkMuted)
+
             if selectedPhotos.isEmpty {
                 PhotosPicker(
                     selection: $selectedPhotoItems,
                     maxSelectionCount: 10,
                     matching: .images
                 ) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: DS.Space.m) {
                         Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 50))
-                            .foregroundColor(.blue)
+                            .font(.system(size: 34, weight: .medium))
+                            .foregroundStyle(Color.brand)
+                            .frame(width: 72, height: 72)
+                            .background(Circle().fill(Color.brandSoft))
                         Text("Add Photos")
-                            .font(.headline)
+                            .font(.dsHeadline)
+                            .foregroundStyle(Color.brand)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                            .fill(Color.surface)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                            .strokeBorder(Color.brand.opacity(0.35), style: StrokeStyle(lineWidth: 1.5, dash: [7, 5]))
+                    )
                 }
             } else {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: DS.Space.m) {
                     ForEach(Array(selectedPhotos.enumerated()), id: \.offset) { index, photo in
                         ZStack(alignment: .topTrailing) {
                             Image(uiImage: photo)
@@ -354,55 +355,58 @@ struct JobCompletionPreviewView: View {
                                 .scaledToFill()
                                 .frame(height: 100)
                                 .clipped()
-                                .cornerRadius(8)
-                            
-                            Button(action: {
+                                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
+
+                            Button {
                                 selectedPhotos.remove(at: index)
-                            }) {
+                            } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
-                                    .background(Color.white)
-                                    .clipShape(Circle())
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.danger)
+                                    .background(Circle().fill(Color.surface))
                             }
-                            .padding(4)
+                            .padding(DS.Space.xs)
                         }
                     }
-                    
+
                     if selectedPhotos.count < 10 {
                         PhotosPicker(
                             selection: $selectedPhotoItems,
                             maxSelectionCount: 10 - selectedPhotos.count,
                             matching: .images
                         ) {
-                            VStack(spacing: 8) {
+                            VStack(spacing: DS.Space.s) {
                                 Image(systemName: "plus")
-                                    .font(.title2)
+                                    .font(.system(size: 20, weight: .semibold))
                                 Text("Add More")
-                                    .font(.caption)
+                                    .font(.dsCaptionBold)
                             }
+                            .foregroundStyle(Color.brand)
                             .frame(height: 100)
                             .frame(maxWidth: .infinity)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                            .foregroundColor(.blue)
+                            .background(
+                                RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous)
+                                    .fill(Color.brandSoft)
+                            )
                         }
                     }
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     private func loadPhotos(from items: [PhotosPickerItem]) {
         Task {
             var newImages: [UIImage] = []
-            
+
             for item in items {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
                     newImages.append(image)
                 }
             }
-            
+
             await MainActor.run {
                 // Append new photos without duplicates
                 for newImage in newImages {
@@ -415,19 +419,19 @@ struct JobCompletionPreviewView: View {
             }
         }
     }
-    
+
     private var beforeAfterStep: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: DS.Space.l) {
             Text("Before & After")
-                .font(.title2)
-                .fontWeight(.bold)
-            
+                .font(.dsTitle2)
+                .foregroundStyle(Color.ink)
+
             Text("Select two photos to create a before/after comparison grid. This will be automatically generated for your portfolio.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
+                .font(.dsSub)
+                .foregroundStyle(Color.inkMuted)
+
             if !selectedPhotos.isEmpty {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: DS.Space.m) {
                     ForEach(Array(selectedPhotos.enumerated()), id: \.offset) { index, photo in
                         ZStack {
                             Image(uiImage: photo)
@@ -435,32 +439,20 @@ struct JobCompletionPreviewView: View {
                                 .scaledToFill()
                                 .frame(height: 150)
                                 .clipped()
-                                .cornerRadius(12)
+                                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(
-                                            beforePhotoIndex == index ? Color.green : (afterPhotoIndex == index ? Color.blue : Color.clear),
-                                            lineWidth: 4
+                                    RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous)
+                                        .strokeBorder(
+                                            beforePhotoIndex == index || afterPhotoIndex == index ? Color.brand : Color.clear,
+                                            lineWidth: 3
                                         )
                                 )
-                            
+
                             VStack {
                                 if beforePhotoIndex == index {
-                                    Label("Before", systemImage: "arrow.down")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .background(Color.green)
-                                        .cornerRadius(6)
+                                    selectionBadge(text: "Before", systemImage: "arrow.down")
                                 } else if afterPhotoIndex == index {
-                                    Label("After", systemImage: "arrow.up")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.white)
-                                        .padding(6)
-                                        .background(Color.blue)
-                                        .cornerRadius(6)
+                                    selectionBadge(text: "After", systemImage: "arrow.up")
                                 }
                             }
                         }
@@ -477,165 +469,187 @@ struct JobCompletionPreviewView: View {
                         }
                     }
                 }
-                
+
                 if let gridImage = generatedGridImage {
-                    VStack(spacing: 8) {
+                    VStack(spacing: DS.Space.s) {
                         Text("Generated Grid Preview")
-                            .font(.headline)
-                        
+                            .font(.dsHeadline)
+                            .foregroundStyle(Color.ink)
+
                         Image(uiImage: gridImage)
                             .resizable()
                             .scaledToFit()
                             .frame(maxHeight: 300)
-                            .cornerRadius(12)
-                            .shadow(radius: 5)
+                            .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
                     }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .frame(maxWidth: .infinity)
+                    .dsInset(padding: DS.Space.l)
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
+    private func selectionBadge(text: String, systemImage: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: systemImage)
+                .font(.system(size: 10, weight: .bold))
+            Text(text)
+                .font(.dsMicro)
+        }
+        .foregroundStyle(Color.onBrand)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(Color.brand))
+    }
+
     private var reviewStep: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: DS.Space.xl) {
             Text("Review & Add")
-                .font(.title2)
-                .fontWeight(.bold)
-            
+                .font(.dsTitle2)
+                .foregroundStyle(Color.ink)
+
             // Job Summary
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: DS.Space.m) {
                 Text("Job Details")
-                    .font(.headline)
-                
-                Text(jobWithOffer.job.title)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                
-                if let category = jobWithOffer.job.category {
-                    Label(category.rawValue, systemImage: "tag.fill")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.inkMuted)
+
+                HStack(alignment: .top, spacing: DS.Space.m) {
+                    DSCategoryIcon(category: jobWithOffer.job.category ?? .other)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(jobWithOffer.job.title)
+                            .font(.dsHeadline)
+                            .foregroundStyle(Color.ink)
+
+                        if let category = jobWithOffer.job.category {
+                            DSTag(title: category.localized)
+                        }
+                    }
+
+                    Spacer(minLength: 0)
                 }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dsCard()
+
             // Photos Summary
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: DS.Space.m) {
                 Text("Photos (\(selectedPhotos.count))")
-                    .font(.headline)
-                
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.inkMuted)
+
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: DS.Space.m) {
                         ForEach(Array(selectedPhotos.enumerated()), id: \.offset) { _, photo in
                             Image(uiImage: photo)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 80, height: 80)
                                 .clipped()
-                                .cornerRadius(8)
+                                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
                         }
                     }
                 }
             }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dsCard()
+
             // Before/After Grid
             if let gridImage = generatedGridImage {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: DS.Space.m) {
                     Text("Before & After Grid")
-                        .font(.headline)
-                    
+                        .font(.dsCaptionBold)
+                        .foregroundStyle(Color.inkMuted)
+
                     Image(uiImage: gridImage)
                         .resizable()
                         .scaledToFit()
                         .frame(maxHeight: 200)
-                        .cornerRadius(12)
+                        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
                 }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .dsCard()
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     private var successStep: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: DS.Space.xl) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.green)
-            
-            Text("Added to Profile!")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text("This job has been successfully added to your profile and is now visible to potential clients.")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            Button(action: {
-                dismiss()
-            }) {
-                Text("Done")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
+                .font(.system(size: 52, weight: .semibold))
+                .foregroundStyle(Color.success)
+                .frame(width: 112, height: 112)
+                .background(Circle().fill(Color.successSoft))
+                .padding(.top, DS.Space.xxl)
+
+            VStack(spacing: DS.Space.s) {
+                Text("Added to Profile!")
+                    .font(.dsTitle)
+                    .foregroundStyle(Color.ink)
+
+                Text("This job has been successfully added to your profile and is now visible to potential clients.")
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                    .multilineTextAlignment(.center)
             }
-            .padding()
+
+            Button {
+                dismiss()
+            } label: {
+                Text(L10n.Common.done.string)
+            }
+            .buttonStyle(DSPrimaryButtonStyle())
+            .padding(.top, DS.Space.l)
         }
     }
-    
+
+    private var finalPrice: Double {
+        jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
+    }
+
     // MARK: - Helper Methods
-    
+
     private func generateBeforeAfterGrid() {
         guard let beforeIndex = beforePhotoIndex,
               let afterIndex = afterPhotoIndex,
               beforeIndex < selectedPhotos.count,
               afterIndex < selectedPhotos.count else { return }
-        
+
         isGeneratingGrid = true
-        
+
         let beforeImage = selectedPhotos[beforeIndex]
         let afterImage = selectedPhotos[afterIndex]
-        
+
         // Use a standard size for consistent grid
         let targetHeight: CGFloat = 800
-        let targetWidth: CGFloat = 1600 // 2x width for side by side
-        
+
         // Resize images to same height while maintaining aspect ratio
         let beforeAspect = beforeImage.size.width / beforeImage.size.height
         let afterAspect = afterImage.size.width / afterImage.size.height
-        
+
         let beforeWidth = targetHeight * beforeAspect
         let afterWidth = targetHeight * afterAspect
         let sideWidth = max(beforeWidth, afterWidth)
-        
+
         let finalWidth = sideWidth * 2
         let finalHeight = targetHeight
-        
+
         let size = CGSize(width: finalWidth, height: finalHeight)
-        
+
         UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
         defer { UIGraphicsEndImageContext() }
-        
+
         // Draw background
         UIColor.white.setFill()
         UIRectFill(CGRect(origin: .zero, size: size))
-        
+
         // Draw before image (left side)
         let beforeRect = CGRect(x: 0, y: 0, width: sideWidth, height: finalHeight)
         beforeImage.draw(in: beforeRect)
-        
+
         // Draw divider line
         UIColor.black.setStroke()
         let divider = UIBezierPath()
@@ -643,23 +657,23 @@ struct JobCompletionPreviewView: View {
         divider.addLine(to: CGPoint(x: sideWidth, y: finalHeight))
         divider.lineWidth = 2
         divider.stroke()
-        
+
         // Draw after image (right side)
         let afterRect = CGRect(x: sideWidth, y: 0, width: sideWidth, height: finalHeight)
         afterImage.draw(in: afterRect)
-        
+
         // Add labels with background
         let font = UIFont.boldSystemFont(ofSize: 32)
         let labelHeight: CGFloat = 50
-        
+
         // Before label background
         UIColor.black.withAlphaComponent(0.7).setFill()
         UIRectFill(CGRect(x: 0, y: 0, width: sideWidth, height: labelHeight))
-        
+
         // After label background
         UIColor.black.withAlphaComponent(0.7).setFill()
         UIRectFill(CGRect(x: sideWidth, y: 0, width: sideWidth, height: labelHeight))
-        
+
         // Draw text
         let beforeAttributes: [NSAttributedString.Key: Any] = [
             .font: font,
@@ -669,10 +683,10 @@ struct JobCompletionPreviewView: View {
             .font: font,
             .foregroundColor: UIColor.white
         ]
-        
+
         "BEFORE".draw(at: CGPoint(x: 20, y: labelHeight/2 - 16), withAttributes: beforeAttributes)
         "AFTER".draw(at: CGPoint(x: sideWidth + 20, y: labelHeight/2 - 16), withAttributes: afterAttributes)
-        
+
         if let gridImage = UIGraphicsGetImageFromCurrentImageContext() {
             DispatchQueue.main.async {
                 self.generatedGridImage = gridImage
@@ -680,7 +694,7 @@ struct JobCompletionPreviewView: View {
             }
         }
     }
-    
+
     private func saveToProfile() {
         guard let contractorId = authViewModel.currentUser?.uid,
               let jobId = jobWithOffer.job.id else { return }
@@ -744,32 +758,6 @@ struct JobCompletionPreviewView: View {
     }
 }
 
-struct ProgressBar: View {
-    let currentStep: JobCompletionPreviewView.CompletionStep
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            ForEach([JobCompletionPreviewView.CompletionStep.preview,
-                     .photoGallery,
-                     .beforeAfterSelection,
-                     .review], id: \.self) { step in
-                Circle()
-                    .fill(step == currentStep || isCompleted(step) ? Color.blue : Color.gray.opacity(0.3))
-                    .frame(width: 10, height: 10)
-            }
-        }
-    }
-    
-    private func isCompleted(_ step: JobCompletionPreviewView.CompletionStep) -> Bool {
-        let steps: [JobCompletionPreviewView.CompletionStep] = [.preview, .photoGallery, .beforeAfterSelection, .review]
-        if let currentIndex = steps.firstIndex(of: currentStep),
-           let stepIndex = steps.firstIndex(of: step) {
-            return stepIndex < currentIndex
-        }
-        return false
-    }
-}
-
 #Preview {
     JobCompletionPreviewView(jobWithOffer: JobWithOffer(
         job: Job(
@@ -795,4 +783,3 @@ struct ProgressBar: View {
     ))
     .environmentObject(AuthViewModel())
 }
-

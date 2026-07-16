@@ -1,1472 +1,18 @@
 {
   "sourceLanguage": "en",
-  "version": "1.0",
   "strings": {
-    "app.name": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shaglni"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "شغلني"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שגלני"
-          }
-        }
-      }
-    },
-    "welcome": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welcome to Shaglni"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مرحباً بك في شغلني"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ברוכים הבאים לשגלני"
-          }
-        }
-      }
-    },
-    "tagline": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect with skilled contractors or find job opportunities"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تواصل مع مقاولين محترفين أو ابحث عن فرص عمل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התחבר לקבלנים מיומנים או מצא הזדמנויות עבודה"
-          }
-        }
-      }
-    },
-    "common.login": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Login"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تسجيل الدخول"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התחברות"
-          }
-        }
-      }
-    },
-    "common.register": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Register"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إنشاء حساب"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הרשמה"
-          }
-        }
-      }
-    },
-    "common.email": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Email"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "البريد الإلكتروني"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אימייל"
-          }
-        }
-      }
-    },
-    "common.password": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Password"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "كلمة المرور"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סיסמה"
-          }
-        }
-      }
-    },
-    "common.displayName": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Full Name"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الاسم الكامل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שם מלא"
-          }
-        }
-      }
-    },
-    "common.submit": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Submit"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إرسال"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שלח"
-          }
-        }
-      }
-    },
-    "common.cancel": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إلغاء"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ביטול"
-          }
-        }
-      }
-    },
-    "common.save": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حفظ"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שמור"
-          }
-        }
-      }
-    },
-    "common.edit": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تعديل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ערוך"
-          }
-        }
-      }
-    },
-    "common.delete": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حذف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מחק"
-          }
-        }
-      }
-    },
-    "common.done": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تم"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סיום"
-          }
-        }
-      }
-    },
-    "common.signIn": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign In"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تسجيل الدخول"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התחבר"
-          }
-        }
-      }
-    },
-    "common.signUp": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign Up"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إنشاء حساب"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הירשם"
-          }
-        }
-      }
-    },
-    "common.logout": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logout"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تسجيل الخروج"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התנתקות"
-          }
-        }
-      }
-    },
-    "common.getStarted": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Get Started"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ابدأ الآن"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התחל"
-          }
-        }
-      }
-    },
-    "common.alreadyHaveAccount": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Already have an account?"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "لديك حساب بالفعل؟"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "כבר יש לך חשבון?"
-          }
-        }
-      }
-    },
-    "common.next": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "التالي"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הבא"
-          }
-        }
-      }
-    },
-    "common.back": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "رجوع"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "חזור"
-          }
-        }
-      }
-    },
-    "common.optional": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Optional"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اختياري"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אופציונלי"
-          }
-        }
-      }
-    },
-    "common.error": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Error"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "خطأ"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שגיאה"
-          }
-        }
-      }
-    },
-    "tab.dashboard": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dashboard"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "لوحة التحكم"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "לוח בקרה"
-          }
-        }
-      }
-    },
-    "tab.jobs": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jobs"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الوظائف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "משרות"
-          }
-        }
-      }
-    },
-    "tab.contractors": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Contractors"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "المقاولون"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "קבלנים"
-          }
-        }
-      }
-    },
-    "tab.offers": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Offers"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "العروض"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הצעות"
-          }
-        }
-      }
-    },
-    "tab.chat": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chat"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "المحادثات"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "צ'אט"
-          }
-        }
-      }
-    },
-    "tab.profile": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Profile"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الملف الشخصي"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "פרופיל"
-          }
-        }
-      }
-    },
-    "role.jobPoster": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Job Poster"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "صاحب عمل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מפרסם משרות"
-          }
-        }
-      }
-    },
-    "role.contractor": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Contractor"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مقاول"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "קבלן"
-          }
-        }
-      }
-    },
-    "role.select": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select Your Role"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اختر دورك"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "בחר את התפקיד שלך"
-          }
-        }
-      }
-    },
-    "jobStatus.open": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مفتوح"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "פתוח"
-          }
-        }
-      }
-    },
-    "jobStatus.inProgress": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In Progress"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "قيد التنفيذ"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "בתהליך"
-          }
-        }
-      }
-    },
-    "jobStatus.completed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مكتمل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הושלם"
-          }
-        }
-      }
-    },
-    "offerStatus.pending": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pending"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "قيد الانتظار"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ממתין"
-          }
-        }
-      }
-    },
-    "offerStatus.accepted": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accepted"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مقبول"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "התקבל"
-          }
-        }
-      }
-    },
-    "offerStatus.rejected": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Declined"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مرفوض"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "נדחה"
-          }
-        }
-      }
-    },
-    "offerStatus.counterOffer": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Counter Offer"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "عرض مقابل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הצעת נגד"
-          }
-        }
-      }
-    },
-    "field.price": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Price"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "السعر"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מחיר"
-          }
-        }
-      }
-    },
-    "field.message": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الرسالة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הודעה"
-          }
-        }
-      }
-    },
-    "field.location": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Location"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الموقع"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מיקום"
-          }
-        }
-      }
-    },
-    "field.category": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Category"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الفئة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "קטגוריה"
-          }
-        }
-      }
-    },
-    "field.budget": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Budget"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الميزانية"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תקציב"
-          }
-        }
-      }
-    },
-    "field.description": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Description"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الوصف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תיאור"
-          }
-        }
-      }
-    },
-    "field.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Title"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "العنوان"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "כותרת"
-          }
-        }
-      }
-    },
-    "field.skills": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skills"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "المهارات"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "כישורים"
-          }
-        }
-      }
-    },
-    "field.rating": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rating"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "التقييم"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "דירוג"
-          }
-        }
-      }
-    },
-    "field.phone": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Phone"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الهاتف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "טלפון"
-          }
-        }
-      }
-    },
-    "field.website": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Website"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الموقع الإلكتروني"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אתר אינטרנט"
-          }
-        }
-      }
-    },
-    "field.bio": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bio"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "نبذة تعريفية"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אודות"
-          }
-        }
-      }
-    },
-    "field.completedJobs": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Completed Jobs"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الأعمال المكتملة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "עבודות שהושלמו"
-          }
-        }
-      }
-    },
-    "field.availableForWork": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Available for Work"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "متاح للعمل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "זמין לעבודה"
-          }
-        }
-      }
-    },
-    "field.contactInfo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Contact Information"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "معلومات الاتصال"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "פרטי התקשרות"
-          }
-        }
-      }
-    },
-    "field.portfolio": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Portfolio"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "معرض الأعمال"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תיק עבודות"
-          }
-        }
-      }
-    },
-    "action.postJob": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Post a Job"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "نشر وظيفة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "פרסם משרה"
-          }
-        }
-      }
-    },
-    "action.findContractor": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Find a Contractor"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "البحث عن مقاول"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מצא קבלן"
-          }
-        }
-      }
-    },
-    "action.browseJobs": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Browse Jobs"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تصفح الوظائف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "עיין במשרות"
-          }
-        }
-      }
-    },
-    "action.myOffers": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My Offers"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "عروضي"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ההצעות שלי"
-          }
-        }
-      }
-    },
-    "action.receivedOffers": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Received Offers"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "العروض المستلمة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הצעות שהתקבלו"
-          }
-        }
-      }
-    },
-    "action.manageProfile": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manage Profile"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إدارة الملف الشخصي"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "נהל פרופיל"
-          }
-        }
-      }
-    },
-    "action.myActiveJobs": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My Active Jobs"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "أعمالي النشطة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "העבודות הפעילות שלי"
-          }
-        }
-      }
-    },
-    "action.myPortfolio": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My Portfolio"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "معرض أعمالي"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תיק העבודות שלי"
-          }
-        }
-      }
-    },
-    "action.submitOffer": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Submit Offer"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تقديم عرض"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הגש הצעה"
-          }
-        }
-      }
-    },
-    "action.viewDetails": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View Details"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "عرض التفاصيل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "צפה בפרטים"
-          }
-        }
-      }
-    },
-    "action.viewAll": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View All"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "عرض الكل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הצג הכל"
-          }
-        }
-      }
-    },
     "action.acceptOffer": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accept Offer"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "قبول العرض"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept Offer"
           }
         },
         "he": {
@@ -1477,18 +23,40 @@
         }
       }
     },
-    "action.declineOffer": {
+    "action.browseJobs": {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تصفح الوظائف"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decline Offer"
+            "value": "Browse Jobs"
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "עיין במשרות"
+          }
+        }
+      }
+    },
+    "action.declineOffer": {
+      "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "رفض العرض"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline Offer"
           }
         },
         "he": {
@@ -1499,128 +67,18 @@
         }
       }
     },
-    "action.negotiate": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Negotiate Price"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تفاوض على السعر"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "נהל מו\"מ על המחיר"
-          }
-        }
-      }
-    },
-    "action.markInProgress": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark Job as In Progress"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تحديد العمل قيد التنفيذ"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סמן כעבודה בתהליך"
-          }
-        }
-      }
-    },
-    "action.markDone": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mark Job as Done"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تحديد العمل كمكتمل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סמן כעבודה שהושלמה"
-          }
-        }
-      }
-    },
-    "action.forgotPassword": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Forgot password?"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "نسيت كلمة المرور؟"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שכחת סיסמה?"
-          }
-        }
-      }
-    },
-    "action.sendResetEmail": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send reset email"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "إرسال بريد إعادة التعيين"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שלח אימייל לאיפוס"
-          }
-        }
-      }
-    },
     "action.deleteAccount": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete account"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "حذف الحساب"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
           }
         },
         "he": {
@@ -1631,502 +89,415 @@
         }
       }
     },
-    "section.recentJobs": {
+    "action.findContractor": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recent Jobs"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "آخر الوظائف"
+            "value": "البحث عن مقاول"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find a Contractor"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "משרות אחרונות"
+            "value": "מצא קבלן"
           }
         }
       }
     },
-    "section.availableJobs": {
+    "action.forgotPassword": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Available Jobs"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الوظائف المتاحة"
+            "value": "نسيت كلمة المرور؟"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot password?"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "משרות זמינות"
+            "value": "שכחת סיסמה?"
           }
         }
       }
     },
-    "section.myRecentOffers": {
+    "action.manageProfile": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My Recent Offers"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "آخر عروضي"
+            "value": "إدارة الملف الشخصي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Profile"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ההצעות האחרונות שלי"
+            "value": "נהל פרופיל"
           }
         }
       }
     },
-    "section.offersCount": {
+    "action.markDone": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Offers (%lld)"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "العروض (%lld)"
+            "value": "تحديد العمل كمكتمل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark Job as Done"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הצעות (%lld)"
+            "value": "סמן כעבודה שהושלמה"
           }
         }
       }
     },
-    "empty.noJobs": {
+    "action.markInProgress": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No jobs yet"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا توجد وظائف بعد"
+            "value": "تحديد العمل قيد التنفيذ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark Job as In Progress"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אין עדיין משרות"
+            "value": "סמן כעבודה בתהליך"
           }
         }
       }
     },
-    "empty.noJobsFound": {
+    "action.myActiveJobs": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No jobs found"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم يتم العثور على وظائف"
+            "value": "أعمالي النشطة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Active Jobs"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לא נמצאו משרות"
+            "value": "העבודות הפעילות שלי"
           }
         }
       }
     },
-    "empty.postFirstJob": {
+    "action.myOffers": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Post your first job to get started"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "انشر وظيفتك الأولى للبدء"
+            "value": "عروضي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Offers"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "פרסם את המשרה הראשונה שלך כדי להתחיל"
+            "value": "ההצעות שלי"
           }
         }
       }
     },
-    "empty.tryFilters": {
+    "action.myPortfolio": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Try adjusting your filters"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "حاول ضبط عوامل التصفية"
+            "value": "معرض أعمالي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Portfolio"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "נסה לשנות את המסננים"
+            "value": "תיק העבודות שלי"
           }
         }
       }
     },
-    "empty.noOffers": {
+    "action.negotiate": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No offers yet"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا توجد عروض بعد"
+            "value": "تفاوض على السعر"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negotiate Price"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אין עדיין הצעות"
+            "value": "נהל מו\"מ על המחיר"
           }
         }
       }
     },
-    "empty.submitOffers": {
+    "action.postJob": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Submit offers to jobs you're interested in"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "قدّم عروضًا على الوظائف التي تهمك"
+            "value": "نشر وظيفة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post a Job"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הגש הצעות למשרות שמעניינות אותך"
+            "value": "פרסם משרה"
           }
         }
       }
     },
-    "empty.noActiveJobs": {
+    "action.receivedOffers": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No Active Jobs"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا توجد أعمال نشطة"
+            "value": "العروض المستلمة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received Offers"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אין עבודות פעילות"
+            "value": "הצעות שהתקבלו"
           }
         }
       }
     },
-    "empty.noActiveJobsSubtitle": {
+    "action.sendResetEmail": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your in-progress jobs will appear here"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ستظهر هنا أعمالك قيد التنفيذ"
+            "value": "إرسال بريد إعادة التعيين"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send reset email"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "העבודות שלך בתהליך יופיעו כאן"
+            "value": "שלח אימייל לאיפוס"
           }
         }
       }
     },
-    "empty.noContractors": {
+    "action.submitOffer": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No contractors found"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لم يتم العثور على مقاولين"
+            "value": "تقديم عرض"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit Offer"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לא נמצאו קבלנים"
+            "value": "הגש הצעה"
           }
         }
       }
     },
-    "empty.tryAdjustSearch": {
+    "action.viewAll": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Try adjusting your search"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "حاول ضبط البحث"
+            "value": "عرض الكل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View All"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "נסה לשנות את החיפוש"
+            "value": "הצג הכל"
           }
         }
       }
     },
-    "empty.noChats": {
+    "action.viewDetails": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No conversations yet"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا توجد محادثات بعد"
+            "value": "عرض التفاصيل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Details"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אין עדיין שיחות"
+            "value": "צפה בפרטים"
           }
         }
       }
     },
-    "empty.noChatsSubtitle": {
+    "app.name": {
+      "extractionState": "manual",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Once an offer is accepted, you'll be able to chat here."
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بمجرد قبول عرض، يمكنك المحادثة هنا."
+            "value": "شغلني"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shaglni"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "ברגע שהצעה מתקבלת, תוכל לשוחח כאן."
+            "value": "שגלני"
           }
         }
       }
     },
-    "search.jobs": {
+    "auth.accountLoadFailed.message": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search jobs…"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ابحث عن وظائف…"
+            "value": "تعذر تحميل بيانات حسابك. تحقق من اتصالك بالإنترنت أو سجّل الخروج ثم أعد تسجيل الدخول."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't load your account data. Check your connection, or sign out and back in."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "חיפוש משרות…"
+            "value": "לא הצלחנו לטעון את נתוני החשבון שלך. בדוק את החיבור לאינטרנט או התנתק והתחבר מחדש."
           }
         }
       }
     },
-    "search.contractors": {
+    "auth.accountLoadFailed.title": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search contractors…"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ابحث عن مقاولين…"
+            "value": "تعذر تحميل حسابك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your account"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "חיפוש קבלנים…"
-          }
-        }
-      }
-    },
-    "search.location": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search for city, village, or address…"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ابحث عن مدينة أو قرية أو عنوان…"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "חפש עיר, יישוב או כתובת…"
-          }
-        }
-      }
-    },
-    "filter.all": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الكل"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הכל"
-          }
-        }
-      }
-    },
-    "loading.account": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading your account…"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "جارٍ تحميل حسابك…"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "טוען את החשבון שלך…"
-          }
-        }
-      }
-    },
-    "auth.confirmDelete.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete your account?"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حذف حسابك؟"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "למחוק את החשבון שלך?"
+            "value": "לא ניתן לטעון את החשבון שלך"
           }
         }
       }
     },
     "auth.confirmDelete.message": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This permanently removes your jobs, offers, profile and photos. You can't undo this."
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "سيؤدي ذلك إلى حذف وظائفك وعروضك وملفك الشخصي وصورك نهائيًا. لا يمكن التراجع."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This permanently removes your jobs, offers, profile and photos. You can't undo this."
           }
         },
         "he": {
@@ -2137,18 +508,154 @@
         }
       }
     },
-    "auth.resetEmailSent": {
+    "auth.confirmDelete.title": {
       "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف حسابك؟"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "If that email exists, we sent a reset link."
+            "value": "Delete your account?"
           }
         },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "למחוק את החשבון שלך?"
+          }
+        }
+      }
+    },
+    "auth.createAccount": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أنشئ حسابك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create your account"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "יוצרים חשבון"
+          }
+        }
+      }
+    },
+    "auth.loginSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سجّل الدخول للمتابعة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to continue"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחברו כדי להמשיך"
+          }
+        }
+      }
+    },
+    "auth.noAccount": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جديد في شغلني؟"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New to Shaglni?"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חדשים בשגלני?"
+          }
+        }
+      }
+    },
+    "auth.registerSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انضم إلى شغلني — يستغرق أقل من دقيقة."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join Shaglni — it takes less than a minute."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מצטרפים לשגלני – זה לוקח פחות מדקה."
+          }
+        }
+      }
+    },
+    "auth.resendVerification": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة إرسال التحقق"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resend verification"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שלח שוב אימות"
+          }
+        }
+      }
+    },
+    "auth.resetEmailSent": {
+      "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "إذا كان البريد الإلكتروني موجودًا، فقد أرسلنا رابط إعادة تعيين."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If that email exists, we sent a reset link."
           }
         },
         "he": {
@@ -2161,16 +668,16 @@
     },
     "auth.verifyEmail": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please verify your email to unlock all features."
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "يرجى التحقق من بريدك الإلكتروني لفتح جميع الميزات."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please verify your email to unlock all features."
           }
         },
         "he": {
@@ -2181,392 +688,41 @@
         }
       }
     },
-    "auth.resendVerification": {
+    "auth.welcomeBack": {
+      "extractionState": "manual",
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resend verification"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "إعادة إرسال التحقق"
+            "value": "مرحباً بعودتك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome back"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "שלח שוב אימות"
-          }
-        }
-      }
-    },
-    "chat.placeholder": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type a message…"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اكتب رسالة…"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "כתוב הודעה…"
-          }
-        }
-      }
-    },
-    "error.notAuthenticated": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You need to sign in to do that."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "يلزم تسجيل الدخول للقيام بذلك."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "עליך להתחבר כדי לבצע פעולה זו."
-          }
-        }
-      }
-    },
-    "error.notAuthorized": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You don't have permission for that action."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ليس لديك صلاحية لهذا الإجراء."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אין לך הרשאה לפעולה זו."
-          }
-        }
-      }
-    },
-    "error.notFound %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ not found."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ غير موجود."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ לא נמצא."
-          }
-        }
-      }
-    },
-    "category.Plumbing": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plumbing"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "السباكة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אינסטלציה"
-          }
-        }
-      }
-    },
-    "category.Electrical": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Electrical"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "كهرباء"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "חשמל"
-          }
-        }
-      }
-    },
-    "category.Carpentry": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Carpentry"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "نجارة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "נגרות"
-          }
-        }
-      }
-    },
-    "category.Painting": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Painting"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "دهان"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "צביעה"
-          }
-        }
-      }
-    },
-    "category.Cleaning": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cleaning"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تنظيف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ניקיון"
-          }
-        }
-      }
-    },
-    "category.Landscaping": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Landscaping"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تنسيق حدائق"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "גינון"
-          }
-        }
-      }
-    },
-    "category.HVAC": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HVAC"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تكييف وتدفئة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מיזוג אוויר"
-          }
-        }
-      }
-    },
-    "category.Roofing": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Roofing"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "أسقف"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "גגות"
-          }
-        }
-      }
-    },
-    "category.Flooring": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flooring"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "أرضيات"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ריצוף"
-          }
-        }
-      }
-    },
-    "category.Masonry": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Masonry"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "بناء"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "בנייה"
-          }
-        }
-      }
-    },
-    "category.Welding": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welding"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "لحام"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ריתוך"
-          }
-        }
-      }
-    },
-    "category.Automotive": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automotive"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "سيارات"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "רכבים"
+            "value": "ברוכים השבים"
           }
         }
       }
     },
     "category.Appliance Repair": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Appliance Repair"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "إصلاح الأجهزة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appliance Repair"
           }
         },
         "he": {
@@ -2577,40 +733,194 @@
         }
       }
     },
-    "category.Pest Control": {
+    "category.Automotive": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pest Control"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "مكافحة الحشرات"
+            "value": "سيارات"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automotive"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "הדברה"
+            "value": "רכבים"
+          }
+        }
+      }
+    },
+    "category.Carpentry": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نجارة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carpentry"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נגרות"
+          }
+        }
+      }
+    },
+    "category.Cleaning": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنظيف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleaning"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ניקיון"
+          }
+        }
+      }
+    },
+    "category.Electrical": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كهرباء"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Electrical"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חשמל"
+          }
+        }
+      }
+    },
+    "category.Flooring": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أرضيات"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flooring"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ריצוף"
+          }
+        }
+      }
+    },
+    "category.HVAC": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تكييف وتدفئة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HVAC"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מיזוג אוויר"
+          }
+        }
+      }
+    },
+    "category.Landscaping": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنسيق حدائق"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Landscaping"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "גינון"
+          }
+        }
+      }
+    },
+    "category.Masonry": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بناء"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masonry"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בנייה"
           }
         }
       }
     },
     "category.Moving": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moving"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "نقل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moving"
           }
         },
         "he": {
@@ -2623,16 +933,16 @@
     },
     "category.Other": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Other"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
             "value": "أخرى"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
           }
         },
         "he": {
@@ -2643,49 +953,2429 @@
         }
       }
     },
-    "auth.accountLoadFailed.title": {
+    "category.Painting": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't load your account"
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر تحميل حسابك"
+            "value": "دهان"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Painting"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לא ניתן לטעון את החשבון שלך"
+            "value": "צביעה"
           }
         }
       }
     },
-    "auth.accountLoadFailed.message": {
+    "category.Pest Control": {
       "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "We couldn't load your account data. Check your connection, or sign out and back in."
-          }
-        },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تعذر تحميل بيانات حسابك. تحقق من اتصالك بالإنترنت أو سجّل الخروج ثم أعد تسجيل الدخول."
+            "value": "مكافحة الحشرات"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pest Control"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "לא הצלחנו לטעון את נתוני החשבון שלך. בדוק את החיבור לאינטרנט או התנתק והתחבר מחדש."
+            "value": "הדברה"
+          }
+        }
+      }
+    },
+    "category.Plumbing": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السباكة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plumbing"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אינסטלציה"
+          }
+        }
+      }
+    },
+    "category.Roofing": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أسقف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roofing"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "גגות"
+          }
+        }
+      }
+    },
+    "category.Welding": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لحام"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welding"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ריתוך"
+          }
+        }
+      }
+    },
+    "chat.placeholder": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اكتب رسالة…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type a message…"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כתוב הודעה…"
+          }
+        }
+      }
+    },
+    "common.alreadyHaveAccount": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لديك حساب بالفعل؟"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already have an account?"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כבר יש לך חשבון?"
+          }
+        }
+      }
+    },
+    "common.back": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رجوع"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חזור"
+          }
+        }
+      }
+    },
+    "common.cancel": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إلغاء"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ביטול"
+          }
+        }
+      }
+    },
+    "common.delete": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מחק"
+          }
+        }
+      }
+    },
+    "common.displayName": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاسم الكامل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Name"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שם מלא"
+          }
+        }
+      }
+    },
+    "common.done": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סיום"
+          }
+        }
+      }
+    },
+    "common.edit": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعديل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ערוך"
+          }
+        }
+      }
+    },
+    "common.email": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "البريد الإلكتروني"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אימייל"
+          }
+        }
+      }
+    },
+    "common.error": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خطأ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שגיאה"
+          }
+        }
+      }
+    },
+    "common.getStarted": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابدأ الآن"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get Started"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחל"
+          }
+        }
+      }
+    },
+    "common.login": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تسجيل الدخول"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Login"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחברות"
+          }
+        }
+      }
+    },
+    "common.logout": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تسجيل الخروج"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logout"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התנתקות"
+          }
+        }
+      }
+    },
+    "common.next": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التالي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הבא"
+          }
+        }
+      }
+    },
+    "common.optional": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختياري"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אופציונלי"
+          }
+        }
+      }
+    },
+    "common.password": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كلمة المرور"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "סיסמה"
+          }
+        }
+      }
+    },
+    "common.register": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنشاء حساب"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Register"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הרשמה"
+          }
+        }
+      }
+    },
+    "common.save": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حفظ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שמור"
+          }
+        }
+      }
+    },
+    "common.signIn": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تسجيل الدخول"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחבר"
+          }
+        }
+      }
+    },
+    "common.signUp": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إنشاء حساب"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Up"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הירשם"
+          }
+        }
+      }
+    },
+    "common.submit": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إرسال"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שלח"
+          }
+        }
+      }
+    },
+    "dash.greetingAfternoon": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "طاب يومك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good afternoon"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "צהריים טובים"
+          }
+        }
+      }
+    },
+    "dash.greetingEvening": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مساء الخير"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good evening"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ערב טוב"
+          }
+        }
+      }
+    },
+    "dash.greetingMorning": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صباح الخير"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good morning"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בוקר טוב"
+          }
+        }
+      }
+    },
+    "dash.quickActions": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إجراءات سريعة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick actions"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פעולות מהירות"
+          }
+        }
+      }
+    },
+    "dash.stats.offers": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عروض"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offers"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הצעות"
+          }
+        }
+      }
+    },
+    "dash.stats.openJobs": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أعمال مفتوحة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "עבודות פתוחות"
+          }
+        }
+      }
+    },
+    "empty.noActiveJobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد أعمال نشطة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Active Jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אין עבודות פעילות"
+          }
+        }
+      }
+    },
+    "empty.noActiveJobsSubtitle": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ستظهر هنا أعمالك قيد التنفيذ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your in-progress jobs will appear here"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "העבודות שלך בתהליך יופיעו כאן"
+          }
+        }
+      }
+    },
+    "empty.noChats": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد محادثات بعد"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No conversations yet"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אין עדיין שיחות"
+          }
+        }
+      }
+    },
+    "empty.noChatsSubtitle": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بمجرد قبول عرض، يمكنك المحادثة هنا."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once an offer is accepted, you'll be able to chat here."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ברגע שהצעה מתקבלת, תוכל לשוחח כאן."
+          }
+        }
+      }
+    },
+    "empty.noContractors": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يتم العثور على مقاولين"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No contractors found"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא נמצאו קבלנים"
+          }
+        }
+      }
+    },
+    "empty.noJobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد وظائف بعد"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No jobs yet"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אין עדיין משרות"
+          }
+        }
+      }
+    },
+    "empty.noJobsFound": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يتم العثور على وظائف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No jobs found"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא נמצאו משרות"
+          }
+        }
+      }
+    },
+    "empty.noOffers": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد عروض بعد"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No offers yet"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אין עדיין הצעות"
+          }
+        }
+      }
+    },
+    "empty.postFirstJob": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انشر وظيفتك الأولى للبدء"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post your first job to get started"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פרסם את המשרה הראשונה שלך כדי להתחיל"
+          }
+        }
+      }
+    },
+    "empty.submitOffers": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قدّم عروضًا على الوظائف التي تهمك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit offers to jobs you're interested in"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הגש הצעות למשרות שמעניינות אותך"
+          }
+        }
+      }
+    },
+    "empty.tryAdjustSearch": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حاول ضبط البحث"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try adjusting your search"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נסה לשנות את החיפוש"
+          }
+        }
+      }
+    },
+    "empty.tryFilters": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حاول ضبط عوامل التصفية"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try adjusting your filters"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נסה לשנות את המסננים"
+          }
+        }
+      }
+    },
+    "error.notAuthenticated": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يلزم تسجيل الدخول للقيام بذلك."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You need to sign in to do that."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "עליך להתחבר כדי לבצע פעולה זו."
+          }
+        }
+      }
+    },
+    "error.notAuthorized": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ليس لديك صلاحية لهذا الإجراء."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't have permission for that action."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אין לך הרשאה לפעולה זו."
+          }
+        }
+      }
+    },
+    "error.notFound %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ غير موجود."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ not found."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ לא נמצא."
+          }
+        }
+      }
+    },
+    "field.availableForWork": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متاح للعمل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available for Work"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "זמין לעבודה"
+          }
+        }
+      }
+    },
+    "field.bio": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نبذة تعريفية"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bio"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אודות"
+          }
+        }
+      }
+    },
+    "field.budget": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الميزانية"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Budget"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תקציב"
+          }
+        }
+      }
+    },
+    "field.category": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الفئة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Category"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "קטגוריה"
+          }
+        }
+      }
+    },
+    "field.completedJobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأعمال المكتملة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed Jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "עבודות שהושלמו"
+          }
+        }
+      }
+    },
+    "field.contactInfo": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معلومات الاتصال"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact Information"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פרטי התקשרות"
+          }
+        }
+      }
+    },
+    "field.description": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوصف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תיאור"
+          }
+        }
+      }
+    },
+    "field.location": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الموقع"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מיקום"
+          }
+        }
+      }
+    },
+    "field.message": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الرسالة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הודעה"
+          }
+        }
+      }
+    },
+    "field.phone": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الهاتف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "טלפון"
+          }
+        }
+      }
+    },
+    "field.portfolio": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "معرض الأعمال"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portfolio"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תיק עבודות"
+          }
+        }
+      }
+    },
+    "field.price": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السعر"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מחיר"
+          }
+        }
+      }
+    },
+    "field.rating": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التقييم"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "דירוג"
+          }
+        }
+      }
+    },
+    "field.skills": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المهارات"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skills"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כישורים"
+          }
+        }
+      }
+    },
+    "field.title": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العنوان"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כותרת"
+          }
+        }
+      }
+    },
+    "field.website": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الموقع الإلكتروني"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אתר אינטרנט"
+          }
+        }
+      }
+    },
+    "filter.all": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الكل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הכל"
+          }
+        }
+      }
+    },
+    "jobStatus.completed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مكتمل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הושלם"
+          }
+        }
+      }
+    },
+    "jobStatus.inProgress": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قيد التنفيذ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Progress"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בתהליך"
+          }
+        }
+      }
+    },
+    "jobStatus.open": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفتوح"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פתוח"
+          }
+        }
+      }
+    },
+    "loading.account": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ تحميل حسابك…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading your account…"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "טוען את החשבון שלך…"
+          }
+        }
+      }
+    },
+    "offer.counterReceived": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم استلام عرض مقابل — مطلوب إجراء"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counter offer received — action required"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התקבלה הצעה נגדית – נדרשת פעולה"
+          }
+        }
+      }
+    },
+    "offer.posterCounter": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العرض المقابل من صاحب العمل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Job poster's counter offer"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הצעה נגדית של מפרסם העבודה"
+          }
+        }
+      }
+    },
+    "offerStatus.accepted": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مقبول"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התקבל"
+          }
+        }
+      }
+    },
+    "offerStatus.counterOffer": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عرض مقابل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counter Offer"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הצעת נגד"
+          }
+        }
+      }
+    },
+    "offerStatus.pending": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قيد الانتظار"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ממתין"
+          }
+        }
+      }
+    },
+    "offerStatus.rejected": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مرفوض"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declined"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "נדחה"
+          }
+        }
+      }
+    },
+    "onboarding.chooseLanguage": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر لغتك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose your language"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בחרו שפה"
+          }
+        }
+      }
+    },
+    "onboarding.page1.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صف ما تحتاجه، حدّد ميزانيتك، وتواصل مع محترفين مهرة بالقرب منك."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe what you need, set a budget, and reach skilled pros near you."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תארו מה אתם צריכים, קבעו תקציב והגיעו לבעלי מקצוע מיומנים בקרבתכם."
+          }
+        }
+      }
+    },
+    "onboarding.page1.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انشر أي مهمة خلال دقائق"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post any job in minutes"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מפרסמים עבודה תוך דקות"
+          }
+        }
+      }
+    },
+    "onboarding.page2.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يرسل المقاولون عروضهم. تحدّث وفاوض واختر الأنسب لك."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contractors send offers. Chat, negotiate, and pick the one that fits."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "קבלנים שולחים הצעות מחיר. שוחחו, התמקחו ובחרו את המתאים ביותר."
+          }
+        }
+      }
+    },
+    "onboarding.page2.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قارن العروض واتفق على السعر"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare offers and agree on a price"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "משווים הצעות וסוגרים מחיר"
+          }
+        }
+      }
+    },
+    "onboarding.page3.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تابع الأعمال حتى إتمامها وكوّن معرض أعمال يفوز لك بالمهمة التالية."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track jobs to completion and grow a portfolio that wins the next one."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "עקבו אחר העבודה עד לסיום ובנו תיק עבודות שמנצח את העבודה הבאה."
+          }
+        }
+      }
+    },
+    "onboarding.page3.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أنجز العمل وابنِ سمعتك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get it done and build your name"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מבצעים את העבודה ובונים מוניטין"
+          }
+        }
+      }
+    },
+    "onboarding.skip": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تخطي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "דלג"
+          }
+        }
+      }
+    },
+    "profile.about": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حول"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אודות"
+          }
+        }
+      }
+    },
+    "profile.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الحساب"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חשבון"
+          }
+        }
+      }
+    },
+    "profile.language": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اللغة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "שפה"
+          }
+        }
+      }
+    },
+    "profile.memberSince": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عضو منذ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member since"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חברים מאז"
+          }
+        }
+      }
+    },
+    "profile.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سياسة الخصوصية"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מדיניות פרטיות"
+          }
+        }
+      }
+    },
+    "profile.terms": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شروط الخدمة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of Service"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "תנאי שימוש"
+          }
+        }
+      }
+    },
+    "profile.version": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإصدار"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "גרסה"
+          }
+        }
+      }
+    },
+    "role.contractor": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مقاول"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contractor"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "קבלן"
+          }
+        }
+      }
+    },
+    "role.contractor.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أبحث عن عمل وأقدّم عروضاً"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I want to find work and send offers"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אני מחפש עבודה ושולח הצעות"
+          }
+        }
+      }
+    },
+    "role.jobPoster": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صاحب عمل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Job Poster"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מפרסם משרות"
+          }
+        }
+      }
+    },
+    "role.jobPoster.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أريد توظيف محترفين لأعمالي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I want to hire pros for my jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אני רוצה להעסיק בעלי מקצוע"
+          }
+        }
+      }
+    },
+    "role.select": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اختر دورك"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Your Role"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "בחר את התפקיד שלך"
+          }
+        }
+      }
+    },
+    "search.contractors": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابحث عن مقاولين…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search contractors…"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חיפוש קבלנים…"
+          }
+        }
+      }
+    },
+    "search.jobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابحث عن وظائف…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search jobs…"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חיפוש משרות…"
+          }
+        }
+      }
+    },
+    "search.location": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابحث عن مدينة أو قرية أو عنوان…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search for city, village, or address…"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "חפש עיר, יישוב או כתובת…"
+          }
+        }
+      }
+    },
+    "section.availableJobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوظائف المتاحة"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available Jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "משרות זמינות"
+          }
+        }
+      }
+    },
+    "section.myRecentOffers": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر عروضي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Recent Offers"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ההצעות האחרונות שלי"
+          }
+        }
+      }
+    },
+    "section.offersCount": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العروض (%lld)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offers (%lld)"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הצעות (%lld)"
+          }
+        }
+      }
+    },
+    "section.recentJobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر الوظائف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "משרות אחרונות"
+          }
+        }
+      }
+    },
+    "tab.chat": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المحادثات"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "צ'אט"
+          }
+        }
+      }
+    },
+    "tab.contractors": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المقاولون"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contractors"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "קבלנים"
+          }
+        }
+      }
+    },
+    "tab.dashboard": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لوحة التحكم"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לוח בקרה"
+          }
+        }
+      }
+    },
+    "tab.jobs": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوظائف"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jobs"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "משרות"
+          }
+        }
+      }
+    },
+    "tab.offers": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العروض"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offers"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הצעות"
+          }
+        }
+      }
+    },
+    "tab.profile": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الملف الشخصي"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "פרופיל"
+          }
+        }
+      }
+    },
+    "tagline": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تواصل مع مقاولين محترفين أو ابحث عن فرص عمل"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect with skilled contractors or find job opportunities"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "התחבר לקבלנים מיומנים או מצא הזדמנויות עבודה"
+          }
+        }
+      }
+    },
+    "welcome": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مرحباً بك في شغلني"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Shaglni"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ברוכים הבאים לשגלני"
           }
         }
       }
     }
-  }
+  },
+  "version": "1.0"
 }
