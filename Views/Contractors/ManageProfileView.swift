@@ -72,14 +72,14 @@ struct ManageProfileView: View {
         VStack(spacing: DS.Space.xl) {
             // Bio
             DSTextEditor(
-                label: localization.localized("bio"),
+                label: L10n.Field.bio.string,
                 text: $bio,
                 minHeight: 110
             )
 
             // Skills
             VStack(alignment: .leading, spacing: DS.Space.s) {
-                Text(localization.localized("skills"))
+                Text(L10n.Field.skills.string)
                     .font(.dsCaptionBold)
                     .foregroundStyle(Color.inkMuted)
 
@@ -93,7 +93,7 @@ struct ManageProfileView: View {
                 }
 
                 HStack(spacing: DS.Space.m) {
-                    TextField("Add skill", text: $newSkill)
+                    TextField(L10n(key: "manageProfile.addSkill").string, text: $newSkill)
                         .font(.dsBody)
                         .foregroundStyle(Color.ink)
                         .padding(.horizontal, DS.Space.l)
@@ -124,13 +124,13 @@ struct ManageProfileView: View {
 
             // Contact info
             VStack(alignment: .leading, spacing: DS.Space.l) {
-                Text(localization.localized("contactInfo"))
+                Text(L10n.Field.contactInfo.string)
                     .font(.dsTitle2)
                     .foregroundStyle(Color.ink)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 DSTextField(
-                    label: localization.localized("email"),
+                    label: L10n.Common.email.string,
                     systemImage: "envelope.fill",
                     text: $contactEmail,
                     keyboard: .emailAddress,
@@ -138,7 +138,7 @@ struct ManageProfileView: View {
                 )
 
                 DSTextField(
-                    label: localization.localized("phone"),
+                    label: L10n.Field.phone.string,
                     systemImage: "phone.fill",
                     text: $phone,
                     keyboard: .phonePad,
@@ -146,7 +146,7 @@ struct ManageProfileView: View {
                 )
 
                 DSTextField(
-                    label: localization.localized("website"),
+                    label: L10n.Field.website.string,
                     systemImage: "globe",
                     text: $website,
                     keyboard: .URL,
@@ -154,7 +154,7 @@ struct ManageProfileView: View {
                 )
 
                 DSTextField(
-                    label: localization.localized("location"),
+                    label: L10n.Field.location.string,
                     systemImage: "mappin.and.ellipse",
                     text: $location,
                     autocapitalization: .words
@@ -163,7 +163,7 @@ struct ManageProfileView: View {
 
             // Availability
             Toggle(isOn: $availableForWork) {
-                Text(localization.localized("availableForWork"))
+                Text(L10n.Field.availableForWork.string)
                     .font(.dsHeadline)
                     .foregroundStyle(Color.ink)
             }
@@ -176,7 +176,7 @@ struct ManageProfileView: View {
                     ProgressView()
                         .tint(Color.onBrand)
                 } else {
-                    Text(localization.localized("save"))
+                    Text(L10n.Common.save.string)
                 }
             }
             .buttonStyle(DSPrimaryButtonStyle())
@@ -197,7 +197,7 @@ struct ManageProfileView: View {
 
                 if !profile.bio.isEmpty {
                     VStack(alignment: .leading, spacing: DS.Space.m) {
-                        DSSectionHeader(title: localization.localized("bio"))
+                        DSSectionHeader(title: L10n.Field.bio.string)
 
                         Text(profile.bio)
                             .font(.dsSub)
@@ -210,7 +210,7 @@ struct ManageProfileView: View {
 
                 if !profile.skills.isEmpty {
                     VStack(alignment: .leading, spacing: DS.Space.m) {
-                        DSSectionHeader(title: localization.localized("skills"))
+                        DSSectionHeader(title: L10n.Field.skills.string)
 
                         DSFlowLayout(spacing: DS.Space.s) {
                             ForEach(profile.skills, id: \.self) { skill in
@@ -225,7 +225,7 @@ struct ManageProfileView: View {
                 Button {
                     isEditing = true
                 } label: {
-                    Text(localization.localized("edit"))
+                    Text(L10n.Common.edit.string)
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
             }
@@ -295,7 +295,7 @@ struct ManageProfileView: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else {
-                picUploadError = "Couldn't read image"
+                picUploadError = L10n(key: "manageProfile.imageReadError").string
                 return
             }
             let url = try await PhotoUploadService.shared.uploadProfilePicture(userId: userId, image: image)

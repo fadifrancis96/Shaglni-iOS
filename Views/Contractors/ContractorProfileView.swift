@@ -74,7 +74,7 @@ struct ContractorProfileView: View {
 
             if contractor.availableForWork {
                 DSTag(
-                    title: localization.localized("availableForWork"),
+                    title: L10n.Field.availableForWork.string,
                     systemImage: "checkmark.circle.fill",
                     tint: .success,
                     background: .successSoft
@@ -90,7 +90,7 @@ struct ContractorProfileView: View {
             if let rating = contractor.rating {
                 DSStatTile(
                     value: String(format: "%.1f", rating),
-                    label: localization.localized("rating"),
+                    label: L10n.Field.rating.string,
                     systemImage: "star.fill",
                     tint: .accentWarm,
                     background: .accentWarmSoft
@@ -98,7 +98,7 @@ struct ContractorProfileView: View {
             }
             DSStatTile(
                 value: "\(contractor.completedJobsCount)",
-                label: localization.localized("completedJobs"),
+                label: L10n.Field.completedJobs.string,
                 systemImage: "checkmark.seal.fill",
                 tint: .brand,
                 background: .brandSoft
@@ -108,7 +108,7 @@ struct ContractorProfileView: View {
 
     private var bioSection: some View {
         VStack(alignment: .leading, spacing: DS.Space.m) {
-            DSSectionHeader(title: localization.localized("bio"))
+            DSSectionHeader(title: L10n.Field.bio.string)
 
             Text(contractor.bio)
                 .font(.dsSub)
@@ -121,7 +121,7 @@ struct ContractorProfileView: View {
 
     private var skillsSection: some View {
         VStack(alignment: .leading, spacing: DS.Space.m) {
-            DSSectionHeader(title: localization.localized("skills"))
+            DSSectionHeader(title: L10n.Field.skills.string)
 
             DSFlowLayout(spacing: DS.Space.s) {
                 ForEach(contractor.skills, id: \.self) { skill in
@@ -135,7 +135,7 @@ struct ContractorProfileView: View {
 
     private var contactSection: some View {
         VStack(alignment: .leading, spacing: DS.Space.m) {
-            DSSectionHeader(title: localization.localized("contactInfo"))
+            DSSectionHeader(title: L10n.Field.contactInfo.string)
 
             VStack(spacing: 0) {
                 if let email = contractor.contactEmail {
@@ -160,7 +160,7 @@ struct ContractorProfileView: View {
 
     private var portfolioSection: some View {
         VStack(alignment: .leading, spacing: DS.Space.m) {
-            DSSectionHeader(title: localization.localized("portfolio"))
+            DSSectionHeader(title: L10n.Field.portfolio.string)
 
             if isLoadingJobs {
                 VStack(alignment: .leading, spacing: DS.Space.s) {
@@ -177,8 +177,8 @@ struct ContractorProfileView: View {
             } else if completedJobs.isEmpty {
                 DSEmptyState(
                     systemImage: "photo.stack",
-                    title: "No portfolio items",
-                    message: "This contractor hasn't added any work yet"
+                    title: L10n(key: "contractorList.noPortfolio.title").string,
+                    message: L10n(key: "contractorList.noPortfolio.subtitle").string
                 )
             } else {
                 VStack(spacing: DS.Space.m) {
@@ -281,7 +281,7 @@ struct PortfolioItemView: View {
                         if let gridURL = job.beforeAfterGridImage {
                             PortfolioImageView(
                                 url: gridURL,
-                                label: "Before/After",
+                                label: L10n(key: "portfolio.beforeAfterShort").string,
                                 onTap: {
                                     selectedImageIndex = 0
                                     showFullScreen = true
@@ -306,7 +306,7 @@ struct PortfolioItemView: View {
                 // Only grid image
                 PortfolioImageView(
                     url: job.beforeAfterGridImage!,
-                    label: "Before/After",
+                    label: L10n(key: "portfolio.beforeAfterShort").string,
                     onTap: {
                         selectedImageIndex = 0
                         showFullScreen = true

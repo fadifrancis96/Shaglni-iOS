@@ -9,10 +9,8 @@
 import SwiftUI
 
 struct MyOffersView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var offersRepo: OffersRepository
     @EnvironmentObject var localization: LocalizationManager
-    @State private var offers: [Offer] = []
-    @State private var isLoading = true
     @State private var selectedFilter: OfferStatus?
 
     private let statusFilters: [OfferStatus] = [.pending, .accepted, .rejected, .counterOffer]
@@ -25,12 +23,7 @@ struct MyOffersView: View {
                 VStack(spacing: 0) {
                     filterBar
 
-                    if isLoading {
-                        Spacer()
-                        ProgressView()
-                            .tint(Color.brand)
-                        Spacer()
-                    } else if filteredOffers.isEmpty {
+                    if filteredOffers.isEmpty {
                         Spacer()
                         DSEmptyState(
                             systemImage: "tag",
@@ -57,7 +50,6 @@ struct MyOffersView: View {
             }
             .navigationTitle(L10n.Action.myOffers.string)
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadOffers)
         }
     }
 
@@ -89,28 +81,14 @@ struct MyOffersView: View {
 
     private var filteredOffers: [Offer] {
         if let filter = selectedFilter {
-            return offers.filter { $0.status == filter }
+            return offersRepo.myOffers.filter { $0.status == filter }
         }
-        return offers
-    }
-
-    private func loadOffers() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-
-        FirestoreService.shared.fetchOffersByContractor(contractorId: userId) { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedOffers):
-                offers = fetchedOffers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
-        }
+        return offersRepo.myOffers
     }
 }
 
 #Preview {
     MyOffersView()
-        .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(OffersRepository.shared)
 }

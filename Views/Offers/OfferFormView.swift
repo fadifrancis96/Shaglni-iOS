@@ -11,7 +11,7 @@ import SwiftUI
 struct OfferFormView: View {
     let job: Job
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var offersRepo: OffersRepository
     @Environment(\.dismiss) var dismiss
 
     @State private var price = ""
@@ -117,14 +117,18 @@ struct OfferFormView: View {
     }
 
     private var isFormValid: Bool {
-        !price.isEmpty && !message.isEmpty && Double(price) != nil
+        !price.isEmpty && !message.isEmpty && (Double(price) ?? 0) > 0
     }
 
     private func handleSubmit() {
         guard let userId = authViewModel.currentUser?.uid,
               let userName = authViewModel.currentUserData?.displayName,
-              let jobId = job.id,
-              let priceValue = Double(price) else { return }
+              let jobId = job.id else { return }
+
+        guard let priceValue = Double(price), priceValue > 0 else {
+            errorMessage = AppError.validation("Price must be greater than zero").errorDescription
+            return
+        }
 
         isSubmitting = true
         errorMessage = nil
@@ -139,14 +143,14 @@ struct OfferFormView: View {
             createdAt: Date()
         )
 
-        FirestoreService.shared.submitOffer(offer, jobId: jobId) { result in
-            isSubmitting = false
-
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.submit(offer, jobId: jobId)
+                isSubmitting = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isSubmitting = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -163,5 +167,5 @@ struct OfferFormView: View {
         status: .open
     ))
     .environmentObject(AuthViewModel())
-    .environmentObject(LocalizationManager())
+    .environmentObject(OffersRepository.shared)
 }

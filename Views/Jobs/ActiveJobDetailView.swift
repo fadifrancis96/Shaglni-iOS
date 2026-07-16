@@ -7,19 +7,23 @@
 
 import SwiftUI
 import MapKit
-import Combine
 
 struct ActiveJobDetailView: View {
     let jobWithOffer: JobWithOffer
-    @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
-    @Environment(\.dismiss) var dismiss
-    @State private var jobStatus: JobStatus
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var portfolioRepo: PortfolioRepository
     @State private var showCompletionPreview = false
 
-    init(jobWithOffer: JobWithOffer) {
-        self.jobWithOffer = jobWithOffer
-        _jobStatus = State(initialValue: jobWithOffer.job.status)
+    /// Live status from the repository's snapshot listener, falling back to the
+    /// value the view was constructed with.
+    private var jobStatus: JobStatus {
+        jobsRepo.myActiveJobs.first(where: { $0.id == jobWithOffer.job.id })?.status ?? jobWithOffer.job.status
+    }
+
+    private var isAlreadyInPortfolio: Bool {
+        guard let jobId = jobWithOffer.job.id else { return false }
+        return portfolioRepo.myPortfolio.contains(where: { $0.jobId == jobId })
     }
 
     var body: some View {
@@ -46,18 +50,8 @@ struct ActiveJobDetailView: View {
                 .padding(.vertical, DS.Space.l)
             }
         }
-        .navigationTitle("Job Details")
+        .navigationTitle(L10n(key: "job.details").string)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            refreshJobStatus()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("JobCompleted"))) { notification in
-            if let completedJobId = notification.object as? String,
-               completedJobId == jobWithOffer.job.id {
-                refreshJobStatus()
-                // Don't auto-show preview - let contractor view the job first and decide
-            }
-        }
         .sheet(isPresented: $showCompletionPreview) {
             JobCompletionPreviewView(jobWithOffer: jobWithOffer)
         }
@@ -89,10 +83,10 @@ struct ActiveJobDetailView: View {
 
     private var acceptedOfferCard: some View {
         VStack(alignment: .leading, spacing: DS.Space.m) {
-            DSBanner(kind: .success, message: "Your Offer Was Accepted")
+            DSBanner(kind: .success, message: L10n(key: "activeJobs.offerAcceptedTitle").string)
 
             HStack(alignment: .firstTextBaseline) {
-                Text("Accepted Price:")
+                Text(L10n(key: "job.acceptedPrice").string + ":")
                     .font(.dsSub)
                     .foregroundStyle(Color.inkMuted)
                 Spacer()
@@ -104,7 +98,7 @@ struct ActiveJobDetailView: View {
 
     private var descriptionCard: some View {
         VStack(alignment: .leading, spacing: DS.Space.s) {
-            Text(localization.localized("description"))
+            Text(L10n.Field.description.string)
                 .font(.dsHeadline)
                 .foregroundStyle(Color.ink)
 
@@ -118,7 +112,7 @@ struct ActiveJobDetailView: View {
 
     private var locationCard: some View {
         VStack(alignment: .leading, spacing: DS.Space.s) {
-            Text(localization.localized("location"))
+            Text(L10n.Field.location.string)
                 .font(.dsHeadline)
                 .foregroundStyle(Color.ink)
 
@@ -153,12 +147,12 @@ struct ActiveJobDetailView: View {
                 Image(systemName: "clock.fill")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Color.warning)
-                Text("Job In Progress")
+                Text(L10n(key: "jobDetail.jobInProgress").string)
                     .font(.dsHeadline)
                     .foregroundStyle(Color.warning)
             }
 
-            Text("The job poster has marked this job as in progress. Complete the work and wait for them to mark it as done.")
+            Text(L10n(key: "activeJobs.inProgressHint").string)
                 .font(.dsSub)
                 .foregroundStyle(Color.ink)
         }
@@ -180,11 +174,11 @@ struct ActiveJobDetailView: View {
                     .background(Circle().fill(Color.successSoft))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Job Completed!")
+                    Text(L10n(key: "activeJobs.jobCompletedTitle").string)
                         .font(.dsHeadline)
                         .foregroundStyle(Color.success)
 
-                    Text("The job poster has marked this job as completed")
+                    Text(L10n(key: "activeJobs.completedByPoster").string)
                         .font(.dsCaption)
                         .foregroundStyle(Color.inkMuted)
                 }
@@ -193,11 +187,11 @@ struct ActiveJobDetailView: View {
             Divider().overlay(Color.divider)
 
             VStack(alignment: .leading, spacing: DS.Space.s) {
-                Text("Add to Your Portfolio")
+                Text(L10n(key: "activeJobs.addToPortfolio").string)
                     .font(.dsHeadline)
                     .foregroundStyle(Color.ink)
 
-                Text("Showcase this completed work on your profile by adding photos and creating a before/after comparison. This will help potential clients see your quality of work.")
+                Text(L10n(key: "activeJobs.addToPortfolioHint").string)
                     .font(.dsSub)
                     .foregroundStyle(Color.inkMuted)
             }
@@ -208,7 +202,7 @@ struct ActiveJobDetailView: View {
                 HStack(spacing: DS.Space.s) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 16, weight: .semibold))
-                    Text("Add to Profile")
+                    Text(L10n(key: "activeJobs.addToProfile").string)
                     Image(systemName: "arrow.right")
                         .font(.system(size: 14, weight: .semibold))
                         .flipsForRightToLeftLayoutDirection(true)
@@ -217,10 +211,8 @@ struct ActiveJobDetailView: View {
             .buttonStyle(DSPrimaryButtonStyle())
 
             // Optional: Show if already in portfolio
-            checkIfAlreadyInPortfolio { isInPortfolio in
-                if isInPortfolio {
-                    DSBanner(kind: .success, message: "This job is already in your portfolio")
-                }
+            if isAlreadyInPortfolio {
+                DSBanner(kind: .success, message: L10n(key: "activeJobs.alreadyInPortfolio").string)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -238,68 +230,6 @@ struct ActiveJobDetailView: View {
 
     private var finalPrice: Double {
         jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-    }
-
-    private func refreshJobStatus() {
-        guard let jobId = jobWithOffer.job.id else { return }
-
-        FirestoreService.shared.fetchJob(jobId: jobId) { result in
-            switch result {
-            case .success(let updatedJob):
-                jobStatus = updatedJob.status
-                // Don't auto-show preview - let contractor decide when to add
-            case .failure(let error):
-                print("Error refreshing job status: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func checkIfAlreadyInPortfolio(@ViewBuilder content: @escaping (Bool) -> some View) -> some View {
-        Group {
-            if let jobId = jobWithOffer.job.id,
-               let contractorId = authViewModel.currentUser?.uid {
-                CheckPortfolioView(jobId: jobId, contractorId: contractorId) { isInPortfolio in
-                    content(isInPortfolio)
-                }
-            } else {
-                content(false)
-            }
-        }
-    }
-}
-
-// Helper view to check if job is in portfolio
-private struct CheckPortfolioView<Content: View>: View {
-    let jobId: String
-    let contractorId: String
-    let content: (Bool) -> Content
-    @State private var isInPortfolio = false
-    @State private var hasChecked = false
-
-    var body: some View {
-        Group {
-            if hasChecked {
-                content(isInPortfolio)
-            } else {
-                EmptyView()
-            }
-        }
-        .onAppear {
-            checkPortfolio()
-        }
-    }
-
-    private func checkPortfolio() {
-        FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { result in
-            switch result {
-            case .success(let jobs):
-                isInPortfolio = jobs.contains(where: { $0.jobId == jobId })
-                hasChecked = true
-            case .failure:
-                hasChecked = true
-            }
-        }
     }
 }
 
@@ -328,6 +258,8 @@ private struct CheckPortfolioView<Content: View>: View {
             )
         ))
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
+        .environmentObject(PortfolioRepository.shared)
     }
 }

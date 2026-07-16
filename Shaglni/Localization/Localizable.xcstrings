@@ -2774,18 +2774,17 @@
       }
     },
     "profile.about": {
-      "extractionState": "manual",
       "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حول"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "About"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حول"
           }
         },
         "he": {
@@ -2820,18 +2819,17 @@
       }
     },
     "profile.language": {
-      "extractionState": "manual",
       "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اللغة"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Language"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اللغة"
           }
         },
         "he": {
@@ -2912,18 +2910,17 @@
       }
     },
     "profile.version": {
-      "extractionState": "manual",
       "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الإصدار"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Version"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإصدار"
           }
         },
         "he": {
@@ -6368,72 +6365,6 @@
         }
       }
     },
-    "profile.language": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Language"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اللغة"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שפה"
-          }
-        }
-      }
-    },
-    "profile.about": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "About"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حول"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אודות"
-          }
-        }
-      }
-    },
-    "profile.version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Version"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "الإصدار"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "גרסה"
-          }
-        }
-      }
-    },
     "profile.privacyPolicy": {
       "localizations": {
         "en": {
@@ -6694,6 +6625,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "הצעות ממתינות"
+          }
+        }
+      }
+    },
+    "offerDetail.finalPriceLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final Price"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السعر النهائي"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מחיר סופי"
+          }
+        }
+      }
+    },
+    "offerDetail.timelineSubmitted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم التقديم"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הוגש"
+          }
+        }
+      }
+    },
+    "offerDetail.originalPriceLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original Price:"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السعر الأصلي:"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מחיר מקורי:"
           }
         }
       }

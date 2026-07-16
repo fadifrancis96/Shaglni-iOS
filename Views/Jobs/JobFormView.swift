@@ -7,11 +7,11 @@
 
 import SwiftUI
 import MapKit
-import FirebaseFirestore
 
 struct JobFormView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var jobsRepo: JobsRepository
     @Environment(\.dismiss) var dismiss
 
     @State private var title = ""
@@ -53,11 +53,11 @@ struct JobFormView: View {
                     .padding(.bottom, DS.Space.xxl)
                 }
             }
-            .navigationTitle(localization.localized("postJob"))
+            .navigationTitle(L10n.Action.postJob.string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(localization.localized("cancel")) {
+                    Button(L10n.Common.cancel.string) {
                         dismiss()
                     }
                 }
@@ -67,7 +67,7 @@ struct JobFormView: View {
                         if isSubmitting {
                             ProgressView()
                         } else {
-                            Text(localization.localized("submit"))
+                            Text(L10n.Common.submit.string)
                                 .fontWeight(.semibold)
                         }
                     }
@@ -86,7 +86,7 @@ struct JobFormView: View {
                     selectedImages: $selectedImages,
                     isPresented: $showPhotoPicker,
                     maxPhotos: 5,
-                    title: "Job Requirements"
+                    title: L10n(key: "job.requirements").string
                 )
             }
         }
@@ -97,17 +97,17 @@ struct JobFormView: View {
     private var detailsSection: some View {
         VStack(alignment: .leading, spacing: DS.Space.l) {
             DSTextField(
-                label: localization.localized("title"),
+                label: L10n.Field.title.string,
                 systemImage: "textformat",
                 text: $title,
-                placeholder: localization.localized("title"),
+                placeholder: L10n.Field.title.string,
                 autocapitalization: .sentences
             )
 
             DSTextEditor(
-                label: localization.localized("description"),
+                label: L10n.Field.description.string,
                 text: $description,
-                placeholder: localization.localized("description")
+                placeholder: L10n.Field.description.string
             )
 
             locationField
@@ -115,7 +115,7 @@ struct JobFormView: View {
             categoryField
 
             DSTextField(
-                label: localization.localized("budget") + " (" + L10n.Common.optional.string + ")",
+                label: L10n.Field.budget.string + " (" + L10n.Common.optional.string + ")",
                 systemImage: "banknote",
                 text: $budget,
                 placeholder: "0",
@@ -126,7 +126,7 @@ struct JobFormView: View {
 
     private var locationField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(localization.localized("location"))
+            Text(L10n.Field.location.string)
                 .font(.dsCaptionBold)
                 .foregroundStyle(Color.inkMuted)
 
@@ -137,7 +137,7 @@ struct JobFormView: View {
                         .foregroundStyle(selectedLocationName.isEmpty ? Color.inkFaint : Color.brand)
                         .frame(width: 20)
 
-                    Text(selectedLocationName.isEmpty ? "Select Location" : selectedLocationName)
+                    Text(selectedLocationName.isEmpty ? L10n(key: "jobForm.selectLocation").string : selectedLocationName)
                         .font(.dsBody)
                         .foregroundStyle(selectedLocationName.isEmpty ? Color.inkFaint : Color.ink)
                         .lineLimit(1)
@@ -167,7 +167,7 @@ struct JobFormView: View {
 
     private var categoryField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(localization.localized("category"))
+            Text(L10n.Field.category.string)
                 .font(.dsCaptionBold)
                 .foregroundStyle(Color.inkMuted)
 
@@ -190,7 +190,7 @@ struct JobFormView: View {
 
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Job Requirements Photos")
+            Text(L10n(key: "jobForm.requirementsPhotos").string)
                 .font(.dsCaptionBold)
                 .foregroundStyle(Color.inkMuted)
 
@@ -198,7 +198,7 @@ struct JobFormView: View {
                 Button(action: { showPhotoPicker = true }) {
                     HStack(spacing: DS.Space.s) {
                         Image(systemName: "photo.badge.plus")
-                        Text("Add Photos")
+                        Text(L10n(key: "jobForm.addPhotos").string)
                         if !selectedImages.isEmpty {
                             Text("(\(selectedImages.count))")
                         }
@@ -223,7 +223,7 @@ struct JobFormView: View {
                     }
                 }
 
-                Text("Add photos to help contractors understand the job requirements")
+                Text(L10n(key: "jobForm.addPhotosHint").string)
                     .font(.dsCaption)
                     .foregroundStyle(Color.inkMuted)
             }
@@ -260,7 +260,7 @@ struct JobFormView: View {
 
         Task {
             do {
-                let jobId = try await JobsRepository.shared.create(job)
+                let jobId = try await jobsRepo.create(job)
 
                 if !selectedImages.isEmpty {
                     let urls = try await PhotoUploadService.shared.uploadJobRequirementPhotos(
@@ -268,7 +268,7 @@ struct JobFormView: View {
                         images: selectedImages
                     )
                     if !urls.isEmpty {
-                        try await JobsRepository.shared.attachPhotoURLs(jobId: jobId, urls: urls)
+                        try await jobsRepo.attachPhotoURLs(jobId: jobId, urls: urls)
                     }
                 }
 
@@ -279,35 +279,8 @@ struct JobFormView: View {
             } catch {
                 await MainActor.run {
                     isSubmitting = false
-                    errorMessage = error.localizedDescription
+                    errorMessage = AppError(error).errorDescription
                 }
-            }
-        }
-    }
-
-    private func createJobWithoutPhotos(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
-        let job = Job(
-            title: title,
-            description: description,
-            location: selectedLocationName,
-            latitude: coordinate.latitude,
-            longitude: coordinate.longitude,
-            datePosted: Date(),
-            createdBy: userId,
-            status: .open,
-            category: selectedCategory,
-            budget: budgetValue,
-            photoURLs: nil
-        )
-
-        FirestoreService.shared.createJob(job) { result in
-            self.isSubmitting = false
-
-            switch result {
-            case .success:
-                self.dismiss()
-            case .failure(let error):
-                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -386,7 +359,7 @@ struct LocationPickerView: View {
 
                 VStack(spacing: 0) {
                     // Search Bar
-                    DSSearchBar(text: $searchText, placeholder: "Search for city, village, or address...")
+                    DSSearchBar(text: $searchText, placeholder: L10n(key: "jobForm.searchLocationPlaceholder").string)
                         .padding(.horizontal, DS.Space.screen)
                         .padding(.vertical, DS.Space.m)
                         .onChange(of: searchText) { _, newValue in
@@ -396,8 +369,8 @@ struct LocationPickerView: View {
                     if searchText.isEmpty {
                         DSEmptyState(
                             systemImage: "map.fill",
-                            title: "Search for any location in Israel",
-                            message: "Cities, villages, neighborhoods, and addresses"
+                            title: L10n(key: "jobForm.searchLocationTitle").string,
+                            message: L10n(key: "jobForm.searchLocationSubtitle").string
                         )
 
                         Spacer()
@@ -442,7 +415,7 @@ struct LocationPickerView: View {
                     }
                 }
             }
-            .navigationTitle("Select Location")
+            .navigationTitle(L10n(key: "jobForm.selectLocation").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -468,5 +441,6 @@ struct LocationPickerView: View {
 #Preview {
     JobFormView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(JobsRepository.shared)
 }

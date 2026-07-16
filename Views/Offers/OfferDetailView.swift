@@ -12,6 +12,10 @@ struct OfferDetailView: View {
     let offer: Offer
     let jobId: String
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var offersRepo: OffersRepository
+    @EnvironmentObject var contractorsRepo: ContractorsRepository
+    @EnvironmentObject var chatRepo: ChatRepository
     @Environment(\.dismiss) var dismiss
 
     @State private var showAcceptConfirmation = false
@@ -61,7 +65,7 @@ struct OfferDetailView: View {
                     .padding(.bottom, DS.Space.xxl)
                 }
             }
-            .navigationTitle("Offer")
+            .navigationTitle(L10n(key: "offerDetail.navTitle").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -82,35 +86,35 @@ struct OfferDetailView: View {
             }
             .alert(L10n.Action.declineOffer.string, isPresented: $showRejectConfirmation) {
                 Button(L10n.Common.cancel.string, role: .cancel) { }
-                Button("Decline", role: .destructive) {
+                Button(L10n(key: "offerDetail.decline").string, role: .destructive) {
                     rejectOffer()
                 }
             } message: {
-                Text("Are you sure you want to decline this offer?")
+                Text(L10n(key: "offerDetail.confirmDecline").string)
             }
-            .alert("Accept Counter Offer", isPresented: $showAcceptCounterConfirmation) {
+            .alert(L10n(key: "offerDetail.acceptCounter").string, isPresented: $showAcceptCounterConfirmation) {
                 Button(L10n.Common.cancel.string, role: .cancel) { }
-                Button("Accept") {
+                Button(L10n(key: "offerDetail.accept").string) {
                     acceptCounterOffer()
                 }
             } message: {
                 if let counterPrice = offer.counterPrice {
-                    Text("Accept the job poster's counter offer of \(Money.string(counterPrice))?")
+                    Text(L10n(key: "offerDetail.confirmAcceptCounterPrice").format(Money.string(counterPrice)))
                 } else {
-                    Text("Accept this counter offer?")
+                    Text(L10n(key: "offerDetail.confirmAcceptCounter").string)
                 }
             }
-            .alert("Decline Counter Offer", isPresented: $showDeclineCounterConfirmation) {
+            .alert(L10n(key: "offerDetail.declineCounter").string, isPresented: $showDeclineCounterConfirmation) {
                 Button(L10n.Common.cancel.string, role: .cancel) { }
-                Button("Decline", role: .destructive) {
+                Button(L10n(key: "offerDetail.decline").string, role: .destructive) {
                     declineCounterOffer()
                 }
             } message: {
-                Text("Are you sure you want to decline this counter offer? This will remove your offer completely.")
+                Text(L10n(key: "offerDetail.confirmDeclineCounter").string)
             }
             .alert(L10n.Action.acceptOffer.string, isPresented: $showAcceptConfirmation) {
                 Button(L10n.Common.cancel.string, role: .cancel) { }
-                Button("Accept") {
+                Button(L10n(key: "offerDetail.accept").string) {
                     // If it's a counter offer that contractor accepted, finalize it
                     if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
                         finalizeCounterOffer()
@@ -121,12 +125,12 @@ struct OfferDetailView: View {
             } message: {
                 if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
                     if let counterPrice = offer.counterPrice {
-                        Text("Finalize this offer for \(Money.string(counterPrice))? All other offers will be automatically rejected.")
+                        Text(L10n(key: "offerDetail.confirmFinalizePrice").format(Money.string(counterPrice)))
                     } else {
-                        Text("Finalize this offer? All other offers will be automatically rejected.")
+                        Text(L10n(key: "offerDetail.confirmFinalize").string)
                     }
                 } else {
-                    Text("Accept this offer for \(Money.string(offer.price))? All other offers for this job will be automatically rejected.")
+                    Text(L10n(key: "offerDetail.confirmAcceptPrice").format(Money.string(offer.price)))
                 }
             }
             .overlay {
@@ -138,8 +142,9 @@ struct OfferDetailView: View {
                         .tint(Color.brand)
                 }
             }
-            .onAppear {
-                loadJobStatus()
+            .task {
+                await loadJobStatus()
+                await loadContractorProfile(presentSheet: false)
             }
         }
     }
@@ -147,7 +152,7 @@ struct OfferDetailView: View {
     // MARK: - Contractor identity
 
     private var contractorCard: some View {
-        Button(action: { loadContractorProfile() }) {
+        Button(action: { Task { await loadContractorProfile() } }) {
             HStack(spacing: DS.Space.m) {
                 DSAvatar(
                     name: offer.contractorName,
@@ -166,12 +171,12 @@ struct OfferDetailView: View {
                             if let rating = profile.rating {
                                 DSRatingStars(rating: rating)
                             }
-                            Text("• \(profile.completedJobsCount) jobs")
+                            Text(L10n(key: "offerDetail.jobsCount").format(profile.completedJobsCount))
                                 .font(.dsCaption)
                                 .foregroundStyle(Color.inkMuted)
                         }
                     } else {
-                        Text("Tap to view profile")
+                        Text(L10n(key: "offerDetail.tapToViewProfile").string)
                             .font(.dsCaption)
                             .foregroundStyle(Color.brand)
                     }
@@ -214,7 +219,7 @@ struct OfferDetailView: View {
                         .font(.dsSub)
                         .strikethrough()
                         .foregroundStyle(Color.inkFaint)
-                    Text("Offered Price")
+                    Text(L10n(key: "offerDetail.offeredPrice").string)
                         .font(.dsCaption)
                         .foregroundStyle(Color.inkFaint)
                 }
@@ -227,11 +232,11 @@ struct OfferDetailView: View {
     private var priceLabel: String {
         switch offer.negotiationState {
         case .pending, .rejected:
-            return "Offered Price"
+            return L10n(key: "offerDetail.offeredPrice").string
         case .countered:
             return L10n.OfferUI.posterCounter.string
         case .contractorAcceptedCounter, .accepted:
-            return "Final Price"
+            return L10n(key: "offerDetail.finalPriceLabel").string
         }
     }
 
@@ -252,7 +257,7 @@ struct OfferDetailView: View {
                 icon: "paperplane.fill",
                 tint: .brand,
                 background: .brandSoft,
-                title: "Submitted",
+                title: L10n(key: "offerDetail.timelineSubmitted").string,
                 detail: Money.string(offer.price),
                 date: offer.createdAt,
                 isLast: !hasCounterStep && !hasResponseStep
@@ -313,7 +318,7 @@ struct OfferDetailView: View {
                 icon: "checkmark.circle.fill",
                 tint: .success,
                 background: .successSoft,
-                title: "Contractor accepted your counter offer",
+                title: L10n(key: "receivedOffers.contractorAcceptedCounter").string,
                 detail: Money.string(finalPrice),
                 isLast: true
             )
@@ -323,7 +328,7 @@ struct OfferDetailView: View {
                 tint: .warning,
                 background: .warningSoft,
                 title: authViewModel.isJobPoster
-                    ? "Waiting for contractor response"
+                    ? L10n(key: "receivedOffers.waitingForContractor").string
                     : L10n.OfferUI.counterReceived.string,
                 isLast: true
             )
@@ -347,7 +352,7 @@ struct OfferDetailView: View {
 
             if let negotiationMsg = offer.negotiationMessage {
                 VStack(alignment: .leading, spacing: DS.Space.s) {
-                    Label("Negotiation Note", systemImage: "text.bubble.fill")
+                    Label(L10n(key: "offerDetail.negotiationNote").string, systemImage: "text.bubble.fill")
                         .font(.dsCaptionBold)
                         .foregroundStyle(Color.warning)
                     Text(negotiationMsg)
@@ -368,7 +373,7 @@ struct OfferDetailView: View {
     private var jobClosedBanner: some View {
         DSBanner(
             kind: .info,
-            message: "Job Status: \(jobStatus.localized). This job is no longer accepting offer actions. Manage the job status from the job detail page."
+            message: "\(L10n(key: "offerDetail.jobStatus").format(jobStatus.localized)). \(L10n(key: "offerDetail.jobClosedNote").string)"
         )
     }
 
@@ -400,36 +405,36 @@ struct OfferDetailView: View {
                 DSBanner(kind: .info, message: L10n.OfferUI.counterReceived.string)
 
                 Button(action: { showAcceptCounterConfirmation = true }) {
-                    Label("Accept Counter Offer", systemImage: "checkmark.circle.fill")
+                    Label(L10n(key: "offerDetail.acceptCounter").string, systemImage: "checkmark.circle.fill")
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
 
                 Button(action: { showDeclineCounterConfirmation = true }) {
-                    Label("Decline Counter Offer", systemImage: "xmark.circle.fill")
+                    Label(L10n(key: "offerDetail.declineCounter").string, systemImage: "xmark.circle.fill")
                 }
                 .buttonStyle(DSTonalButtonStyle(tint: .danger, background: .dangerSoft))
             }
         } else if authViewModel.isJobPoster && offer.status == .counterOffer && offer.contractorAcceptedCounter == true && jobStatus == .open {
             // Job Poster Final Approval (contractor accepted counter offer)
             VStack(spacing: DS.Space.m) {
-                DSBanner(kind: .success, message: "Contractor Accepted Your Counter Offer!")
+                DSBanner(kind: .success, message: L10n(key: "offerDetail.contractorAcceptedCounter").string)
 
-                Text("Accept this offer to finalize the agreement. You can manage the job status from the job detail page.")
+                Text(L10n(key: "offerDetail.finalizeNote").string)
                     .font(.dsCaption)
                     .foregroundStyle(Color.inkMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(action: { showAcceptConfirmation = true }) {
-                    Label("Accept & Finalize Offer", systemImage: "checkmark.seal.fill")
+                    Label(L10n(key: "offerDetail.acceptFinalize").string, systemImage: "checkmark.seal.fill")
                 }
                 .buttonStyle(DSPrimaryButtonStyle())
             }
         } else if authViewModel.isJobPoster && offer.status == .accepted {
             // Job Poster - Offer Accepted
             VStack(spacing: DS.Space.m) {
-                DSBanner(kind: .success, message: "Offer Accepted")
+                DSBanner(kind: .success, message: L10n(key: "offerDetail.offerAccepted").string)
 
-                Text("Manage job status from the job detail page.")
+                Text(L10n(key: "offerDetail.manageJobNote").string)
                     .font(.dsCaption)
                     .foregroundStyle(Color.inkMuted)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -448,7 +453,7 @@ struct OfferDetailView: View {
                     VStack(spacing: DS.Space.xl) {
                         VStack(spacing: DS.Space.l) {
                             DSTextField(
-                                label: "Your Price",
+                                label: L10n(key: "offerDetail.yourPrice").string,
                                 systemImage: "banknote",
                                 text: $counterPrice,
                                 placeholder: L10n.Field.price.string,
@@ -458,12 +463,12 @@ struct OfferDetailView: View {
                             DSTextEditor(
                                 label: L10n.Field.message.string,
                                 text: $negotiationMessage,
-                                placeholder: "Explain your counter offer..."
+                                placeholder: L10n(key: "offerDetail.explainCounter").string
                             )
                         }
 
                         HStack {
-                            Text("Original Price:")
+                            Text(L10n(key: "offerDetail.originalPriceLabel").string)
                                 .font(.dsSub)
                                 .foregroundStyle(Color.inkMuted)
                             Spacer()
@@ -487,7 +492,7 @@ struct OfferDetailView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Send") {
+                    Button(L10n(key: "common.send").string) {
                         sendCounterOffer()
                     }
                     .font(.dsCaptionBold)
@@ -495,30 +500,37 @@ struct OfferDetailView: View {
                     .disabled(counterPrice.isEmpty || negotiationMessage.isEmpty)
                 }
             }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 
     // MARK: - Data
 
-    private func loadJobStatus() {
-        FirestoreService.shared.fetchJob(jobId: jobId) { result in
-            switch result {
-            case .success(let job):
-                jobStatus = job.status
-            case .failure(let error):
-                print("Error loading job status: \(error.localizedDescription)")
-            }
+    private func loadJobStatus() async {
+        do {
+            let job = try await jobsRepo.fetch(jobId: jobId)
+            jobStatus = job.status
+        } catch {
+            errorMessage = AppError(error).errorDescription
         }
     }
 
-    private func loadContractorProfile() {
-        FirestoreService.shared.fetchContractorProfile(userId: offer.contractorId) { result in
-            switch result {
-            case .success(let profile):
-                contractorProfile = profile
+    /// Fetch the contractor's public profile. When `presentSheet` is false (initial
+    /// prefetch for the identity card) failures stay silent; on explicit taps the
+    /// error is surfaced and the profile sheet opens on success.
+    private func loadContractorProfile(presentSheet: Bool = true) async {
+        do {
+            contractorProfile = try await contractorsRepo.fetchProfile(userId: offer.contractorId)
+            if presentSheet {
                 showContractorProfile = true
-            case .failure(let error):
-                errorMessage = "Could not load contractor profile: \(error.localizedDescription)"
+            }
+        } catch {
+            if presentSheet {
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -528,7 +540,7 @@ struct OfferDetailView: View {
         isLoading = true
         Task {
             do {
-                try await OffersRepository.shared.acceptOfferAndCloseOthers(
+                try await offersRepo.acceptOfferAndCloseOthers(
                     jobId: jobId,
                     acceptedOfferId: offerId,
                     finalPrice: offer.price,
@@ -539,7 +551,7 @@ struct OfferDetailView: View {
                 dismiss()
             } catch {
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -550,8 +562,8 @@ struct OfferDetailView: View {
         guard let posterId = authViewModel.currentUser?.uid,
               let posterName = authViewModel.currentUserData?.displayName else { return }
         do {
-            let job = try await JobsRepository.shared.fetch(jobId: jobId)
-            try await ChatRepository.shared.ensureThread(
+            let job = try await jobsRepo.fetch(jobId: jobId)
+            try await chatRepo.ensureThread(
                 jobId: jobId,
                 jobTitle: job.title,
                 jobPosterId: posterId,
@@ -568,36 +580,44 @@ struct OfferDetailView: View {
         guard let offerId = offer.id else { return }
 
         isLoading = true
-        FirestoreService.shared.updateOfferStatus(jobId: jobId, offerId: offerId, status: .rejected) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.updateStatus(jobId: jobId, offerId: offerId, status: .rejected)
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
 
     private func sendCounterOffer() {
-        guard let offerId = offer.id,
-              let price = Double(counterPrice) else { return }
+        guard let offerId = offer.id else { return }
+
+        // Validate the price BEFORE dismissing the sheet so a bad value surfaces
+        // instead of silently dropping the counter offer.
+        guard let price = Double(counterPrice), price > 0 else {
+            errorMessage = AppError.validation("Please enter a valid counter offer price").errorDescription
+            return
+        }
 
         isLoading = true
         showNegotiation = false
 
-        FirestoreService.shared.sendCounterOffer(
-            jobId: jobId,
-            offerId: offerId,
-            counterPrice: price,
-            message: negotiationMessage
-        ) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.sendCounterOffer(
+                    jobId: jobId,
+                    offerId: offerId,
+                    counterPrice: price,
+                    message: negotiationMessage
+                )
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -606,13 +626,18 @@ struct OfferDetailView: View {
         guard let offerId = offer.id else { return }
 
         isLoading = true
-        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: true, counterPrice: offer.counterPrice) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.contractorAcceptsCounter(
+                    jobId: jobId,
+                    offerId: offerId,
+                    finalPrice: offer.counterPrice ?? offer.price
+                )
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -621,13 +646,14 @@ struct OfferDetailView: View {
         guard let offerId = offer.id else { return }
 
         isLoading = true
-        FirestoreService.shared.respondToCounterOffer(jobId: jobId, offerId: offerId, accept: false, counterPrice: nil) { result in
-            isLoading = false
-            switch result {
-            case .success:
+        Task {
+            do {
+                try await offersRepo.contractorDeclinesCounter(jobId: jobId, offerId: offerId)
+                isLoading = false
                 dismiss()
-            case .failure(let error):
-                errorMessage = error.localizedDescription
+            } catch {
+                isLoading = false
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -638,7 +664,7 @@ struct OfferDetailView: View {
         isLoading = true
         Task {
             do {
-                try await OffersRepository.shared.acceptOfferAndCloseOthers(
+                try await offersRepo.acceptOfferAndCloseOthers(
                     jobId: jobId,
                     acceptedOfferId: offerId,
                     finalPrice: finalPrice,
@@ -649,7 +675,7 @@ struct OfferDetailView: View {
                 dismiss()
             } catch {
                 isLoading = false
-                errorMessage = error.localizedDescription
+                errorMessage = AppError(error).errorDescription
             }
         }
     }
@@ -727,4 +753,8 @@ private struct TimelineStep: View {
         jobId: "job1"
     )
     .environmentObject(AuthViewModel())
+    .environmentObject(JobsRepository.shared)
+    .environmentObject(OffersRepository.shared)
+    .environmentObject(ContractorsRepository.shared)
+    .environmentObject(ChatRepository.shared)
 }

@@ -10,10 +10,11 @@ import SwiftUI
 
 struct ReceivedOffersView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
+    @EnvironmentObject var jobsRepo: JobsRepository
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
     @State private var selectedFilter: OfferStatus?
+    @State private var errorMessage: String?
 
     private let statusFilters: [OfferStatus] = [.pending, .accepted, .rejected, .counterOffer]
 
@@ -34,8 +35,8 @@ struct ReceivedOffersView: View {
                         Spacer()
                         DSEmptyState(
                             systemImage: "tray",
-                            title: "No offers received",
-                            message: "Offers from contractors will appear here when they submit offers to your jobs"
+                            title: L10n(key: "receivedOffers.empty.title").string,
+                            message: L10n(key: "receivedOffers.empty.subtitle").string
                         )
                         Spacer()
                     } else {
@@ -62,7 +63,20 @@ struct ReceivedOffersView: View {
             }
             .navigationTitle(L10n.Action.receivedOffers.string)
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadOffers)
+            .task {
+                await loadOffers()
+            }
+            .refreshable {
+                await loadOffers()
+            }
+            .onChange(of: jobsRepo.myPostedJobs) { _, _ in
+                Task { await loadOffers() }
+            }
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 
@@ -99,17 +113,19 @@ struct ReceivedOffersView: View {
         return offersWithJobs
     }
 
-    private func loadOffers() {
-        guard let userId = authViewModel.currentUser?.uid else { return }
-
-        FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
+    private func loadOffers() async {
+        guard let userId = authViewModel.currentUser?.uid else {
             isLoading = false
-            switch result {
-            case .success(let fetchedOffers):
-                offersWithJobs = fetchedOffers
-            case .failure(let error):
-                print("Error loading offers: \(error.localizedDescription)")
-            }
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            offersWithJobs = try await OffersRepository.shared.fetchOffersForJobPoster(userId, jobs: jobsRepo.myPostedJobs)
+        } catch {
+            errorMessage = AppError(error).errorDescription
         }
     }
 }
@@ -145,9 +161,9 @@ private struct ReceivedOfferCardView: View {
             }
 
             if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
-                DSBanner(kind: .success, message: "Contractor accepted your counter offer")
+                DSBanner(kind: .success, message: L10n(key: "receivedOffers.contractorAcceptedCounter").string)
             } else if offer.status == .counterOffer {
-                DSBanner(kind: .info, message: "Waiting for contractor response")
+                DSBanner(kind: .info, message: L10n(key: "receivedOffers.waitingForContractor").string)
             }
 
             if !offer.message.isEmpty {
@@ -177,7 +193,7 @@ private struct ReceivedOfferCardView: View {
                     }
 
                     if offer.counterPrice != nil {
-                        Text("Your counter offer")
+                        Text(L10n(key: "receivedOffers.yourCounterOffer").string)
                             .font(.dsCaption)
                             .foregroundStyle(Color.warning)
                     }
@@ -191,7 +207,7 @@ private struct ReceivedOfferCardView: View {
                         .foregroundStyle(Color.inkFaint)
 
                     if let respondedAt = offer.respondedAt {
-                        Text("Responded \(respondedAt, style: .relative)")
+                        Text("\(L10n(key: "offerCard.responded").string) \(respondedAt, style: .relative)")
                             .font(.dsCaption)
                             .foregroundStyle(Color.inkFaint)
                     }
@@ -205,5 +221,5 @@ private struct ReceivedOfferCardView: View {
 #Preview {
     ReceivedOffersView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(JobsRepository.shared)
 }

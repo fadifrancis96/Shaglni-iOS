@@ -10,8 +10,7 @@ import SwiftUI
 
 struct ContractorListView: View {
     @EnvironmentObject var localization: LocalizationManager
-    @State private var contractors: [ContractorProfile] = []
-    @State private var isLoading = true
+    @EnvironmentObject var contractorsRepo: ContractorsRepository
     @State private var searchText = ""
     @State private var selectedSkill: String?
 
@@ -24,7 +23,7 @@ struct ContractorListView: View {
                     VStack(spacing: DS.Space.xl) {
                         DSSearchBar(text: $searchText, placeholder: L10n.Search.contractors.string)
 
-                        if isLoading {
+                        if contractorsRepo.allContractors.isEmpty {
                             loadingPlaceholder
                         } else if filteredContractors.isEmpty {
                             DSEmptyState(
@@ -49,7 +48,6 @@ struct ContractorListView: View {
             }
             .navigationTitle(L10n.Tab.contractors.string)
             .navigationBarTitleDisplayMode(.inline)
-            .onAppear(perform: loadContractors)
         }
     }
 
@@ -63,29 +61,11 @@ struct ContractorListView: View {
     }
 
     private var filteredContractors: [ContractorProfile] {
-        contractors.filter { contractor in
+        contractorsRepo.allContractors.filter { contractor in
             searchText.isEmpty ||
             contractor.displayName.localizedCaseInsensitiveContains(searchText) ||
             contractor.bio.localizedCaseInsensitiveContains(searchText) ||
             contractor.skills.contains { $0.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-
-    private func loadContractors() {
-        print("Loading contractors...")
-        FirestoreService.shared.fetchAllContractors { result in
-            isLoading = false
-            switch result {
-            case .success(let fetchedContractors):
-                print("Successfully loaded \(fetchedContractors.count) contractors")
-                contractors = fetchedContractors
-                // Debug: Print first contractor if available
-                if let first = fetchedContractors.first {
-                    print("First contractor: \(first.displayName), userId: \(first.userId)")
-                }
-            case .failure(let error):
-                print("Error loading contractors: \(error.localizedDescription)")
-            }
         }
     }
 }
@@ -145,7 +125,7 @@ private struct ContractorCardView: View {
                         if let rating = contractor.rating {
                             DSRatingStars(rating: rating, size: 11)
                         }
-                        Text("\(contractor.completedJobsCount) \(localization.localized("completedJobs"))")
+                        Text(L10n(key: "contractorList.jobsCount").format(contractor.completedJobsCount))
                             .font(.dsCaption)
                             .foregroundStyle(Color.inkFaint)
                             .lineLimit(1)
@@ -162,7 +142,7 @@ private struct ContractorCardView: View {
 
                     if contractor.availableForWork {
                         DSTag(
-                            title: localization.localized("availableForWork"),
+                            title: L10n(key: "contractorList.available").string,
                             systemImage: "checkmark.circle.fill",
                             tint: .success,
                             background: .successSoft
@@ -189,5 +169,6 @@ private struct ContractorCardView: View {
 
 #Preview {
     ContractorListView()
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(ContractorsRepository.shared)
 }

@@ -8,23 +8,23 @@
 import SwiftUI
 
 struct MyPortfolioView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var portfolioRepo: PortfolioRepository
     @EnvironmentObject var localization: LocalizationManager
-    @State private var portfolioJobs: [CompletedJob] = [] // Jobs already in profile
-    @State private var completedButNotAdded: [JobWithOffer] = [] // Jobs completed but not yet added
-    @State private var isLoading = true
-    @State private var selectedJob: JobWithOffer?
-    @State private var showCompletionPreview = false
     @State private var selectedCompletedJob: CompletedJob?
     @State private var isEditMode = false
     @State private var jobToDelete: CompletedJob?
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
+    @State private var errorMessage: String?
 
     private let gridColumns = [
         GridItem(.flexible(), spacing: DS.Space.m),
         GridItem(.flexible(), spacing: DS.Space.m)
     ]
+
+    private var portfolioJobs: [CompletedJob] {
+        portfolioRepo.myPortfolio
+    }
 
     var body: some View {
         NavigationStack {
@@ -39,7 +39,7 @@ struct MyPortfolioView: View {
                                 .font(.dsTitle)
                                 .foregroundStyle(Color.ink)
 
-                            Text("Showcase your completed work")
+                            Text(L10n(key: "portfolio.subtitle").string)
                                 .font(.dsSub)
                                 .foregroundStyle(Color.inkMuted)
                         }
@@ -49,7 +49,7 @@ struct MyPortfolioView: View {
                         // Portfolio Jobs (Already Added)
                         VStack(spacing: DS.Space.m) {
                             DSSectionHeader(
-                                title: "Portfolio Items",
+                                title: L10n(key: "portfolio.items").string,
                                 actionTitle: portfolioJobs.isEmpty ? nil : (isEditMode ? L10n.Common.done.string : L10n.Common.edit.string),
                                 action: portfolioJobs.isEmpty ? nil : {
                                     withAnimation {
@@ -58,17 +58,11 @@ struct MyPortfolioView: View {
                                 }
                             )
 
-                            if isLoading {
-                                LazyVGrid(columns: gridColumns, spacing: DS.Space.m) {
-                                    ForEach(0..<4, id: \.self) { _ in
-                                        PortfolioCardPlaceholder()
-                                    }
-                                }
-                            } else if portfolioJobs.isEmpty {
+                            if portfolioJobs.isEmpty {
                                 DSEmptyState(
                                     systemImage: "photo.stack.fill",
-                                    title: "No Portfolio Items Yet",
-                                    message: "Add completed jobs to showcase your work to potential clients"
+                                    title: L10n(key: "portfolio.empty.title").string,
+                                    message: L10n(key: "portfolio.empty.subtitle").string
                                 )
                             } else {
                                 LazyVGrid(columns: gridColumns, spacing: DS.Space.m) {
@@ -92,28 +86,10 @@ struct MyPortfolioView: View {
             }
             .navigationTitle(L10n.Action.myPortfolio.string)
             .navigationBarTitleDisplayMode(.inline)
-            .refreshable {
-                loadData()
-            }
-            .onAppear {
-                loadData()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("CompletedJobAdded"))) { _ in
-                loadData()
-            }
-            .sheet(isPresented: $showCompletionPreview) {
-                if let job = selectedJob {
-                    JobCompletionPreviewView(jobWithOffer: job)
-                        .onDisappear {
-                            // Refresh when returning
-                            loadData()
-                        }
-                }
-            }
             .sheet(item: $selectedCompletedJob) { job in
                 PortfolioJobDetailView(job: job)
             }
-            .alert("Delete Portfolio Item", isPresented: $showDeleteConfirmation) {
+            .alert(L10n(key: "portfolio.delete.title").string, isPresented: $showDeleteConfirmation) {
                 Button(L10n.Common.cancel.string, role: .cancel) {
                     jobToDelete = nil
                 }
@@ -123,42 +99,12 @@ struct MyPortfolioView: View {
                     }
                 }
             } message: {
-                Text("Are you sure you want to delete this portfolio item? This will also delete all associated photos. This action cannot be undone.")
+                Text(L10n(key: "portfolio.delete.message").string)
             }
-        }
-    }
-
-    private func loadData() {
-        guard let contractorId = authViewModel.currentUser?.uid else { return }
-
-        isLoading = true
-
-        // Load portfolio jobs (already added)
-        FirestoreService.shared.fetchCompletedJobs(contractorId: contractorId) { [self] result in
-            switch result {
-            case .success(let jobs):
-                portfolioJobs = jobs
-
-                // Now load completed jobs that aren't in portfolio yet
-                FirestoreService.shared.fetchJobsWithAcceptedOffer(contractorId: contractorId) { result in
-                    isLoading = false
-                    switch result {
-                    case .success(let jobsWithOffers):
-                        let completedJobs = jobsWithOffers.filter { $0.job.status == .completed }
-
-                        // Filter out jobs that are already in portfolio
-                        let portfolioJobIds = Set(portfolioJobs.compactMap { $0.jobId })
-                        completedButNotAdded = completedJobs.filter { jobWithOffer in
-                            guard let jobId = jobWithOffer.job.id else { return false }
-                            return !portfolioJobIds.contains(jobId)
-                        }
-                    case .failure(let error):
-                        print("Error loading completed jobs: \(error.localizedDescription)")
-                    }
-                }
-            case .failure(let error):
-                isLoading = false
-                print("Error loading portfolio: \(error.localizedDescription)")
+            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
             }
         }
     }
@@ -173,15 +119,15 @@ struct MyPortfolioView: View {
             await PhotoUploadService.shared.deleteAll(urls: photoURLs)
 
             do {
-                try await PortfolioRepository.shared.delete(job)
+                try await portfolioRepo.delete(job)
                 await MainActor.run {
-                    portfolioJobs.removeAll { $0.id == job.id }
                     isDeleting = false
                     jobToDelete = nil
                 }
             } catch {
                 AppLogger.portfolio.error("Failed to delete portfolio item: \(error.localizedDescription, privacy: .public)")
                 await MainActor.run {
+                    errorMessage = AppError(error).errorDescription
                     isDeleting = false
                     jobToDelete = nil
                 }
@@ -315,7 +261,7 @@ private struct PortfolioJobDetailView: View {
                         // All Images
                         if !job.images.isEmpty {
                             VStack(alignment: .leading, spacing: DS.Space.m) {
-                                Text("Photos")
+                                Text(L10n(key: "portfolio.photos").string)
                                     .font(.dsHeadline)
                                     .foregroundStyle(Color.ink)
 
@@ -339,7 +285,7 @@ private struct PortfolioJobDetailView: View {
                         // Before/After Grid
                         if let gridImageUrl = job.beforeAfterGridImage {
                             VStack(alignment: .leading, spacing: DS.Space.m) {
-                                Text("Before & After")
+                                Text(L10n(key: "portfolio.beforeAfter").string)
                                     .font(.dsHeadline)
                                     .foregroundStyle(Color.ink)
 
@@ -360,7 +306,7 @@ private struct PortfolioJobDetailView: View {
                     .padding(.vertical, DS.Space.l)
                 }
             }
-            .navigationTitle("Portfolio Item")
+            .navigationTitle(L10n(key: "portfolio.item").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -376,6 +322,6 @@ private struct PortfolioJobDetailView: View {
 
 #Preview {
     MyPortfolioView()
-        .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager())
+        .environmentObject(LocalizationManager.shared)
+        .environmentObject(PortfolioRepository.shared)
 }
