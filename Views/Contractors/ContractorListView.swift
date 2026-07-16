@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ContractorListView: View {
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var contractorsRepo: ContractorsRepository
     @State private var searchText = ""
     @State private var selectedSkill: String?
@@ -21,7 +20,7 @@ struct ContractorListView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField("Search contractors...", text: $searchText)
+                    TextField(L10n.Search.contractors.string, text: $searchText)
                         .textFieldStyle(.plain)
                     
                     if !searchText.isEmpty {
@@ -41,8 +40,8 @@ struct ContractorListView: View {
                     Spacer()
                     EmptyStateView(
                         icon: "person.3",
-                        title: "No contractors found",
-                        subtitle: "Try adjusting your search"
+                        title: L10n.Empty.noContractors.string,
+                        subtitle: L10n.Empty.tryAdjustSearch.string
                     )
                     Spacer()
                 } else {
@@ -59,7 +58,7 @@ struct ContractorListView: View {
                     }
                 }
             }
-            .navigationTitle(localization.localized("contractors"))
+            .navigationTitle(L10n.Tab.contractors.string)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -110,7 +109,7 @@ struct ContractorCardView: View {
                             .font(.caption)
                         }
                         
-                        Text("• \(contractor.completedJobsCount) jobs")
+                        Text(L10n(key: "contractorList.jobsCount").format(contractor.completedJobsCount))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -119,7 +118,7 @@ struct ContractorCardView: View {
                 Spacer()
                 
                 if contractor.availableForWork {
-                    Text("Available")
+                    Text(L10n(key: "contractorList.available").string)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.white)

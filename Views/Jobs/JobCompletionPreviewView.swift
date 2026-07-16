@@ -76,7 +76,7 @@ struct JobCompletionPreviewView: View {
                                     }
                                 }) {
                                     HStack {
-                                        Text("Add Photos")
+                                        Text(L10n(key: "completion.addPhotos").string)
                                             .fontWeight(.semibold)
                                         Image(systemName: "arrow.right")
                                     }
@@ -90,7 +90,7 @@ struct JobCompletionPreviewView: View {
                                 Button(action: {
                                     dismiss()
                                 }) {
-                                    Text("Skip for Now")
+                                    Text(L10n(key: "completion.skipForNow").string)
                                         .frame(maxWidth: .infinity)
                                         .padding()
                                         .foregroundColor(.secondary)
@@ -103,7 +103,7 @@ struct JobCompletionPreviewView: View {
                                                 currentStep = .preview
                                             }
                                         }) {
-                                            Text("Back")
+                                            Text(L10n.Common.back.string)
                                                 .frame(maxWidth: .infinity)
                                                 .padding()
                                                 .background(Color(.systemGray6))
@@ -118,7 +118,7 @@ struct JobCompletionPreviewView: View {
                                                     currentStep = .beforeAfterSelection
                                                 }
                                             }) {
-                                                Text("Create Before/After")
+                                                Text(L10n(key: "completion.createBeforeAfter").string)
                                                     .fontWeight(.semibold)
                                                     .frame(maxWidth: .infinity)
                                                     .padding()
@@ -136,7 +136,7 @@ struct JobCompletionPreviewView: View {
                                             currentStep = .review
                                         }
                                     }) {
-                                        Text("Skip Before/After")
+                                        Text(L10n(key: "completion.skipBeforeAfter").string)
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }
@@ -150,7 +150,7 @@ struct JobCompletionPreviewView: View {
                                                 currentStep = .photoGallery
                                             }
                                         }) {
-                                            Text("Back")
+                                            Text(L10n.Common.back.string)
                                                 .frame(maxWidth: .infinity)
                                                 .padding()
                                                 .background(Color(.systemGray6))
@@ -170,7 +170,7 @@ struct JobCompletionPreviewView: View {
                                                     .background(Color.blue.opacity(0.7))
                                                     .cornerRadius(12)
                                             } else {
-                                                Text(beforePhotoIndex != nil && afterPhotoIndex != nil ? "Generate Grid" : "Select Both Photos")
+                                                Text(beforePhotoIndex != nil && afterPhotoIndex != nil ? L10n(key: "completion.generateGrid").string : L10n(key: "completion.selectBothPhotos").string)
                                                     .fontWeight(.semibold)
                                                     .frame(maxWidth: .infinity)
                                                     .padding()
@@ -188,7 +188,7 @@ struct JobCompletionPreviewView: View {
                                                 currentStep = .review
                                             }
                                         }) {
-                                            Text("Continue to Review")
+                                            Text(L10n(key: "completion.continueToReview").string)
                                                 .fontWeight(.semibold)
                                                 .frame(maxWidth: .infinity)
                                                 .padding()
@@ -205,7 +205,7 @@ struct JobCompletionPreviewView: View {
                                             currentStep = .review
                                         }
                                     }) {
-                                        Text("Skip Before/After")
+                                        Text(L10n(key: "completion.skipBeforeAfter").string)
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }
@@ -218,7 +218,7 @@ struct JobCompletionPreviewView: View {
                                             currentStep = skippedBeforeAfter ? .photoGallery : .beforeAfterSelection
                                         }
                                     }) {
-                                        Text("Back")
+                                        Text(L10n.Common.back.string)
                                             .frame(maxWidth: .infinity)
                                             .padding()
                                             .background(Color(.systemGray6))
@@ -240,7 +240,7 @@ struct JobCompletionPreviewView: View {
                                             .foregroundColor(.white)
                                             .cornerRadius(12)
                                         } else {
-                                            Text("Add to Profile")
+                                            Text(L10n(key: "completion.addToProfile").string)
                                                 .fontWeight(.semibold)
                                                 .frame(maxWidth: .infinity)
                                                 .padding()
@@ -258,7 +258,7 @@ struct JobCompletionPreviewView: View {
                     }
                 }
             }
-            .navigationTitle("Add to Profile")
+            .navigationTitle(L10n(key: "completion.addToProfile").string)
             .navigationBarTitleDisplayMode(.inline)
             .onChange(of: selectedPhotoItems) { items in
                 loadPhotos(from: items)
@@ -275,11 +275,11 @@ struct JobCompletionPreviewView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.green)
             
-            Text("Job Completed!")
+            Text(L10n(key: "completion.jobCompleted").string)
                 .font(.title)
                 .fontWeight(.bold)
-            
-            Text("Great work! Add this job to your profile to showcase your skills and build your reputation.")
+
+            Text(L10n(key: "completion.congratsMessage").string)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -296,17 +296,17 @@ struct JobCompletionPreviewView: View {
                     .lineLimit(3)
                 
                 if let category = jobWithOffer.job.category {
-                    Label(category.rawValue, systemImage: "tag.fill")
+                    Label(category.localized, systemImage: "tag.fill")
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
-                
+
                 let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
                 HStack {
-                    Text("Price:")
+                    Text(L10n(key: "completion.priceLabel").string)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("₪\(String(format: "%.0f", finalPrice))")
+                    Text(Money.string(finalPrice))
                         .fontWeight(.bold)
                         .foregroundColor(.green)
                 }
@@ -319,11 +319,11 @@ struct JobCompletionPreviewView: View {
     
     private var photoGalleryStep: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Add Job Photos")
+            Text(L10n(key: "completion.addJobPhotos").string)
                 .font(.title2)
                 .fontWeight(.bold)
-            
-            Text("Upload photos of your completed work. You can select up to 10 photos.")
+
+            Text(L10n(key: "completion.uploadPhotosHint").string)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
@@ -337,7 +337,7 @@ struct JobCompletionPreviewView: View {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(.system(size: 50))
                             .foregroundColor(.blue)
-                        Text("Add Photos")
+                        Text(L10n(key: "completion.addPhotos").string)
                             .font(.headline)
                     }
                     .frame(maxWidth: .infinity)
@@ -377,7 +377,7 @@ struct JobCompletionPreviewView: View {
                             VStack(spacing: 8) {
                                 Image(systemName: "plus")
                                     .font(.title2)
-                                Text("Add More")
+                                Text(L10n(key: "completion.addMore").string)
                                     .font(.caption)
                             }
                             .frame(height: 100)
@@ -418,11 +418,11 @@ struct JobCompletionPreviewView: View {
     
     private var beforeAfterStep: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Before & After")
+            Text(L10n(key: "portfolio.beforeAfter").string)
                 .font(.title2)
                 .fontWeight(.bold)
-            
-            Text("Select two photos to create a before/after comparison grid. This will be automatically generated for your portfolio.")
+
+            Text(L10n(key: "completion.beforeAfterHint").string)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
@@ -446,7 +446,7 @@ struct JobCompletionPreviewView: View {
                             
                             VStack {
                                 if beforePhotoIndex == index {
-                                    Label("Before", systemImage: "arrow.down")
+                                    Label(L10n(key: "completion.before").string, systemImage: "arrow.down")
                                         .font(.caption)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
@@ -454,7 +454,7 @@ struct JobCompletionPreviewView: View {
                                         .background(Color.green)
                                         .cornerRadius(6)
                                 } else if afterPhotoIndex == index {
-                                    Label("After", systemImage: "arrow.up")
+                                    Label(L10n(key: "completion.after").string, systemImage: "arrow.up")
                                         .font(.caption)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
@@ -480,7 +480,7 @@ struct JobCompletionPreviewView: View {
                 
                 if let gridImage = generatedGridImage {
                     VStack(spacing: 8) {
-                        Text("Generated Grid Preview")
+                        Text(L10n(key: "completion.gridPreview").string)
                             .font(.headline)
                         
                         Image(uiImage: gridImage)
@@ -500,13 +500,13 @@ struct JobCompletionPreviewView: View {
     
     private var reviewStep: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Review & Add")
+            Text(L10n(key: "completion.reviewTitle").string)
                 .font(.title2)
                 .fontWeight(.bold)
-            
+
             // Job Summary
             VStack(alignment: .leading, spacing: 12) {
-                Text("Job Details")
+                Text(L10n(key: "completion.jobDetails").string)
                     .font(.headline)
                 
                 Text(jobWithOffer.job.title)
@@ -514,7 +514,7 @@ struct JobCompletionPreviewView: View {
                     .fontWeight(.semibold)
                 
                 if let category = jobWithOffer.job.category {
-                    Label(category.rawValue, systemImage: "tag.fill")
+                    Label(category.localized, systemImage: "tag.fill")
                         .font(.subheadline)
                         .foregroundColor(.blue)
                 }
@@ -525,7 +525,7 @@ struct JobCompletionPreviewView: View {
             
             // Photos Summary
             VStack(alignment: .leading, spacing: 12) {
-                Text("Photos (\(selectedPhotos.count))")
+                Text(L10n(key: "completion.photosCount").format(selectedPhotos.count))
                     .font(.headline)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -548,7 +548,7 @@ struct JobCompletionPreviewView: View {
             // Before/After Grid
             if let gridImage = generatedGridImage {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Before & After Grid")
+                    Text(L10n(key: "completion.beforeAfterGrid").string)
                         .font(.headline)
                     
                     Image(uiImage: gridImage)
@@ -570,11 +570,11 @@ struct JobCompletionPreviewView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.green)
             
-            Text("Added to Profile!")
+            Text(L10n(key: "completion.addedToProfile").string)
                 .font(.title)
                 .fontWeight(.bold)
-            
-            Text("This job has been successfully added to your profile and is now visible to potential clients.")
+
+            Text(L10n(key: "completion.successMessage").string)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -583,7 +583,7 @@ struct JobCompletionPreviewView: View {
             Button(action: {
                 dismiss()
             }) {
-                Text("Done")
+                Text(L10n.Common.done.string)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()

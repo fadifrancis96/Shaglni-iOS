@@ -10,7 +10,6 @@ import SwiftUI
 struct OfferFormView: View {
     let job: Job
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var offersRepo: OffersRepository
     @Environment(\.dismiss) var dismiss
     
@@ -22,7 +21,7 @@ struct OfferFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Job")) {
+                Section(header: Text(L10n(key: "offerForm.job").string)) {
                     Text(job.title)
                         .font(.headline)
                     
@@ -32,8 +31,8 @@ struct OfferFormView: View {
                         .lineLimit(3)
                 }
                 
-                Section(header: Text("Your Offer")) {
-                    TextField(localization.localized("price"), text: $price)
+                Section(header: Text(L10n(key: "offerForm.yourOffer").string)) {
+                    TextField(L10n.Field.price.string, text: $price)
                         .keyboardType(.decimalPad)
                     
                     TextEditor(text: $message)
@@ -41,7 +40,7 @@ struct OfferFormView: View {
                         .overlay(
                             Group {
                                 if message.isEmpty {
-                                    Text(localization.localized("message"))
+                                    Text(L10n.Field.message.string)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 4)
                                         .padding(.top, 8)
@@ -52,11 +51,11 @@ struct OfferFormView: View {
                 }
                 
             }
-            .navigationTitle(localization.localized("submitOffer"))
+            .navigationTitle(L10n.Action.submitOffer.string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(localization.localized("cancel")) {
+                    Button(L10n.Common.cancel.string) {
                         dismiss()
                     }
                 }
@@ -66,7 +65,7 @@ struct OfferFormView: View {
                         if isSubmitting {
                             ProgressView()
                         } else {
-                            Text(localization.localized("submit"))
+                            Text(L10n.Common.submit.string)
                                 .fontWeight(.semibold)
                         }
                     }
@@ -74,7 +73,7 @@ struct OfferFormView: View {
                 }
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }

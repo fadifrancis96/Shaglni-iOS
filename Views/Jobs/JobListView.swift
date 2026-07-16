@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct JobListView: View {
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var jobsRepo: JobsRepository
     @State private var searchText = ""
@@ -23,7 +22,7 @@ struct JobListView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField("Search jobs...", text: $searchText)
+                    TextField(L10n.Search.jobs.string, text: $searchText)
                         .textFieldStyle(.plain)
                     
                     if !searchText.isEmpty {
@@ -42,15 +41,15 @@ struct JobListView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         CategoryChip(
-                            title: "All",
+                            title: L10n.Filter.all.string,
                             isSelected: selectedCategory == nil
                         ) {
                             selectedCategory = nil
                         }
-                        
+
                         ForEach(JobCategory.allCases, id: \.self) { category in
                             CategoryChip(
-                                title: category.rawValue,
+                                title: category.localized,
                                 isSelected: selectedCategory == category
                             ) {
                                 selectedCategory = category
@@ -70,8 +69,8 @@ struct JobListView: View {
                     Spacer()
                     EmptyStateView(
                         icon: "briefcase",
-                        title: "No jobs found",
-                        subtitle: "Try adjusting your filters"
+                        title: L10n.Empty.noJobsFound.string,
+                        subtitle: L10n.Empty.tryFilters.string
                     )
                     Spacer()
                 } else {
@@ -88,7 +87,7 @@ struct JobListView: View {
                     }
                 }
             }
-            .navigationTitle(localization.localized("jobs"))
+            .navigationTitle(L10n.Tab.jobs.string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

@@ -22,14 +22,14 @@ struct MyActiveJobsView: View {
                     if activeJobs.isEmpty && completedJobs.isEmpty {
                         EmptyStateView(
                             icon: "briefcase.fill",
-                            title: "No Active Jobs",
-                            subtitle: "You don't have any active jobs right now. Your in-progress jobs will appear here."
+                            title: L10n.Empty.noActiveJobs.string,
+                            subtitle: L10n.Empty.noActiveJobsSubtitle.string
                         )
                     } else {
                         // Active Jobs Section
                         if !activeJobs.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("In Progress")
+                                Text(L10n.JobStatus.inProgress.string)
                                     .font(.headline)
                                     .padding(.horizontal)
                                 
@@ -45,7 +45,7 @@ struct MyActiveJobsView: View {
                         // Completed Jobs Section
                         if !completedJobs.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Completed - Add to Profile")
+                                Text(L10n(key: "activeJobs.completedAddToProfile").string)
                                     .font(.headline)
                                     .padding(.horizontal)
                                     .padding(.top)
@@ -63,7 +63,7 @@ struct MyActiveJobsView: View {
                 }
                 .padding()
             }
-            .navigationTitle("My Active Jobs")
+            .navigationTitle(L10n.Action.myActiveJobs.string)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 maybeShowCompletionPreview()
@@ -131,18 +131,18 @@ struct CompletedJobCard: View {
                         .foregroundColor(.primary)
                     
                     if let category = jobWithOffer.job.category {
-                        Text(category.rawValue)
+                        Text(category.localized)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.seal.fill")
                         .foregroundColor(.green)
-                    Text("Completed")
+                    Text(jobWithOffer.job.status.localized)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.green)
@@ -160,7 +160,7 @@ struct CompletedJobCard: View {
             
             HStack {
                 let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                Text("Final Price: ₪\(String(format: "%.0f", finalPrice))")
+                Text("\(L10n(key: "activeJobs.finalPrice").string): \(Money.string(finalPrice))")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.green)
@@ -175,7 +175,7 @@ struct CompletedJobCard: View {
             HStack {
                 Image(systemName: "eye.fill")
                     .font(.caption)
-                Text("Tap to view job details and add to profile")
+                Text(L10n(key: "activeJobs.tapToAddToProfile").string)
                     .font(.caption)
                     .foregroundColor(.blue)
             }
@@ -208,14 +208,14 @@ struct ActiveJobCard: View {
                         .foregroundColor(.primary)
                     
                     if let category = jobWithOffer.job.category {
-                        Text(category.rawValue)
+                        Text(category.localized)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 StatusBadge(status: jobWithOffer.job.status)
             }
             
@@ -235,7 +235,7 @@ struct ActiveJobCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.caption)
-                        Text("In Progress")
+                        Text(jobWithOffer.job.status.localized)
                             .font(.caption)
                             .fontWeight(.medium)
                     }
@@ -247,11 +247,11 @@ struct ActiveJobCard: View {
             
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Accepted Price")
+                    Text(L10n(key: "job.acceptedPrice").string)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
-                    Text("₪\(String(format: "%.0f", finalPrice))")
+                    Text(Money.string(finalPrice))
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.green)

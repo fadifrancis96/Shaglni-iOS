@@ -9,8 +9,7 @@ import SwiftUI
 
 struct JobCardView: View {
     let job: Job
-    @EnvironmentObject var localization: LocalizationManager
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
@@ -37,7 +36,7 @@ struct JobCardView: View {
                     .foregroundColor(.secondary)
                 
                 if let category = job.category {
-                    Label(category.rawValue, systemImage: "tag.fill")
+                    Label(category.localized, systemImage: "tag.fill")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -70,7 +69,7 @@ struct StatusBadge: View {
     let status: JobStatus
     
     var body: some View {
-        Text(statusText)
+        Text(status.localized)
             .font(.caption)
             .fontWeight(.medium)
             .foregroundColor(.white)
@@ -79,15 +78,7 @@ struct StatusBadge: View {
             .background(statusColor)
             .cornerRadius(6)
     }
-    
-    private var statusText: String {
-        switch status {
-        case .open: return "Open"
-        case .inProgress: return "In Progress"
-        case .completed: return "Completed"
-        }
-    }
-    
+
     private var statusColor: Color {
         switch status {
         case .open: return .green

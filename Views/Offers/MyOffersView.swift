@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct MyOffersView: View {
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var offersRepo: OffersRepository
     @State private var selectedFilter: OfferStatus?
     
@@ -19,35 +18,35 @@ struct MyOffersView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         FilterChip(
-                            title: "All",
+                            title: L10n.Filter.all.string,
                             isSelected: selectedFilter == nil
                         ) {
                             selectedFilter = nil
                         }
-                        
+
                         FilterChip(
-                            title: localization.localized("pending"),
+                            title: OfferStatus.pending.localized,
                             isSelected: selectedFilter == .pending
                         ) {
                             selectedFilter = .pending
                         }
-                        
+
                         FilterChip(
-                            title: localization.localized("accepted"),
+                            title: OfferStatus.accepted.localized,
                             isSelected: selectedFilter == .accepted
                         ) {
                             selectedFilter = .accepted
                         }
-                        
+
                         FilterChip(
-                            title: localization.localized("rejected"),
+                            title: OfferStatus.rejected.localized,
                             isSelected: selectedFilter == .rejected
                         ) {
                             selectedFilter = .rejected
                         }
-                        
+
                         FilterChip(
-                            title: "Counter Offer",
+                            title: OfferStatus.counterOffer.localized,
                             isSelected: selectedFilter == .counterOffer
                         ) {
                             selectedFilter = .counterOffer
@@ -61,8 +60,8 @@ struct MyOffersView: View {
                     Spacer()
                     EmptyStateView(
                         icon: "doc.text",
-                        title: "No offers",
-                        subtitle: "Submit offers to jobs you're interested in"
+                        title: L10n.Empty.noOffers.string,
+                        subtitle: L10n.Empty.submitOffers.string
                     )
                     Spacer()
                 } else {
@@ -79,7 +78,7 @@ struct MyOffersView: View {
                     }
                 }
             }
-            .navigationTitle(localization.localized("myOffers"))
+            .navigationTitle(L10n.Action.myOffers.string)
             .navigationBarTitleDisplayMode(.inline)
         }
     }

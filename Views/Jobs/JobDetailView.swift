@@ -12,7 +12,6 @@ import FirebaseFirestore
 struct JobDetailView: View {
     let job: Job
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @EnvironmentObject var offersRepo: OffersRepository
     @State private var showOfferForm = false
@@ -55,7 +54,7 @@ struct JobDetailView: View {
                     }
 
                     if let category = job.category {
-                        Label(category.rawValue, systemImage: "tag.fill")
+                        Label(category.localized, systemImage: "tag.fill")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -66,7 +65,7 @@ struct JobDetailView: View {
 
                 // Description
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(localization.localized("description"))
+                    Text(L10n.Field.description.string)
                         .font(.headline)
 
                     Text(job.description)
@@ -79,13 +78,13 @@ struct JobDetailView: View {
                 if let photoURLs = job.photoURLs, !photoURLs.isEmpty {
                     PhotoGalleryView(
                         photoURLs: photoURLs,
-                        title: "Job Requirements"
+                        title: L10n(key: "job.requirements").string
                     )
                 }
 
                 // Location
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(localization.localized("location"))
+                    Text(L10n.Field.location.string)
                         .font(.headline)
 
                     Label(job.location, systemImage: "mappin.circle.fill")
@@ -109,7 +108,7 @@ struct JobDetailView: View {
                 // Budget
                 if let budget = job.budget {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("budget"))
+                        Text(L10n.Field.budget.string)
                             .font(.headline)
 
                         Text(Money.string(budget))
@@ -122,7 +121,7 @@ struct JobDetailView: View {
 
                 // Date Posted
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Posted")
+                    Text(L10n(key: "jobDetail.posted").string)
                         .font(.headline)
 
                     Text(job.datePosted, style: .date)
@@ -145,7 +144,7 @@ struct JobDetailView: View {
                                     HStack {
                                         Image(systemName: "checkmark.seal.fill")
                                             .foregroundColor(.green)
-                                        Text("Offer Accepted")
+                                        Text(L10n(key: "jobDetail.offerAccepted").string)
                                             .font(.headline)
                                             .fontWeight(.bold)
                                             .foregroundColor(.green)
@@ -153,16 +152,16 @@ struct JobDetailView: View {
 
                                     let displayPrice = accepted.finalPrice ?? accepted.counterPrice ?? accepted.price
                                     HStack {
-                                        Text("Accepted Price:")
+                                        Text(L10n(key: "job.acceptedPrice").string + ":")
                                             .foregroundColor(.secondary)
                                         Spacer()
-                                        Text("₪\(String(format: "%.0f", displayPrice))")
+                                        Text(Money.string(displayPrice))
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.green)
                                     }
 
-                                    Text("By: \(accepted.contractorName)")
+                                    Text(L10n(key: "jobDetail.byContractor").format(accepted.contractorName))
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -173,7 +172,7 @@ struct JobDetailView: View {
                                 Button(action: { showMarkInProgressConfirmation = true }) {
                                     HStack {
                                         Image(systemName: "hammer.fill")
-                                        Text("Mark Job as In Progress")
+                                        Text(L10n.Action.markInProgress.string)
                                             .fontWeight(.semibold)
                                     }
                                     .frame(maxWidth: .infinity)
@@ -191,13 +190,13 @@ struct JobDetailView: View {
                                 HStack {
                                     Image(systemName: "clock.fill")
                                         .foregroundColor(.orange)
-                                    Text("Job In Progress")
+                                    Text(L10n(key: "jobDetail.jobInProgress").string)
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.orange)
                                 }
 
-                                Text("The job is currently being worked on. Mark as done when the work is completed.")
+                                Text(L10n(key: "jobDetail.inProgressHint").string)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -208,7 +207,7 @@ struct JobDetailView: View {
                             Button(action: { showMarkDoneConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
-                                    Text("Mark Job as Done")
+                                    Text(L10n.Action.markDone.string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -225,13 +224,13 @@ struct JobDetailView: View {
                                 HStack {
                                     Image(systemName: "checkmark.seal.fill")
                                         .foregroundColor(.green)
-                                    Text("Job Completed")
+                                    Text(L10n(key: "jobDetail.jobCompleted").string)
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
                                 }
 
-                                Text("This job has been marked as completed.")
+                                Text(L10n(key: "jobDetail.completedHint").string)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -247,7 +246,7 @@ struct JobDetailView: View {
 
                     // Offers Section
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Offers (\(offers.count))")
+                        Text(L10n.Section.offersCount(offers.count))
                             .font(.headline)
                             .padding(.horizontal)
 
@@ -257,8 +256,8 @@ struct JobDetailView: View {
                         } else if offers.isEmpty {
                             EmptyStateView(
                                 icon: "doc.text",
-                                title: "No offers yet",
-                                subtitle: "Wait for contractors to submit offers"
+                                title: L10n.Empty.noOffers.string,
+                                subtitle: L10n(key: "jobDetail.waitForOffers").string
                             )
                         } else {
                             ForEach(offers) { offer in
@@ -274,7 +273,7 @@ struct JobDetailView: View {
                 // Submit Offer Button (for contractors)
                 if authViewModel.isContractor && liveJob.status == .open {
                     Button(action: { showOfferForm = true }) {
-                        Text(localization.localized("submitOffer"))
+                        Text(L10n.Action.submitOffer.string)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -307,32 +306,32 @@ struct JobDetailView: View {
         .sheet(isPresented: $showOfferForm) {
             OfferFormView(job: job)
         }
-        .alert("Delete Job", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .alert(L10n(key: "jobDetail.deleteJob").string, isPresented: $showDeleteConfirmation) {
+            Button(L10n.Common.cancel.string, role: .cancel) { }
+            Button(L10n.Common.delete.string, role: .destructive) {
                 deleteJob()
             }
         } message: {
-            Text("Are you sure you want to delete this job? This will also delete all associated offers. This action cannot be undone.")
+            Text(L10n(key: "jobDetail.deleteConfirmMessage").string)
         }
-        .alert("Mark Job In Progress", isPresented: $showMarkInProgressConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Mark In Progress") {
+        .alert(L10n.Action.markInProgress.string, isPresented: $showMarkInProgressConfirmation) {
+            Button(L10n.Common.cancel.string, role: .cancel) { }
+            Button(L10n.Action.markInProgress.string) {
                 markJobInProgress()
             }
         } message: {
-            Text("This will remove the job from public listings and mark it as in progress. Continue?")
+            Text(L10n(key: "jobDetail.markInProgressConfirmMessage").string)
         }
-        .alert("Mark Job as Done", isPresented: $showMarkDoneConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Mark as Done") {
+        .alert(L10n.Action.markDone.string, isPresented: $showMarkDoneConfirmation) {
+            Button(L10n.Common.cancel.string, role: .cancel) { }
+            Button(L10n.Action.markDone.string) {
                 markJobAsDone()
             }
         } message: {
-            Text("Mark this job as completed? This action cannot be undone.")
+            Text(L10n(key: "jobDetail.markDoneConfirmMessage").string)
         }
         .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-            Button("OK", role: .cancel) {}
+            Button(L10n(key: "common.ok").string, role: .cancel) {}
         } message: {
             Text(errorMessage ?? "")
         }

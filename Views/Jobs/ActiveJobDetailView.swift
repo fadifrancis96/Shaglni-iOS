@@ -10,7 +10,6 @@ import MapKit
 
 struct ActiveJobDetailView: View {
     let jobWithOffer: JobWithOffer
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @EnvironmentObject var portfolioRepo: PortfolioRepository
     @State private var showCompletionPreview = false
@@ -42,7 +41,7 @@ struct ActiveJobDetailView: View {
                     }
                     
                     if let category = jobWithOffer.job.category {
-                        Label(category.rawValue, systemImage: "tag.fill")
+                        Label(category.localized, systemImage: "tag.fill")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -58,7 +57,7 @@ struct ActiveJobDetailView: View {
                         HStack {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundColor(.green)
-                            Text("Your Offer Was Accepted")
+                            Text(L10n(key: "activeJobs.offerAcceptedTitle").string)
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundColor(.green)
@@ -66,10 +65,10 @@ struct ActiveJobDetailView: View {
                         
                         let finalPrice = jobWithOffer.offer.finalPrice ?? jobWithOffer.offer.counterPrice ?? jobWithOffer.offer.price
                         HStack {
-                            Text("Accepted Price:")
+                            Text(L10n(key: "job.acceptedPrice").string + ":")
                                 .foregroundColor(.secondary)
                             Spacer()
-                            Text("₪\(String(format: "%.0f", finalPrice))")
+                            Text(Money.string(finalPrice))
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.green)
@@ -81,7 +80,7 @@ struct ActiveJobDetailView: View {
                     
                     // Description
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("description"))
+                        Text(L10n.Field.description.string)
                             .font(.headline)
                         
                         Text(jobWithOffer.job.description)
@@ -91,7 +90,7 @@ struct ActiveJobDetailView: View {
                     
                     // Location
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("location"))
+                        Text(L10n.Field.location.string)
                             .font(.headline)
                         
                         Label(jobWithOffer.job.location, systemImage: "mappin.circle.fill")
@@ -117,13 +116,13 @@ struct ActiveJobDetailView: View {
                             HStack {
                                 Image(systemName: "clock.fill")
                                     .foregroundColor(.orange)
-                                Text("Job In Progress")
+                                Text(L10n(key: "jobDetail.jobInProgress").string)
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.orange)
                             }
-                            
-                            Text("The job poster has marked this job as in progress. Complete the work and wait for them to mark it as done.")
+
+                            Text(L10n(key: "activeJobs.inProgressHint").string)
                                 .font(.body)
                                 .foregroundColor(.secondary)
                         }
@@ -137,12 +136,12 @@ struct ActiveJobDetailView: View {
                                     .foregroundColor(.green)
                                     .font(.title2)
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Job Completed!")
+                                    Text(L10n(key: "activeJobs.jobCompletedTitle").string)
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
-                                    
-                                    Text("The job poster has marked this job as completed")
+
+                                    Text(L10n(key: "activeJobs.completedByPoster").string)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -151,10 +150,10 @@ struct ActiveJobDetailView: View {
                             Divider()
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Add to Your Portfolio")
+                                Text(L10n(key: "activeJobs.addToPortfolio").string)
                                     .font(.headline)
-                                
-                                Text("Showcase this completed work on your profile by adding photos and creating a before/after comparison. This will help potential clients see your quality of work.")
+
+                                Text(L10n(key: "activeJobs.addToPortfolioHint").string)
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
@@ -166,10 +165,10 @@ struct ActiveJobDetailView: View {
                                     Image(systemName: "plus.circle.fill")
                                         .font(.title3)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Add to Profile")
+                                        Text(L10n(key: "activeJobs.addToProfile").string)
                                             .fontWeight(.semibold)
                                             .font(.headline)
-                                        Text("Upload photos & create before/after")
+                                        Text(L10n(key: "activeJobs.uploadPhotosSubtitle").string)
                                             .font(.caption)
                                             .opacity(0.9)
                                     }
@@ -195,7 +194,7 @@ struct ActiveJobDetailView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
-                                    Text("This job is already in your portfolio")
+                                    Text(L10n(key: "activeJobs.alreadyInPortfolio").string)
                                         .font(.caption)
                                         .foregroundColor(.green)
                                 }
@@ -223,7 +222,7 @@ struct ActiveJobDetailView: View {
                 .padding(.horizontal)
             }
         }
-        .navigationTitle("Job Details")
+        .navigationTitle(L10n(key: "job.details").string)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showCompletionPreview) {
             JobCompletionPreviewView(jobWithOffer: jobWithOffer)

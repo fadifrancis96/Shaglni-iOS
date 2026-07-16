@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContractorDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @EnvironmentObject var offersRepo: OffersRepository
     
@@ -19,7 +18,7 @@ struct ContractorDashboardView: View {
                 VStack(spacing: 24) {
                     // Welcome Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("welcome"))
+                        Text(L10n.welcome.string)
                             .font(.title2)
                             .fontWeight(.bold)
                         
@@ -37,8 +36,8 @@ struct ContractorDashboardView: View {
                     VStack(spacing: 16) {
                         NavigationLink(destination: MyActiveJobsView()) {
                             ActionCard(
-                                title: "My Active Jobs",
-                                subtitle: "View your in-progress jobs",
+                                title: L10n.Action.myActiveJobs.string,
+                                subtitle: L10n(key: "dashboard.activeJobsSubtitle").string,
                                 icon: "hammer.fill",
                                 color: .orange
                             )
@@ -47,8 +46,8 @@ struct ContractorDashboardView: View {
                         
                         NavigationLink(destination: JobListView()) {
                             ActionCard(
-                                title: localization.localized("browseJobs"),
-                                subtitle: "Find jobs matching your skills",
+                                title: L10n.Action.browseJobs.string,
+                                subtitle: L10n(key: "dashboard.browseJobsSubtitle").string,
                                 icon: "magnifyingglass.circle.fill",
                                 color: .blue
                             )
@@ -57,8 +56,8 @@ struct ContractorDashboardView: View {
                         
                         NavigationLink(destination: MyPortfolioView()) {
                             ActionCard(
-                                title: "My Portfolio",
-                                subtitle: "Manage your completed jobs",
+                                title: L10n.Action.myPortfolio.string,
+                                subtitle: L10n(key: "dashboard.portfolioSubtitle").string,
                                 icon: "photo.stack.fill",
                                 color: .purple
                             )
@@ -67,8 +66,8 @@ struct ContractorDashboardView: View {
                         
                         NavigationLink(destination: ManageProfileView()) {
                             ActionCard(
-                                title: localization.localized("manageProfile"),
-                                subtitle: "Update your profile and portfolio",
+                                title: L10n.Action.manageProfile.string,
+                                subtitle: L10n(key: "dashboard.manageProfileSubtitle").string,
                                 icon: "person.circle.fill",
                                 color: .green
                             )
@@ -80,14 +79,14 @@ struct ContractorDashboardView: View {
                     // Stats
                     HStack(spacing: 16) {
                         StatCard(
-                            title: localization.localized("pending"),
+                            title: L10n.OfferStatusL.pending.string,
                             value: "\(pendingOffersCount)",
                             icon: "clock.fill",
                             color: .orange
                         )
                         
                         StatCard(
-                            title: localization.localized("accepted"),
+                            title: L10n.OfferStatusL.accepted.string,
                             value: "\(acceptedOffersCount)",
                             icon: "checkmark.circle.fill",
                             color: .green
@@ -98,13 +97,13 @@ struct ContractorDashboardView: View {
                     // Available Jobs
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Available Jobs")
+                            Text(L10n.Section.availableJobs.string)
                                 .font(.headline)
-                            
+
                             Spacer()
-                            
+
                             NavigationLink(destination: JobListView()) {
-                                Text("View All")
+                                Text(L10n.Action.viewAll.string)
                                     .font(.caption)
                                     .foregroundColor(.blue)
                             }
@@ -118,8 +117,8 @@ struct ContractorDashboardView: View {
                         } else if availableJobs.isEmpty {
                             EmptyStateView(
                                 icon: "briefcase",
-                                title: "No jobs available",
-                                subtitle: "Check back later for new opportunities"
+                                title: L10n(key: "dashboard.noJobsAvailable").string,
+                                subtitle: L10n(key: "dashboard.checkBackLater").string
                             )
                         } else {
                             ForEach(availableJobs.prefix(5)) { job in
@@ -134,13 +133,13 @@ struct ContractorDashboardView: View {
                     // Recent Offers
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("My Recent Offers")
+                            Text(L10n.Section.myRecentOffers.string)
                                 .font(.headline)
-                            
+
                             Spacer()
-                            
+
                             NavigationLink(destination: MyOffersView()) {
-                                Text("View All")
+                                Text(L10n.Action.viewAll.string)
                                     .font(.caption)
                                     .foregroundColor(.blue)
                             }
@@ -150,8 +149,8 @@ struct ContractorDashboardView: View {
                         if myOffers.isEmpty {
                             EmptyStateView(
                                 icon: "doc.text",
-                                title: "No offers yet",
-                                subtitle: "Submit offers to jobs you're interested in"
+                                title: L10n.Empty.noOffers.string,
+                                subtitle: L10n.Empty.submitOffers.string
                             )
                         } else {
                             ForEach(myOffers.prefix(3)) { offer in
@@ -162,7 +161,7 @@ struct ContractorDashboardView: View {
                 }
                 .padding(.bottom)
             }
-            .navigationTitle(localization.localized("dashboard"))
+            .navigationTitle(L10n.Tab.dashboard.string)
             .navigationBarTitleDisplayMode(.inline)
         }
     }

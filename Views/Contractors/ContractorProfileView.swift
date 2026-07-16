@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContractorProfileView: View {
     let contractor: ContractorProfile
-    @EnvironmentObject var localization: LocalizationManager
     @State private var completedJobs: [CompletedJob] = []
     @State private var isLoadingJobs = false
     
@@ -46,7 +45,7 @@ struct ContractorProfileView: View {
                                     Text(String(format: "%.1f", rating))
                                         .fontWeight(.semibold)
                                 }
-                                Text(localization.localized("rating"))
+                                Text(L10n.Field.rating.string)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -56,14 +55,14 @@ struct ContractorProfileView: View {
                             Text("\(contractor.completedJobsCount)")
                                 .font(.title3)
                                 .fontWeight(.semibold)
-                            Text(localization.localized("completedJobs"))
+                            Text(L10n.Field.completedJobs.string)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
                     
                     if contractor.availableForWork {
-                        Text(localization.localized("availableForWork"))
+                        Text(L10n.Field.availableForWork.string)
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.white)
@@ -80,7 +79,7 @@ struct ContractorProfileView: View {
                 // Bio
                 if !contractor.bio.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("bio"))
+                        Text(L10n.Field.bio.string)
                             .font(.headline)
                         
                         Text(contractor.bio)
@@ -94,7 +93,7 @@ struct ContractorProfileView: View {
                 // Skills
                 if !contractor.skills.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(localization.localized("skills"))
+                        Text(L10n.Field.skills.string)
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -116,7 +115,7 @@ struct ContractorProfileView: View {
                 // Contact Info
                 if contractor.contactEmail != nil || contractor.phone != nil || contractor.website != nil {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(localization.localized("contactInfo"))
+                        Text(L10n.Field.contactInfo.string)
                             .font(.headline)
                         
                         if let email = contractor.contactEmail {
@@ -140,7 +139,7 @@ struct ContractorProfileView: View {
                 
                 // Portfolio
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(localization.localized("portfolio"))
+                    Text(L10n.Field.portfolio.string)
                         .font(.headline)
                         .padding(.horizontal)
                     
@@ -150,8 +149,8 @@ struct ContractorProfileView: View {
                     } else if completedJobs.isEmpty {
                         EmptyStateView(
                             icon: "photo.stack",
-                            title: "No portfolio items",
-                            subtitle: "This contractor hasn't added any work yet"
+                            title: L10n(key: "contractorList.noPortfolio.title").string,
+                            subtitle: L10n(key: "contractorList.noPortfolio.subtitle").string
                         )
                     } else {
                         ForEach(completedJobs) { job in
@@ -194,7 +193,7 @@ struct PortfolioItemView: View {
                         .font(.headline)
                     
                     if let category = job.category {
-                        Text(category.rawValue)
+                        Text(category.localized)
                             .font(.caption)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -228,7 +227,7 @@ struct PortfolioItemView: View {
                         if let gridURL = job.beforeAfterGridImage {
                             PortfolioImageView(
                                 url: gridURL,
-                                label: "Before/After",
+                                label: L10n(key: "portfolio.beforeAfterShort").string,
                                 onTap: {
                                     selectedImageIndex = 0
                                     showFullScreen = true
@@ -254,7 +253,7 @@ struct PortfolioItemView: View {
                 // Only grid image
                 PortfolioImageView(
                     url: job.beforeAfterGridImage!,
-                    label: "Before/After",
+                    label: L10n(key: "portfolio.beforeAfterShort").string,
                     onTap: {
                         selectedImageIndex = 0
                         showFullScreen = true

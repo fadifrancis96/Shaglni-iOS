@@ -149,8 +149,8 @@ struct ProfileView: View {
     }
 
     private var languageSection: some View {
-        Section(header: Text("Language")) {
-            Picker("Language", selection: Binding(
+        Section(header: Text(L10n(key: "profile.language").string)) {
+            Picker(L10n(key: "profile.language").string, selection: Binding(
                 get: { localization.currentLanguage },
                 set: { localization.setLanguage($0) }
             )) {
@@ -162,18 +162,18 @@ struct ProfileView: View {
     }
 
     private var aboutSection: some View {
-        Section(header: Text("About")) {
-            HStack { Text("Version"); Spacer(); Text("1.0.0").foregroundStyle(.secondary) }
+        Section(header: Text(L10n(key: "profile.about").string)) {
+            HStack { Text(L10n(key: "profile.version").string); Spacer(); Text("1.0.0").foregroundStyle(.secondary) }
             Link(destination: URL(string: "https://shaglni.com/privacy")!) {
                 HStack {
-                    Text("Privacy Policy")
+                    Text(L10n(key: "profile.privacyPolicy").string)
                     Spacer()
                     Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(.secondary)
                 }
             }
             Link(destination: URL(string: "https://shaglni.com/terms")!) {
                 HStack {
-                    Text("Terms of Service")
+                    Text(L10n(key: "profile.termsOfService").string)
                     Spacer()
                     Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(.secondary)
                 }

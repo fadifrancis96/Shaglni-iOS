@@ -26,11 +26,11 @@ struct MyPortfolioView: View {
                 VStack(spacing: 24) {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("My Portfolio")
+                        Text(L10n.Action.myPortfolio.string)
                             .font(.title2)
                             .fontWeight(.bold)
-                        
-                        Text("Showcase your completed work")
+
+                        Text(L10n(key: "portfolio.subtitle").string)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -41,7 +41,7 @@ struct MyPortfolioView: View {
                     // Portfolio Jobs (Already Added)
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Portfolio Items")
+                            Text(L10n(key: "portfolio.items").string)
                                 .font(.headline)
                             
                             Spacer()
@@ -52,7 +52,7 @@ struct MyPortfolioView: View {
                                         isEditMode.toggle()
                                     }
                                 }) {
-                                    Text(isEditMode ? "Done" : "Edit")
+                                    Text(isEditMode ? L10n.Common.done.string : L10n.Common.edit.string)
                                         .font(.subheadline)
                                         .foregroundColor(.blue)
                                 }
@@ -63,8 +63,8 @@ struct MyPortfolioView: View {
                         if portfolioJobs.isEmpty {
                             EmptyStateView(
                                 icon: "photo.stack.fill",
-                                title: "No Portfolio Items Yet",
-                                subtitle: "Add completed jobs to showcase your work to potential clients"
+                                title: L10n(key: "portfolio.empty.title").string,
+                                subtitle: L10n(key: "portfolio.empty.subtitle").string
                             )
                         } else {
                             ForEach(portfolioJobs) { job in
@@ -83,25 +83,25 @@ struct MyPortfolioView: View {
                 }
                 .padding(.bottom)
             }
-            .navigationTitle("My Portfolio")
+            .navigationTitle(L10n.Action.myPortfolio.string)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $selectedCompletedJob) { job in
                 PortfolioJobDetailView(job: job)
             }
-            .alert("Delete Portfolio Item", isPresented: $showDeleteConfirmation) {
-                Button("Cancel", role: .cancel) {
+            .alert(L10n(key: "portfolio.delete.title").string, isPresented: $showDeleteConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) {
                     jobToDelete = nil
                 }
-                Button("Delete", role: .destructive) {
+                Button(L10n.Common.delete.string, role: .destructive) {
                     if let job = jobToDelete {
                         deletePortfolioJob(job)
                     }
                 }
             } message: {
-                Text("Are you sure you want to delete this portfolio item? This will also delete all associated photos. This action cannot be undone.")
+                Text(L10n(key: "portfolio.delete.message").string)
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -149,7 +149,7 @@ struct PortfolioJobCard: View {
                         .foregroundColor(.primary)
                     
                     if let category = job.category {
-                        Text(category.rawValue)
+                        Text(category.localized)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -173,7 +173,7 @@ struct PortfolioJobCard: View {
                         HStack(spacing: 4) {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundColor(.green)
-                            Text("In Portfolio")
+                            Text(L10n(key: "portfolio.inPortfolio").string)
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .foregroundColor(.green)
@@ -209,7 +209,7 @@ struct PortfolioJobCard: View {
                         }
                         
                         if job.images.count > 3 {
-                            Text("+\(job.images.count - 3) more")
+                            Text(L10n(key: "portfolio.moreCount").format(job.images.count - 3))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .frame(width: 80, height: 80)
@@ -236,15 +236,15 @@ struct PortfolioJobCard: View {
             
             HStack {
                 if let price = job.finalPrice {
-                    Text("₪\(String(format: "%.0f", price))")
+                    Text(Money.string(price))
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.green)
                 }
-                
+
                 Spacer()
-                
-                Text("Completed: \(formatDate(job.completedDate))")
+
+                Text(L10n(key: "portfolio.completedDate").format(formatDate(job.completedDate)))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -283,7 +283,7 @@ struct PortfolioJobDetailView: View {
                     // All Images
                     if !job.images.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Photos")
+                            Text(L10n(key: "portfolio.photos").string)
                                 .font(.headline)
                             
                             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -306,7 +306,7 @@ struct PortfolioJobDetailView: View {
                     // Before/After Grid
                     if let gridImageUrl = job.beforeAfterGridImage {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Before & After")
+                            Text(L10n(key: "portfolio.beforeAfter").string)
                                 .font(.headline)
                             
                             AsyncImage(url: URL(string: gridImageUrl)) { image in
@@ -324,11 +324,11 @@ struct PortfolioJobDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Portfolio Item")
+            .navigationTitle(L10n(key: "portfolio.item").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done.string) {
                         dismiss()
                     }
                 }

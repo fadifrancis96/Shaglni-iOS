@@ -48,30 +48,30 @@ struct OfferDetailView: View {
                     
                     // Offer Details Card
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Offer Details")
+                        Text(L10n(key: "offerDetail.title").string)
                             .font(.title3)
                             .fontWeight(.bold)
-                        
+
                         // Price
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Offered Price")
+                                Text(L10n(key: "offerDetail.offeredPrice").string)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("₪\(String(format: "%.0f", offer.price))")
+                                Text(Money.string(offer.price))
                                     .font(.title)
                                     .fontWeight(.bold)
                                     .foregroundColor(.blue)
                             }
-                            
+
                             Spacer()
-                            
+
                             if let counterPrice = offer.counterPrice {
                                 VStack(alignment: .trailing, spacing: 4) {
-                                    Text("Counter Offer")
+                                    Text(L10n.OfferStatusL.counterOffer.string)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text("₪\(String(format: "%.0f", counterPrice))")
+                                    Text(Money.string(counterPrice))
                                         .font(.title2)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.orange)
@@ -83,7 +83,7 @@ struct OfferDetailView: View {
                         
                         // Message
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Message")
+                            Text(L10n.Field.message.string)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Text(offer.message)
@@ -95,7 +95,7 @@ struct OfferDetailView: View {
                             Divider()
                             
                             VStack(alignment: .leading, spacing: 8) {
-                                Label("Negotiation Note", systemImage: "text.bubble.fill")
+                                Label(L10n(key: "offerDetail.negotiationNote").string, systemImage: "text.bubble.fill")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.orange)
@@ -112,7 +112,7 @@ struct OfferDetailView: View {
                             HStack {
                                 Image(systemName: "clock.fill")
                                     .foregroundColor(.secondary)
-                                Text("Submitted: \(offer.createdAt, style: .date)")
+                                Text("\(L10n(key: "offerDetail.submitted").string) \(offer.createdAt, style: .date)")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -121,7 +121,7 @@ struct OfferDetailView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
-                                    Text("Responded: \(respondedAt, style: .date)")
+                                    Text("\(L10n(key: "offerDetail.responded").string) \(respondedAt, style: .date)")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -135,7 +135,7 @@ struct OfferDetailView: View {
                     
                     // Contractor Info Card
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Contractor")
+                        Text(L10n.Role.contractor.string)
                             .font(.title3)
                             .fontWeight(.bold)
                         
@@ -163,12 +163,12 @@ struct OfferDetailView: View {
                                                 Text(String(format: "%.1f", rating))
                                                     .font(.caption)
                                             }
-                                            Text("• \(profile.completedJobsCount) jobs")
+                                            Text(L10n(key: "offerDetail.jobsCount").format(profile.completedJobsCount))
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }
                                     } else {
-                                        Text("Tap to view profile")
+                                        Text(L10n(key: "offerDetail.tapToViewProfile").string)
                                             .font(.caption)
                                             .foregroundColor(.blue)
                                     }
@@ -192,13 +192,13 @@ struct OfferDetailView: View {
                             HStack {
                                 Image(systemName: "info.circle.fill")
                                     .foregroundColor(.orange)
-                                Text("Job Status: \(jobStatus == .inProgress ? "In Progress" : "Completed")")
+                                Text(L10n(key: "offerDetail.jobStatus").format(jobStatus.localized))
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.orange)
                             }
                             
-                            Text("This job is no longer accepting offer actions. Manage the job status from the job detail page.")
+                            Text(L10n(key: "offerDetail.jobClosedNote").string)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -217,7 +217,7 @@ struct OfferDetailView: View {
                             Button(action: { showAcceptConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
-                                    Text("Accept Offer")
+                                    Text(L10n.Action.acceptOffer.string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -231,7 +231,7 @@ struct OfferDetailView: View {
                             Button(action: { showNegotiation = true }) {
                                 HStack {
                                     Image(systemName: "arrow.triangle.2.circlepath")
-                                    Text("Negotiate Price")
+                                    Text(L10n(key: "offerDetail.negotiatePrice").string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -245,7 +245,7 @@ struct OfferDetailView: View {
                             Button(action: { showRejectConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "xmark.circle.fill")
-                                    Text("Decline Offer")
+                                    Text(L10n.Action.declineOffer.string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -261,17 +261,17 @@ struct OfferDetailView: View {
                         VStack(spacing: 12) {
                             // Counter Offer Info
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Counter Offer Received")
+                                Text(L10n(key: "offerDetail.counterReceived").string)
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.orange)
-                                
+
                                 if let counterPrice = offer.counterPrice {
                                     HStack {
-                                        Text("Job Poster's Price:")
+                                        Text(L10n(key: "offerDetail.posterPrice").string)
                                             .foregroundColor(.secondary)
                                         Spacer()
-                                        Text("₪\(String(format: "%.0f", counterPrice))")
+                                        Text(Money.string(counterPrice))
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.orange)
@@ -293,7 +293,7 @@ struct OfferDetailView: View {
                             Button(action: { showAcceptCounterConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
-                                    Text("Accept Counter Offer")
+                                    Text(L10n(key: "offerDetail.acceptCounter").string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -307,7 +307,7 @@ struct OfferDetailView: View {
                             Button(action: { showDeclineCounterConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "xmark.circle.fill")
-                                    Text("Decline Counter Offer")
+                                    Text(L10n(key: "offerDetail.declineCounter").string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -326,18 +326,18 @@ struct OfferDetailView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
-                                    Text("Contractor Accepted Your Counter Offer!")
+                                    Text(L10n(key: "offerDetail.contractorAcceptedCounter").string)
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
                                 }
-                                
+
                                 if let counterPrice = offer.counterPrice {
                                     HStack {
-                                        Text("Agreed Price:")
+                                        Text(L10n(key: "offerDetail.agreedPrice").string)
                                             .foregroundColor(.secondary)
                                         Spacer()
-                                        Text("₪\(String(format: "%.0f", counterPrice))")
+                                        Text(Money.string(counterPrice))
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.green)
@@ -345,7 +345,7 @@ struct OfferDetailView: View {
                                     .padding(.top, 4)
                                 }
                                 
-                                Text("Accept this offer to finalize the agreement. You can manage the job status from the job detail page.")
+                                Text(L10n(key: "offerDetail.finalizeNote").string)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 4)
@@ -358,7 +358,7 @@ struct OfferDetailView: View {
                             Button(action: { showAcceptConfirmation = true }) {
                                 HStack {
                                     Image(systemName: "checkmark.seal.fill")
-                                    Text("Accept & Finalize Offer")
+                                    Text(L10n(key: "offerDetail.acceptFinalize").string)
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -376,24 +376,24 @@ struct OfferDetailView: View {
                                 HStack {
                                     Image(systemName: "checkmark.seal.fill")
                                         .foregroundColor(.green)
-                                    Text("Offer Accepted")
+                                    Text(L10n(key: "offerDetail.offerAccepted").string)
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
                                 }
-                                
+
                                 let displayPrice = offer.finalPrice ?? offer.counterPrice ?? offer.price
                                 HStack {
-                                    Text("Final Price:")
+                                    Text(L10n(key: "offerDetail.finalPrice").string)
                                         .foregroundColor(.secondary)
                                     Spacer()
-                                    Text("₪\(String(format: "%.0f", displayPrice))")
+                                    Text(Money.string(displayPrice))
                                         .font(.title2)
                                         .fontWeight(.bold)
                                         .foregroundColor(.green)
                                 }
                                 
-                                Text("Manage job status from the job detail page.")
+                                Text(L10n(key: "offerDetail.manageJobNote").string)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.top, 4)
@@ -406,11 +406,11 @@ struct OfferDetailView: View {
                     }
                 }
             }
-            .navigationTitle("Offer")
+            .navigationTitle(L10n(key: "offerDetail.navTitle").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done.string) {
                         dismiss()
                     }
                 }
@@ -423,37 +423,37 @@ struct OfferDetailView: View {
             .sheet(isPresented: $showNegotiation) {
                 negotiationSheet
             }
-            .alert("Decline Offer", isPresented: $showRejectConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Decline", role: .destructive) {
+            .alert(L10n.Action.declineOffer.string, isPresented: $showRejectConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) { }
+                Button(L10n(key: "offerDetail.decline").string, role: .destructive) {
                     rejectOffer()
                 }
             } message: {
-                Text("Are you sure you want to decline this offer?")
+                Text(L10n(key: "offerDetail.confirmDecline").string)
             }
-            .alert("Accept Counter Offer", isPresented: $showAcceptCounterConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Accept") {
+            .alert(L10n(key: "offerDetail.acceptCounter").string, isPresented: $showAcceptCounterConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) { }
+                Button(L10n(key: "offerDetail.accept").string) {
                     acceptCounterOffer()
                 }
             } message: {
                 if let counterPrice = offer.counterPrice {
-                    Text("Accept the job poster's counter offer of ₪\(String(format: "%.0f", counterPrice))?")
+                    Text(L10n(key: "offerDetail.confirmAcceptCounterPrice").format(Money.string(counterPrice)))
                 } else {
-                    Text("Accept this counter offer?")
+                    Text(L10n(key: "offerDetail.confirmAcceptCounter").string)
                 }
             }
-            .alert("Decline Counter Offer", isPresented: $showDeclineCounterConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Decline", role: .destructive) {
+            .alert(L10n(key: "offerDetail.declineCounter").string, isPresented: $showDeclineCounterConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) { }
+                Button(L10n(key: "offerDetail.decline").string, role: .destructive) {
                     declineCounterOffer()
                 }
             } message: {
-                Text("Are you sure you want to decline this counter offer? This will remove your offer completely.")
+                Text(L10n(key: "offerDetail.confirmDeclineCounter").string)
             }
-            .alert("Accept Offer", isPresented: $showAcceptConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Accept") {
+            .alert(L10n.Action.acceptOffer.string, isPresented: $showAcceptConfirmation) {
+                Button(L10n.Common.cancel.string, role: .cancel) { }
+                Button(L10n(key: "offerDetail.accept").string) {
                     // If it's a counter offer that contractor accepted, finalize it
                     if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
                         finalizeCounterOffer()
@@ -464,16 +464,16 @@ struct OfferDetailView: View {
             } message: {
                 if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
                     if let counterPrice = offer.counterPrice {
-                        Text("Finalize this offer for ₪\(String(format: "%.0f", counterPrice))? All other offers will be automatically rejected.")
+                        Text(L10n(key: "offerDetail.confirmFinalizePrice").format(Money.string(counterPrice)))
                     } else {
-                        Text("Finalize this offer? All other offers will be automatically rejected.")
+                        Text(L10n(key: "offerDetail.confirmFinalize").string)
                     }
                 } else {
-                    Text("Accept this offer for ₪\(String(format: "%.0f", offer.price))? All other offers for this job will be automatically rejected.")
+                    Text(L10n(key: "offerDetail.confirmAcceptPrice").format(Money.string(offer.price)))
                 }
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -505,7 +505,7 @@ struct OfferDetailView: View {
     private var statusBadge: some View {
         HStack {
             Image(systemName: statusIcon)
-            Text(statusText)
+            Text(offer.status.localized)
                 .fontWeight(.semibold)
         }
         .font(.subheadline)
@@ -525,15 +525,6 @@ struct OfferDetailView: View {
         }
     }
     
-    private var statusText: String {
-        switch offer.status {
-        case .pending: return "Pending"
-        case .accepted: return "Accepted"
-        case .rejected: return "Declined"
-        case .counterOffer: return "Counter Offer"
-        }
-    }
-    
     private var statusIcon: String {
         switch offer.status {
         case .pending: return "clock.fill"
@@ -546,16 +537,16 @@ struct OfferDetailView: View {
     private var negotiationSheet: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Counter Offer")) {
-                    TextField("Your Price", text: $counterPrice)
+                Section(header: Text(L10n.OfferStatusL.counterOffer.string)) {
+                    TextField(L10n(key: "offerDetail.yourPrice").string, text: $counterPrice)
                         .keyboardType(.decimalPad)
-                    
+
                     TextEditor(text: $negotiationMessage)
                         .frame(minHeight: 100)
                         .overlay(
                             Group {
                                 if negotiationMessage.isEmpty {
-                                    Text("Explain your counter offer...")
+                                    Text(L10n(key: "offerDetail.explainCounter").string)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 4)
                                         .padding(.top, 8)
@@ -566,28 +557,28 @@ struct OfferDetailView: View {
                 }
                 
                 Section {
-                    Text("Original Price: ₪\(String(format: "%.0f", offer.price))")
+                    Text(L10n(key: "offerDetail.originalPrice").format(Money.string(offer.price)))
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle("Negotiate Price")
+            .navigationTitle(L10n(key: "offerDetail.negotiatePrice").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(L10n.Common.cancel.string) {
                         showNegotiation = false
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Send") {
+                    Button(L10n(key: "common.send").string) {
                         sendCounterOffer()
                     }
                     .disabled(counterPrice.isEmpty || negotiationMessage.isEmpty)
                 }
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }

@@ -10,7 +10,6 @@ import MapKit
 
 struct JobFormView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @Environment(\.dismiss) var dismiss
     
@@ -36,15 +35,15 @@ struct JobFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Job Details")) {
-                    TextField(localization.localized("title"), text: $title)
+                Section(header: Text(L10n(key: "job.details").string)) {
+                    TextField(L10n.Field.title.string, text: $title)
                     
                     TextEditor(text: $description)
                         .frame(minHeight: 100)
                         .overlay(
                             Group {
                                 if description.isEmpty {
-                                    Text(localization.localized("description"))
+                                    Text(L10n.Field.description.string)
                                         .foregroundColor(.secondary)
                                         .padding(.leading, 4)
                                         .padding(.top, 8)
@@ -56,11 +55,11 @@ struct JobFormView: View {
                     // Location Picker
                     Button(action: { showLocationPicker = true }) {
                         HStack {
-                            Text(localization.localized("location"))
+                            Text(L10n.Field.location.string)
                                 .foregroundColor(.primary)
                             Spacer()
                             if selectedLocationName.isEmpty {
-                                Text("Select Location")
+                                Text(L10n(key: "jobForm.selectLocation").string)
                                     .foregroundColor(.secondary)
                             } else {
                                 Text(selectedLocationName)
@@ -72,25 +71,25 @@ struct JobFormView: View {
                         }
                     }
                     
-                    Picker(localization.localized("category"), selection: $selectedCategory) {
-                        Text("Select Category").tag(nil as JobCategory?)
+                    Picker(L10n.Field.category.string, selection: $selectedCategory) {
+                        Text(L10n(key: "jobForm.selectCategory").string).tag(nil as JobCategory?)
                         ForEach(JobCategory.allCases, id: \.self) { category in
-                            Text(category.rawValue).tag(category as JobCategory?)
+                            Text(category.localized).tag(category as JobCategory?)
                         }
                     }
-                    
-                    TextField(localization.localized("budget") + " (Optional)", text: $budget)
+
+                    TextField("\(L10n.Field.budget.string) (\(L10n.Common.optional.string))", text: $budget)
                         .keyboardType(.decimalPad)
                 }
                 
                 // Photo Upload Section
-                Section(header: Text("Job Requirements Photos")) {
+                Section(header: Text(L10n(key: "jobForm.requirementsPhotos").string)) {
                     VStack(alignment: .leading, spacing: 12) {
                         Button(action: { showPhotoPicker = true }) {
                             HStack {
                                 Image(systemName: "photo.badge.plus")
                                     .foregroundColor(.blue)
-                                Text("Add Photos")
+                                Text(L10n(key: "jobForm.addPhotos").string)
                                     .foregroundColor(.blue)
                                 Spacer()
                                 if !selectedImages.isEmpty {
@@ -116,28 +115,28 @@ struct JobFormView: View {
                             }
                         }
                         
-                        Text("Add photos to help contractors understand the job requirements")
+                        Text(L10n(key: "jobForm.addPhotosHint").string)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
                 
             }
-            .navigationTitle(localization.localized("postJob"))
+            .navigationTitle(L10n.Action.postJob.string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(localization.localized("cancel")) {
+                    Button(L10n.Common.cancel.string) {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: handleSubmit) {
                         if isSubmitting {
                             ProgressView()
                         } else {
-                            Text(localization.localized("submit"))
+                            Text(L10n.Common.submit.string)
                                 .fontWeight(.semibold)
                         }
                     }
@@ -156,11 +155,11 @@ struct JobFormView: View {
                     selectedImages: $selectedImages,
                     isPresented: $showPhotoPicker,
                     maxPhotos: 5,
-                    title: "Job Requirements"
+                    title: L10n(key: "job.requirements").string
                 )
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -295,7 +294,7 @@ struct LocationPickerView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField("Search for city, village, or address...", text: $searchText)
+                    TextField(L10n(key: "jobForm.searchLocationPlaceholder").string, text: $searchText)
                         .textFieldStyle(.plain)
                         .onChange(of: searchText) { _, newValue in
                             locationSearchService.search(newValue)
@@ -320,10 +319,10 @@ struct LocationPickerView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.secondary)
                         
-                        Text("Search for any location in Israel")
+                        Text(L10n(key: "jobForm.searchLocationTitle").string)
                             .font(.headline)
-                        
-                        Text("Cities, villages, neighborhoods, and addresses")
+
+                        Text(L10n(key: "jobForm.searchLocationSubtitle").string)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -350,11 +349,11 @@ struct LocationPickerView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Select Location")
+            .navigationTitle(L10n(key: "jobForm.selectLocation").string)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(L10n.Common.cancel.string) {
                         dismiss()
                     }
                 }

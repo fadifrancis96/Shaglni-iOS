@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ReceivedOffersView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
@@ -23,35 +22,35 @@ struct ReceivedOffersView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         FilterChip(
-                            title: "All",
+                            title: L10n.Filter.all.string,
                             isSelected: selectedFilter == nil
                         ) {
                             selectedFilter = nil
                         }
-                        
+
                         FilterChip(
-                            title: localization.localized("pending"),
+                            title: OfferStatus.pending.localized,
                             isSelected: selectedFilter == .pending
                         ) {
                             selectedFilter = .pending
                         }
-                        
+
                         FilterChip(
-                            title: localization.localized("accepted"),
+                            title: OfferStatus.accepted.localized,
                             isSelected: selectedFilter == .accepted
                         ) {
                             selectedFilter = .accepted
                         }
-                        
+
                         FilterChip(
-                            title: localization.localized("rejected"),
+                            title: OfferStatus.rejected.localized,
                             isSelected: selectedFilter == .rejected
                         ) {
                             selectedFilter = .rejected
                         }
-                        
+
                         FilterChip(
-                            title: "Counter Offer",
+                            title: OfferStatus.counterOffer.localized,
                             isSelected: selectedFilter == .counterOffer
                         ) {
                             selectedFilter = .counterOffer
@@ -69,8 +68,8 @@ struct ReceivedOffersView: View {
                     Spacer()
                     EmptyStateView(
                         icon: "doc.text",
-                        title: "No offers received",
-                        subtitle: "Offers from contractors will appear here when they submit offers to your jobs"
+                        title: L10n(key: "receivedOffers.empty.title").string,
+                        subtitle: L10n(key: "receivedOffers.empty.subtitle").string
                     )
                     Spacer()
                 } else {
@@ -92,7 +91,7 @@ struct ReceivedOffersView: View {
                     }
                 }
             }
-            .navigationTitle("Received Offers")
+            .navigationTitle(L10n.Action.receivedOffers.string)
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 await loadOffers()
@@ -104,7 +103,7 @@ struct ReceivedOffersView: View {
                 Task { await loadOffers() }
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -137,8 +136,7 @@ struct ReceivedOffersView: View {
 
 struct ReceivedOfferCardView: View {
     let offerWithJob: OfferWithJob
-    @EnvironmentObject var localization: LocalizationManager
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Job Title Header
@@ -148,7 +146,7 @@ struct ReceivedOfferCardView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text("From: \(offerWithJob.offer.contractorName)")
+                    Text(L10n(key: "receivedOffers.from").format(offerWithJob.offer.contractorName))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -163,7 +161,7 @@ struct ReceivedOfferCardView: View {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
-                    Text("Contractor accepted your counter offer")
+                    Text(L10n(key: "receivedOffers.contractorAcceptedCounter").string)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.green)
@@ -176,7 +174,7 @@ struct ReceivedOfferCardView: View {
                 HStack {
                     Image(systemName: "clock.fill")
                         .foregroundColor(.orange)
-                    Text("Waiting for contractor response")
+                    Text(L10n(key: "receivedOffers.waitingForContractor").string)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.orange)
@@ -197,17 +195,17 @@ struct ReceivedOfferCardView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text("₪\(Int(offerWithJob.offer.price))")
+                        Text(Money.string(offerWithJob.offer.price))
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.blue)
-                        
+
                         if let counterPrice = offerWithJob.offer.counterPrice {
                             Image(systemName: "arrow.right")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            
-                            Text("₪\(Int(counterPrice))")
+
+                            Text(Money.string(counterPrice))
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.orange)
@@ -215,7 +213,7 @@ struct ReceivedOfferCardView: View {
                     }
                     
                     if offerWithJob.offer.counterPrice != nil {
-                        Text("Your counter offer")
+                        Text(L10n(key: "receivedOffers.yourCounterOffer").string)
                             .font(.caption)
                             .foregroundColor(.orange)
                     }
@@ -229,7 +227,7 @@ struct ReceivedOfferCardView: View {
                         .foregroundColor(.secondary)
                     
                     if let respondedAt = offerWithJob.offer.respondedAt {
-                        Text("Responded \(respondedAt, style: .relative)")
+                        Text("\(L10n(key: "offerCard.responded").string) \(respondedAt, style: .relative)")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }

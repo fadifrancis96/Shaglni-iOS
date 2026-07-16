@@ -8,7 +8,6 @@ import PhotosUI
 
 struct ManageProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var contractorsRepo: ContractorsRepository
 
     @State private var profile: ContractorProfile?
@@ -47,9 +46,9 @@ struct ManageProfileView: View {
                             VStack(spacing: 20) {
                                 // Bio
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(localization.localized("bio"))
+                                    Text(L10n.Field.bio.string)
                                         .font(.headline)
-                                    
+
                                     TextEditor(text: $bio)
                                         .frame(minHeight: 100)
                                         .padding(8)
@@ -59,9 +58,9 @@ struct ManageProfileView: View {
                                 
                                 // Skills
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(localization.localized("skills"))
+                                    Text(L10n.Field.skills.string)
                                         .font(.headline)
-                                    
+
                                     FlowLayout(spacing: 8) {
                                         ForEach(skills, id: \.self) { skill in
                                             HStack(spacing: 4) {
@@ -82,7 +81,7 @@ struct ManageProfileView: View {
                                     }
                                     
                                     HStack {
-                                        TextField("Add skill", text: $newSkill)
+                                        TextField(L10n(key: "manageProfile.addSkill").string, text: $newSkill)
                                             .textFieldStyle(.roundedBorder)
                                         
                                         Button(action: addSkill) {
@@ -96,19 +95,19 @@ struct ManageProfileView: View {
                                 
                                 // Contact Info
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(localization.localized("contactInfo"))
+                                    Text(L10n.Field.contactInfo.string)
                                         .font(.headline)
-                                    
-                                    TextField(localization.localized("email"), text: $contactEmail)
+
+                                    TextField(L10n.Common.email.string, text: $contactEmail)
                                         .textFieldStyle(.roundedBorder)
                                         .keyboardType(.emailAddress)
                                         .textInputAutocapitalization(.never)
-                                    
-                                    TextField(localization.localized("phone"), text: $phone)
+
+                                    TextField(L10n.Field.phone.string, text: $phone)
                                         .textFieldStyle(.roundedBorder)
                                         .keyboardType(.phonePad)
-                                    
-                                    TextField(localization.localized("website"), text: $website)
+
+                                    TextField(L10n.Field.website.string, text: $website)
                                         .textFieldStyle(.roundedBorder)
                                         .keyboardType(.URL)
                                         .textInputAutocapitalization(.never)
@@ -116,15 +115,15 @@ struct ManageProfileView: View {
                                 
                                 // Location
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(localization.localized("location"))
+                                    Text(L10n.Field.location.string)
                                         .font(.headline)
-                                    
-                                    TextField(localization.localized("location"), text: $location)
+
+                                    TextField(L10n.Field.location.string, text: $location)
                                         .textFieldStyle(.roundedBorder)
                                 }
                                 
                                 // Availability
-                                Toggle(localization.localized("availableForWork"), isOn: $availableForWork)
+                                Toggle(L10n.Field.availableForWork.string, isOn: $availableForWork)
                                     .font(.headline)
                                 
                                 // Save Button
@@ -133,7 +132,7 @@ struct ManageProfileView: View {
                                         ProgressView()
                                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     } else {
-                                        Text(localization.localized("save"))
+                                        Text(L10n.Common.save.string)
                                             .fontWeight(.semibold)
                                     }
                                 }
@@ -155,7 +154,7 @@ struct ManageProfileView: View {
                                     
                                     if !profile.bio.isEmpty {
                                         VStack(alignment: .leading, spacing: 8) {
-                                            Text(localization.localized("bio"))
+                                            Text(L10n.Field.bio.string)
                                                 .font(.headline)
                                             Text(profile.bio)
                                                 .foregroundColor(.secondary)
@@ -165,7 +164,7 @@ struct ManageProfileView: View {
                                     
                                     if !profile.skills.isEmpty {
                                         VStack(alignment: .leading, spacing: 12) {
-                                            Text(localization.localized("skills"))
+                                            Text(L10n.Field.skills.string)
                                                 .font(.headline)
                                             
                                             FlowLayout(spacing: 8) {
@@ -184,7 +183,7 @@ struct ManageProfileView: View {
                                     }
                                     
                                     Button(action: { isEditing = true }) {
-                                        Text(localization.localized("edit"))
+                                        Text(L10n.Common.edit.string)
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
                                             .padding()
@@ -199,7 +198,7 @@ struct ManageProfileView: View {
                     }
                 }
             }
-            .navigationTitle(localization.localized("manageProfile"))
+            .navigationTitle(L10n.Action.manageProfile.string)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear(perform: loadProfile)
         }
@@ -271,7 +270,7 @@ struct ManageProfileView: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else {
-                picUploadError = "Couldn't read image"
+                picUploadError = L10n(key: "manageProfile.imageReadError").string
                 return
             }
             let url = try await PhotoUploadService.shared.uploadProfilePicture(userId: userId, image: image)

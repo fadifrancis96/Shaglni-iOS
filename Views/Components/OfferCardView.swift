@@ -9,8 +9,7 @@ import SwiftUI
 
 struct OfferCardView: View {
     let offer: Offer
-    @EnvironmentObject var localization: LocalizationManager
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
@@ -28,7 +27,7 @@ struct OfferCardView: View {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
-                    Text("Counter offer received - Action required")
+                    Text(L10n(key: "offerCard.counterReceived").string)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.orange)
@@ -49,17 +48,17 @@ struct OfferCardView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text("₪\(Int(offer.price))")
+                        Text(Money.string(offer.price))
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundColor(.blue)
-                        
+
                         if let counterPrice = offer.counterPrice {
                             Image(systemName: "arrow.right")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            
-                            Text("₪\(Int(counterPrice))")
+
+                            Text(Money.string(counterPrice))
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(.orange)
@@ -67,7 +66,7 @@ struct OfferCardView: View {
                     }
                     
                     if offer.counterPrice != nil {
-                        Text("Job poster's counter offer")
+                        Text(L10n(key: "offerCard.posterCounter").string)
                             .font(.caption)
                             .foregroundColor(.orange)
                     }
@@ -81,7 +80,7 @@ struct OfferCardView: View {
                         .foregroundColor(.secondary)
                     
                     if let respondedAt = offer.respondedAt {
-                        Text("Responded \(respondedAt, style: .relative)")
+                        Text("\(L10n(key: "offerCard.responded").string) \(respondedAt, style: .relative)")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -103,7 +102,7 @@ struct OfferStatusBadge: View {
     let status: OfferStatus
     
     var body: some View {
-        Text(statusText)
+        Text(status.localized)
             .font(.caption)
             .fontWeight(.medium)
             .foregroundColor(.white)
@@ -112,16 +111,7 @@ struct OfferStatusBadge: View {
             .background(statusColor)
             .cornerRadius(6)
     }
-    
-    private var statusText: String {
-        switch status {
-        case .pending: return "Pending"
-        case .accepted: return "Accepted"
-        case .rejected: return "Rejected"
-        case .counterOffer: return "Counter Offer"
-        }
-    }
-    
+
     private var statusColor: Color {
         switch status {
         case .pending: return .orange

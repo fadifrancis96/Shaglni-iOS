@@ -9,7 +9,6 @@ import SwiftUI
 
 struct JobPosterDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
@@ -22,7 +21,7 @@ struct JobPosterDashboardView: View {
                 VStack(spacing: 24) {
                     // Welcome Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localization.localized("welcome"))
+                        Text(L10n.welcome.string)
                             .font(.title2)
                             .fontWeight(.bold)
                         
@@ -39,8 +38,8 @@ struct JobPosterDashboardView: View {
                     // Action Cards
                     VStack(spacing: 16) {
                         ActionCard(
-                            title: localization.localized("postJob"),
-                            subtitle: "Post a new job and receive offers",
+                            title: L10n.Action.postJob.string,
+                            subtitle: L10n(key: "dashboard.postJobSubtitle").string,
                             icon: "plus.circle.fill",
                             color: .blue
                         ) {
@@ -49,8 +48,8 @@ struct JobPosterDashboardView: View {
                         
                         NavigationLink(destination: ContractorListView()) {
                             ActionCard(
-                                title: localization.localized("findContractor"),
-                                subtitle: "Browse contractors by skills",
+                                title: L10n.Action.findContractor.string,
+                                subtitle: L10n(key: "dashboard.findContractorSubtitle").string,
                                 icon: "magnifyingglass.circle.fill",
                                 color: .green
                             )
@@ -59,8 +58,8 @@ struct JobPosterDashboardView: View {
                         
                         NavigationLink(destination: ReceivedOffersView()) {
                             ActionCard(
-                                title: "Received Offers",
-                                subtitle: "View offers from contractors",
+                                title: L10n.Action.receivedOffers.string,
+                                subtitle: L10n(key: "dashboard.receivedOffersSubtitle").string,
                                 icon: "envelope.circle.fill",
                                 color: .purple
                             )
@@ -72,21 +71,21 @@ struct JobPosterDashboardView: View {
                     // Stats
                     HStack(spacing: 16) {
                         StatCard(
-                            title: localization.localized("open"),
+                            title: L10n.JobStatus.open.string,
                             value: "\(openJobsCount)",
                             icon: "doc.text.fill",
                             color: .blue
                         )
                         
                         StatCard(
-                            title: localization.localized("inProgress"),
+                            title: L10n.JobStatus.inProgress.string,
                             value: "\(inProgressJobsCount)",
                             icon: "clock.fill",
                             color: .orange
                         )
                         
                         StatCard(
-                            title: localization.localized("completed"),
+                            title: L10n.JobStatus.completed.string,
                             value: "\(completedJobsCount)",
                             icon: "checkmark.circle.fill",
                             color: .green
@@ -98,7 +97,7 @@ struct JobPosterDashboardView: View {
                     if pendingOffersCount > 0 {
                         HStack(spacing: 16) {
                             StatCard(
-                                title: "Pending Offers",
+                                title: L10n(key: "dashboard.pendingOffers").string,
                                 value: "\(pendingOffersCount)",
                                 icon: "envelope.fill",
                                 color: .purple
@@ -110,7 +109,7 @@ struct JobPosterDashboardView: View {
                     
                     // Recent Jobs
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Recent Jobs")
+                        Text(L10n.Section.recentJobs.string)
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -121,8 +120,8 @@ struct JobPosterDashboardView: View {
                         } else if jobsRepo.myPostedJobs.isEmpty {
                             EmptyStateView(
                                 icon: "briefcase",
-                                title: "No jobs yet",
-                                subtitle: "Post your first job to get started"
+                                title: L10n.Empty.noJobs.string,
+                                subtitle: L10n.Empty.postFirstJob.string
                             )
                         } else {
                             ForEach(jobsRepo.myPostedJobs.prefix(5)) { job in
@@ -136,7 +135,7 @@ struct JobPosterDashboardView: View {
                 }
                 .padding(.bottom)
             }
-            .navigationTitle(localization.localized("dashboard"))
+            .navigationTitle(L10n.Tab.dashboard.string)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showPostJob) {
                 JobFormView()
@@ -151,7 +150,7 @@ struct JobPosterDashboardView: View {
                 Task { await loadOffers() }
             }
             .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button("OK", role: .cancel) {}
+                Button(L10n(key: "common.ok").string, role: .cancel) {}
             } message: {
                 Text(errorMessage ?? "")
             }

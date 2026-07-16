@@ -23,7 +23,7 @@ struct PhotoPickerView: View {
         selectedImages: Binding<[UIImage]>,
         isPresented: Binding<Bool>,
         maxPhotos: Int = 5,
-        title: String = "Select Photos"
+        title: String = L10n(key: "photoPicker.selectPhotos").string
     ) {
         self._selectedImages = selectedImages
         self._isPresented = isPresented
@@ -40,7 +40,7 @@ struct PhotoPickerView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text("Select up to \(maxPhotos) photos")
+                    Text(L10n(key: "photoPicker.selectUpTo").format(maxPhotos))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -58,11 +58,11 @@ struct PhotoPickerView: View {
                             .font(.system(size: 40))
                             .foregroundColor(.blue)
                         
-                        Text("Choose Photos")
+                        Text(L10n(key: "photoPicker.choosePhotos").string)
                             .font(.headline)
                             .foregroundColor(.blue)
-                        
-                        Text("From Camera Roll")
+
+                        Text(L10n(key: "photoPicker.fromCameraRoll").string)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -81,12 +81,12 @@ struct PhotoPickerView: View {
                 if !selectedImages.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Selected Photos (\(selectedImages.count)/\(maxPhotos))")
+                            Text(L10n(key: "photoPicker.selectedCount").format(selectedImages.count, maxPhotos))
                                 .font(.headline)
-                            
+
                             Spacer()
-                            
-                            Button("Clear All") {
+
+                            Button(L10n(key: "photoPicker.clearAll").string) {
                                 selectedImages.removeAll()
                                 selectedItems.removeAll()
                             }
@@ -131,7 +131,7 @@ struct PhotoPickerView: View {
                     Button(action: {
                         isPresented = false
                     }) {
-                        Text("Done")
+                        Text(L10n.Common.done.string)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -141,7 +141,7 @@ struct PhotoPickerView: View {
                     }
                     .disabled(selectedImages.isEmpty)
                     
-                    Button("Cancel") {
+                    Button(L10n.Common.cancel.string) {
                         selectedImages.removeAll()
                         selectedItems.removeAll()
                         isPresented = false
@@ -161,7 +161,7 @@ struct PhotoPickerView: View {
                     VStack(spacing: 16) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text("Loading photos...")
+                        Text(L10n(key: "photoPicker.loading").string)
                             .font(.subheadline)
                             .foregroundColor(.white)
                     }
@@ -185,7 +185,7 @@ struct PhotoPickerView: View {
                     }
                 } catch {
                     await MainActor.run {
-                        errorMessage = "Failed to load some photos"
+                        errorMessage = L10n(key: "photoPicker.loadError").string
                     }
                 }
             }
@@ -239,7 +239,7 @@ struct PhotoPreviewCard: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
+                        Button(L10n.Common.done.string) {
                             showFullScreen = false
                         }
                         .foregroundColor(.white)

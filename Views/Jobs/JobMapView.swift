@@ -26,11 +26,11 @@ struct JobMapView: View {
                 selectedJobCard
                 mapStyleButton
             }
-            .navigationTitle("Jobs Map (\(jobs.count))")
+            .navigationTitle(L10n(key: "jobMap.title").format(jobs.count))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done.string) {
                         dismiss()
                     }
                 }
@@ -162,7 +162,7 @@ struct JobMapView: View {
         HStack {
             Image(systemName: "tag.fill")
                 .font(.caption)
-            Text(category.rawValue)
+            Text(category.localized)
                 .font(.caption)
         }
         .foregroundColor(.blue)
@@ -176,7 +176,7 @@ struct JobMapView: View {
         HStack {
             Image(systemName: "dollarsign.circle.fill")
                 .foregroundColor(.green)
-            Text("Budget: ₪\(String(format: "%.0f", budget))")
+            Text("\(L10n.Field.budget.string): \(Money.string(budget))")
                 .font(.subheadline)
                 .fontWeight(.semibold)
         }
@@ -185,7 +185,7 @@ struct JobMapView: View {
     private func viewDetailsButton(for job: Job) -> some View {
         NavigationLink(destination: JobDetailView(job: job)) {
             HStack {
-                Text("View Full Details")
+                Text(L10n.Action.viewDetails.string)
                     .font(.headline)
                 Spacer()
                 Image(systemName: "arrow.right.circle.fill")
@@ -212,10 +212,10 @@ struct JobMapView: View {
                     Spacer()
                     Menu {
                         Button(action: { mapStyle = .standard }) {
-                            Label("Standard", systemImage: "map")
+                            Label(L10n(key: "jobMap.styleStandard").string, systemImage: "map")
                         }
                         Button(action: { mapStyle = .hybrid }) {
-                            Label("Satellite", systemImage: "globe")
+                            Label(L10n(key: "jobMap.styleSatellite").string, systemImage: "globe")
                         }
                     } label: {
                         Image(systemName: "map.fill")
