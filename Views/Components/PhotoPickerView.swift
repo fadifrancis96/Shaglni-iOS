@@ -11,144 +11,143 @@ import PhotosUI
 struct PhotoPickerView: View {
     @Binding var selectedImages: [UIImage]
     @Binding var isPresented: Bool
-    
+
     let maxPhotos: Int
     let title: String
-    
+
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
-    
+
     init(
         selectedImages: Binding<[UIImage]>,
         isPresented: Binding<Bool>,
         maxPhotos: Int = 5,
-        title: String = L10n(key: "photoPicker.selectPhotos").string
+        title: String = "Select Photos"
     ) {
         self._selectedImages = selectedImages
         self._isPresented = isPresented
         self.maxPhotos = maxPhotos
         self.title = title
     }
-    
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                // Header
-                VStack(spacing: 8) {
-                    Text(title)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text(L10n(key: "photoPicker.selectUpTo").format(maxPhotos))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.top)
-                
-                // Photo Picker
-                PhotosPicker(
-                    selection: $selectedItems,
-                    maxSelectionCount: maxPhotos,
-                    matching: .images,
-                    photoLibrary: .shared()
-                ) {
-                    VStack(spacing: 12) {
-                        Image(systemName: "photo.badge.plus")
-                            .font(.system(size: 40))
-                            .foregroundColor(.blue)
-                        
-                        Text(L10n(key: "photoPicker.choosePhotos").string)
-                            .font(.headline)
-                            .foregroundColor(.blue)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
 
-                        Text(L10n(key: "photoPicker.fromCameraRoll").string)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                VStack(spacing: DS.Space.xl) {
+                    // Header
+                    VStack(spacing: DS.Space.s) {
+                        Text(title)
+                            .font(.dsTitle2)
+                            .foregroundStyle(Color.ink)
+
+                        Text("Select up to \(maxPhotos) photos")
+                            .font(.dsSub)
+                            .foregroundStyle(Color.inkMuted)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue.opacity(0.3), style: StrokeStyle(lineWidth: 2, dash: [5]))
-                    )
-                }
-                .padding(.horizontal)
-                
-                // Selected Photos Preview
-                if !selectedImages.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(L10n(key: "photoPicker.selectedCount").format(selectedImages.count, maxPhotos))
-                                .font(.headline)
+                    .padding(.top, DS.Space.l)
 
-                            Spacer()
+                    // Photo Picker
+                    PhotosPicker(
+                        selection: $selectedItems,
+                        maxSelectionCount: maxPhotos,
+                        matching: .images,
+                        photoLibrary: .shared()
+                    ) {
+                        VStack(spacing: DS.Space.m) {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.system(size: 36, weight: .medium))
+                                .foregroundStyle(Color.brand)
 
-                            Button(L10n(key: "photoPicker.clearAll").string) {
-                                selectedImages.removeAll()
-                                selectedItems.removeAll()
-                            }
-                            .font(.caption)
-                            .foregroundColor(.red)
+                            Text("Choose Photos")
+                                .font(.dsHeadline)
+                                .foregroundStyle(Color.brand)
+
+                            Text("From Camera Roll")
+                                .font(.dsCaption)
+                                .foregroundStyle(Color.inkMuted)
                         }
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
-                                    PhotoPreviewCard(
-                                        image: image,
-                                        onRemove: {
-                                            selectedImages.remove(at: index)
-                                            if index < selectedItems.count {
-                                                selectedItems.remove(at: index)
-                                            }
-                                        }
-                                    )
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                                .fill(Color.brandSoft)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                                .strokeBorder(Color.brand.opacity(0.35), style: StrokeStyle(lineWidth: 2, dash: [5]))
+                        )
+                    }
+
+                    // Selected Photos Preview
+                    if !selectedImages.isEmpty {
+                        VStack(alignment: .leading, spacing: DS.Space.m) {
+                            HStack {
+                                Text("Selected Photos (\(selectedImages.count)/\(maxPhotos))")
+                                    .font(.dsHeadline)
+                                    .foregroundStyle(Color.ink)
+
+                                Spacer()
+
+                                Button("Clear All") {
+                                    selectedImages.removeAll()
+                                    selectedItems.removeAll()
                                 }
+                                .font(.dsCaptionBold)
+                                .foregroundStyle(Color.danger)
                             }
-                            .padding(.horizontal)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: DS.Space.m) {
+                                    ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
+                                        PhotoPreviewCard(
+                                            image: image,
+                                            onRemove: {
+                                                selectedImages.remove(at: index)
+                                                if index < selectedItems.count {
+                                                    selectedItems.remove(at: index)
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                                .padding(.top, 6)
+                                .padding(.trailing, 6)
+                            }
                         }
                     }
-                }
-                
-                // Error Message
-                if let errorMessage = errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                }
-                
-                Spacer()
-                
-                // Action Buttons
-                VStack(spacing: 12) {
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text(L10n.Common.done.string)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(selectedImages.isEmpty ? Color.gray : Color.blue)
-                            .cornerRadius(12)
+
+                    // Error Message
+                    if let errorMessage = errorMessage {
+                        DSBanner(kind: .error, message: errorMessage)
                     }
-                    .disabled(selectedImages.isEmpty)
-                    
-                    Button(L10n.Common.cancel.string) {
-                        selectedImages.removeAll()
-                        selectedItems.removeAll()
-                        isPresented = false
+
+                    Spacer()
+
+                    // Action Buttons
+                    VStack(spacing: DS.Space.m) {
+                        Button(action: {
+                            isPresented = false
+                        }) {
+                            Text(L10n.Common.done.string)
+                        }
+                        .buttonStyle(DSPrimaryButtonStyle())
+                        .disabled(selectedImages.isEmpty)
+                        .opacity(selectedImages.isEmpty ? 0.5 : 1)
+
+                        Button(L10n.Common.cancel.string) {
+                            selectedImages.removeAll()
+                            selectedItems.removeAll()
+                            isPresented = false
+                        }
+                        .font(.dsSub)
+                        .foregroundStyle(Color.inkMuted)
                     }
-                    .foregroundColor(.secondary)
+                    .padding(.bottom, DS.Space.m)
                 }
-                .padding()
+                .padding(.horizontal, DS.Space.screen)
             }
             .navigationBarHidden(true)
             .onChange(of: selectedItems) { newItems in
@@ -158,25 +157,25 @@ struct PhotoPickerView: View {
                 if isLoading {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
-                    VStack(spacing: 16) {
+                    VStack(spacing: DS.Space.l) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text(L10n(key: "photoPicker.loading").string)
-                            .font(.subheadline)
-                            .foregroundColor(.white)
+                        Text("Loading photos...")
+                            .font(.dsSub)
+                            .foregroundStyle(Color.white)
                     }
                 }
             }
         }
     }
-    
+
     private func loadImages(from items: [PhotosPickerItem]) {
         isLoading = true
         errorMessage = nil
-        
+
         Task {
             var loadedImages: [UIImage] = []
-            
+
             for item in items {
                 do {
                     if let data = try await item.loadTransferable(type: Data.self),
@@ -185,11 +184,11 @@ struct PhotoPickerView: View {
                     }
                 } catch {
                     await MainActor.run {
-                        errorMessage = L10n(key: "photoPicker.loadError").string
+                        errorMessage = "Failed to load some photos"
                     }
                 }
             }
-            
+
             await MainActor.run {
                 selectedImages = loadedImages
                 isLoading = false
@@ -202,7 +201,7 @@ struct PhotoPreviewCard: View {
     let image: UIImage
     let onRemove: () -> Void
     @State private var showFullScreen = false
-    
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button(action: {
@@ -213,16 +212,15 @@ struct PhotoPreviewCard: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 80, height: 80)
                     .clipped()
-                    .cornerRadius(8)
+                    .clipShape(RoundedRectangle(cornerRadius: DS.Radius.thumb, style: .continuous))
             }
-            .buttonStyle(PlainButtonStyle())
-            
+            .buttonStyle(DSPressableStyle())
+
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundColor(.red)
-                    .background(Color.white)
-                    .clipShape(Circle())
+                    .foregroundStyle(Color.danger)
+                    .background(Circle().fill(Color.surface))
             }
             .offset(x: 5, y: -5)
         }
@@ -230,7 +228,7 @@ struct PhotoPreviewCard: View {
             NavigationStack {
                 ZStack {
                     Color.black.ignoresSafeArea()
-                    
+
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -242,7 +240,7 @@ struct PhotoPreviewCard: View {
                         Button(L10n.Common.done.string) {
                             showFullScreen = false
                         }
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                     }
                 }
             }

@@ -2,12 +2,16 @@
 //  ManageProfileView.swift
 //  Shaglni
 //
+//  Contractor profile management: avatar upload, bio, skills, contact
+//  info and availability — view and edit modes on the design system.
+//
 
 import SwiftUI
 import PhotosUI
 
 struct ManageProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var contractorsRepo: ContractorsRepository
 
     @State private var profile: ContractorProfile?
@@ -31,171 +35,29 @@ struct ManageProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                if isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding()
-                } else {
-                    VStack(spacing: 24) {
-                        profilePictureAvatar
-                            .padding(.top)
-                        
-                        if isEditing {
-                            // Edit Form
-                            VStack(spacing: 20) {
-                                // Bio
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(L10n.Field.bio.string)
-                                        .font(.headline)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
 
-                                    TextEditor(text: $bio)
-                                        .frame(minHeight: 100)
-                                        .padding(8)
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(8)
-                                }
-                                
-                                // Skills
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(L10n.Field.skills.string)
-                                        .font(.headline)
-
-                                    FlowLayout(spacing: 8) {
-                                        ForEach(skills, id: \.self) { skill in
-                                            HStack(spacing: 4) {
-                                                Text(skill)
-                                                    .font(.subheadline)
-                                                
-                                                Button(action: { removeSkill(skill) }) {
-                                                    Image(systemName: "xmark.circle.fill")
-                                                        .foregroundColor(.secondary)
-                                                }
-                                            }
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(Color.blue.opacity(0.1))
-                                            .foregroundColor(.blue)
-                                            .cornerRadius(8)
-                                        }
-                                    }
-                                    
-                                    HStack {
-                                        TextField(L10n(key: "manageProfile.addSkill").string, text: $newSkill)
-                                            .textFieldStyle(.roundedBorder)
-                                        
-                                        Button(action: addSkill) {
-                                            Image(systemName: "plus.circle.fill")
-                                                .font(.title2)
-                                                .foregroundColor(.blue)
-                                        }
-                                        .disabled(newSkill.isEmpty)
-                                    }
-                                }
-                                
-                                // Contact Info
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(L10n.Field.contactInfo.string)
-                                        .font(.headline)
-
-                                    TextField(L10n.Common.email.string, text: $contactEmail)
-                                        .textFieldStyle(.roundedBorder)
-                                        .keyboardType(.emailAddress)
-                                        .textInputAutocapitalization(.never)
-
-                                    TextField(L10n.Field.phone.string, text: $phone)
-                                        .textFieldStyle(.roundedBorder)
-                                        .keyboardType(.phonePad)
-
-                                    TextField(L10n.Field.website.string, text: $website)
-                                        .textFieldStyle(.roundedBorder)
-                                        .keyboardType(.URL)
-                                        .textInputAutocapitalization(.never)
-                                }
-                                
-                                // Location
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(L10n.Field.location.string)
-                                        .font(.headline)
-
-                                    TextField(L10n.Field.location.string, text: $location)
-                                        .textFieldStyle(.roundedBorder)
-                                }
-                                
-                                // Availability
-                                Toggle(L10n.Field.availableForWork.string, isOn: $availableForWork)
-                                    .font(.headline)
-                                
-                                // Save Button
-                                Button(action: saveProfile) {
-                                    if isSaving {
-                                        ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    } else {
-                                        Text(L10n.Common.save.string)
-                                            .fontWeight(.semibold)
-                                    }
-                                }
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        if isLoading {
+                            ProgressView()
+                                .tint(Color.brand)
                                 .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                                .disabled(isSaving)
-                            }
-                            .padding()
+                                .padding(.vertical, 48)
                         } else {
-                            // View Mode
-                            if let profile = profile {
-                                VStack(spacing: 20) {
-                                    Text(profile.displayName)
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                    
-                                    if !profile.bio.isEmpty {
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            Text(L10n.Field.bio.string)
-                                                .font(.headline)
-                                            Text(profile.bio)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    
-                                    if !profile.skills.isEmpty {
-                                        VStack(alignment: .leading, spacing: 12) {
-                                            Text(L10n.Field.skills.string)
-                                                .font(.headline)
-                                            
-                                            FlowLayout(spacing: 8) {
-                                                ForEach(profile.skills, id: \.self) { skill in
-                                                    Text(skill)
-                                                        .font(.subheadline)
-                                                        .padding(.horizontal, 12)
-                                                        .padding(.vertical, 6)
-                                                        .background(Color.blue.opacity(0.1))
-                                                        .foregroundColor(.blue)
-                                                        .cornerRadius(8)
-                                                }
-                                            }
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    
-                                    Button(action: { isEditing = true }) {
-                                        Text(L10n.Common.edit.string)
-                                            .fontWeight(.semibold)
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(12)
-                                    }
-                                }
-                                .padding()
+                            profilePictureAvatar
+                                .padding(.top, DS.Space.s)
+
+                            if isEditing {
+                                editForm
+                            } else {
+                                viewMode
                             }
                         }
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.vertical, DS.Space.l)
                 }
             }
             .navigationTitle(L10n.Action.manageProfile.string)
@@ -203,7 +65,215 @@ struct ManageProfileView: View {
             .onAppear(perform: loadProfile)
         }
     }
-    
+
+    // MARK: - Edit mode
+
+    private var editForm: some View {
+        VStack(spacing: DS.Space.xl) {
+            // Bio
+            DSTextEditor(
+                label: localization.localized("bio"),
+                text: $bio,
+                minHeight: 110
+            )
+
+            // Skills
+            VStack(alignment: .leading, spacing: DS.Space.s) {
+                Text(localization.localized("skills"))
+                    .font(.dsCaptionBold)
+                    .foregroundStyle(Color.inkMuted)
+
+                if !skills.isEmpty {
+                    DSFlowLayout(spacing: DS.Space.s) {
+                        ForEach(skills, id: \.self) { skill in
+                            EditableSkillChip(title: skill) { removeSkill(skill) }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                HStack(spacing: DS.Space.m) {
+                    TextField("Add skill", text: $newSkill)
+                        .font(.dsBody)
+                        .foregroundStyle(Color.ink)
+                        .padding(.horizontal, DS.Space.l)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                                .fill(Color.surface)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                                .strokeBorder(Color.divider, lineWidth: 1)
+                        )
+                        .onSubmit(addSkill)
+
+                    Button(action: addSkill) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(newSkill.isEmpty ? Color.inkFaint : Color.onBrand)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                                    .fill(newSkill.isEmpty ? Color.surfaceAlt : Color.brand)
+                            )
+                    }
+                    .disabled(newSkill.isEmpty)
+                }
+            }
+
+            // Contact info
+            VStack(alignment: .leading, spacing: DS.Space.l) {
+                Text(localization.localized("contactInfo"))
+                    .font(.dsTitle2)
+                    .foregroundStyle(Color.ink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                DSTextField(
+                    label: localization.localized("email"),
+                    systemImage: "envelope.fill",
+                    text: $contactEmail,
+                    keyboard: .emailAddress,
+                    contentType: .emailAddress
+                )
+
+                DSTextField(
+                    label: localization.localized("phone"),
+                    systemImage: "phone.fill",
+                    text: $phone,
+                    keyboard: .phonePad,
+                    contentType: .telephoneNumber
+                )
+
+                DSTextField(
+                    label: localization.localized("website"),
+                    systemImage: "globe",
+                    text: $website,
+                    keyboard: .URL,
+                    contentType: .URL
+                )
+
+                DSTextField(
+                    label: localization.localized("location"),
+                    systemImage: "mappin.and.ellipse",
+                    text: $location,
+                    autocapitalization: .words
+                )
+            }
+
+            // Availability
+            Toggle(isOn: $availableForWork) {
+                Text(localization.localized("availableForWork"))
+                    .font(.dsHeadline)
+                    .foregroundStyle(Color.ink)
+            }
+            .tint(Color.brand)
+            .dsCard()
+
+            // Save
+            Button(action: saveProfile) {
+                if isSaving {
+                    ProgressView()
+                        .tint(Color.onBrand)
+                } else {
+                    Text(localization.localized("save"))
+                }
+            }
+            .buttonStyle(DSPrimaryButtonStyle())
+            .disabled(isSaving)
+        }
+    }
+
+    // MARK: - View mode
+
+    @ViewBuilder
+    private var viewMode: some View {
+        if let profile = profile {
+            VStack(spacing: DS.Space.xl) {
+                Text(profile.displayName)
+                    .font(.dsTitle)
+                    .foregroundStyle(Color.ink)
+                    .multilineTextAlignment(.center)
+
+                if !profile.bio.isEmpty {
+                    VStack(alignment: .leading, spacing: DS.Space.m) {
+                        DSSectionHeader(title: localization.localized("bio"))
+
+                        Text(profile.bio)
+                            .font(.dsSub)
+                            .foregroundStyle(Color.inkMuted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .multilineTextAlignment(.leading)
+                            .dsCard()
+                    }
+                }
+
+                if !profile.skills.isEmpty {
+                    VStack(alignment: .leading, spacing: DS.Space.m) {
+                        DSSectionHeader(title: localization.localized("skills"))
+
+                        DSFlowLayout(spacing: DS.Space.s) {
+                            ForEach(profile.skills, id: \.self) { skill in
+                                DSTag(title: skill, tint: .brand, background: .brandSoft)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .dsCard()
+                    }
+                }
+
+                Button {
+                    isEditing = true
+                } label: {
+                    Text(localization.localized("edit"))
+                }
+                .buttonStyle(DSPrimaryButtonStyle())
+            }
+        }
+    }
+
+    // MARK: - Avatar
+
+    @ViewBuilder
+    private var profilePictureAvatar: some View {
+        PhotosPicker(selection: $pickedItem, matching: .images) {
+            ZStack(alignment: .bottomTrailing) {
+                DSAvatar(
+                    name: profile?.displayName ?? authViewModel.currentUserData?.displayName ?? "",
+                    urlString: profile?.profilePicture,
+                    size: 96
+                )
+
+                Circle()
+                    .fill(Color.brand)
+                    .frame(width: 30, height: 30)
+                    .overlay(
+                        Group {
+                            if isUploadingPic {
+                                ProgressView()
+                                    .tint(Color.onBrand)
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Color.onBrand)
+                            }
+                        }
+                    )
+                    .overlay(Circle().strokeBorder(Color.surface, lineWidth: 2))
+            }
+        }
+        .onChange(of: pickedItem) { _, newItem in
+            guard let newItem else { return }
+            Task { await uploadPickedPicture(item: newItem) }
+        }
+        if let picUploadError {
+            DSBanner(kind: .error, message: picUploadError)
+        }
+    }
+
+    // MARK: - Data
+
     private func loadProfile() {
         guard let userId = authViewModel.currentUser?.uid else { return }
         Task {
@@ -218,51 +288,6 @@ struct ManageProfileView: View {
         }
     }
 
-    @ViewBuilder
-    private var profilePictureAvatar: some View {
-        PhotosPicker(selection: $pickedItem, matching: .images) {
-            ZStack(alignment: .bottomTrailing) {
-                Group {
-                    if let url = profile?.profilePicture {
-                        RemoteImage(urlString: url) { image in
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        }
-                    } else {
-                        Circle()
-                            .fill(Color.accentColor.opacity(0.2))
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(.accentColor)
-                            )
-                    }
-                }
-                .frame(width: 100, height: 100)
-                .clipShape(Circle())
-
-                Circle()
-                    .fill(Color.accentColor)
-                    .frame(width: 30, height: 30)
-                    .overlay(
-                        Group {
-                            if isUploadingPic {
-                                ProgressView().tint(.white).controlSize(.small)
-                            } else {
-                                Image(systemName: "camera.fill").foregroundColor(.white).font(.caption)
-                            }
-                        }
-                    )
-            }
-        }
-        .onChange(of: pickedItem) { _, newItem in
-            guard let newItem else { return }
-            Task { await uploadPickedPicture(item: newItem) }
-        }
-        if let picUploadError {
-            Text(picUploadError).font(.caption).foregroundColor(.red)
-        }
-    }
-
     private func uploadPickedPicture(item: PhotosPickerItem) async {
         guard let userId = authViewModel.currentUser?.uid else { return }
         isUploadingPic = true
@@ -270,7 +295,7 @@ struct ManageProfileView: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else {
-                picUploadError = L10n(key: "manageProfile.imageReadError").string
+                picUploadError = "Couldn't read image"
                 return
             }
             let url = try await PhotoUploadService.shared.uploadProfilePicture(userId: userId, image: image)
@@ -282,7 +307,7 @@ struct ManageProfileView: View {
             picUploadError = error.localizedDescription
         }
     }
-    
+
     private func populateFields(from profile: ContractorProfile) {
         bio = profile.bio
         skills = profile.skills
@@ -292,7 +317,7 @@ struct ManageProfileView: View {
         location = profile.location ?? ""
         availableForWork = profile.availableForWork
     }
-    
+
     private func addSkill() {
         let trimmedSkill = newSkill.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedSkill.isEmpty && !skills.contains(trimmedSkill) {
@@ -300,11 +325,11 @@ struct ManageProfileView: View {
             newSkill = ""
         }
     }
-    
+
     private func removeSkill(_ skill: String) {
         skills.removeAll { $0 == skill }
     }
-    
+
     private func saveProfile() {
         guard let userId = authViewModel.currentUser?.uid,
               let userName = authViewModel.currentUserData?.displayName else { return }
@@ -337,6 +362,31 @@ struct ManageProfileView: View {
             }
             isSaving = false
         }
+    }
+}
+
+// MARK: - Skill chip (edit mode, removable)
+
+private struct EditableSkillChip: View {
+    let title: String
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Text(title)
+                .font(.dsCaptionBold)
+                .lineLimit(1)
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(Color.brand)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Capsule().fill(Color.brandSoft))
     }
 }
 

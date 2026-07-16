@@ -7,12 +7,13 @@
 
 import SwiftUI
 import MapKit
+import FirebaseFirestore
 
 struct JobFormView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var localization: LocalizationManager
     @Environment(\.dismiss) var dismiss
-    
+
     @State private var title = ""
     @State private var description = ""
     @State private var locationSearchText = ""
@@ -24,109 +25,39 @@ struct JobFormView: View {
     @State private var budget = ""
     @State private var isSubmitting = false
     @State private var errorMessage: String?
-    
+
     // Photo upload
     @State private var selectedImages: [UIImage] = []
     @State private var showPhotoPicker = false
     @State private var uploadedPhotoURLs: [String] = []
-    
+
     @StateObject private var locationSearchService = LocationSearchService()
-    
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section(header: Text(L10n(key: "job.details").string)) {
-                    TextField(L10n.Field.title.string, text: $title)
-                    
-                    TextEditor(text: $description)
-                        .frame(minHeight: 100)
-                        .overlay(
-                            Group {
-                                if description.isEmpty {
-                                    Text(L10n.Field.description.string)
-                                        .foregroundColor(.secondary)
-                                        .padding(.leading, 4)
-                                        .padding(.top, 8)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                }
-                            }
-                        )
-                    
-                    // Location Picker
-                    Button(action: { showLocationPicker = true }) {
-                        HStack {
-                            Text(L10n.Field.location.string)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if selectedLocationName.isEmpty {
-                                Text(L10n(key: "jobForm.selectLocation").string)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                Text(selectedLocationName)
-                                    .foregroundColor(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    
-                    Picker(L10n.Field.category.string, selection: $selectedCategory) {
-                        Text(L10n(key: "jobForm.selectCategory").string).tag(nil as JobCategory?)
-                        ForEach(JobCategory.allCases, id: \.self) { category in
-                            Text(category.localized).tag(category as JobCategory?)
-                        }
-                    }
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
 
-                    TextField("\(L10n.Field.budget.string) (\(L10n.Common.optional.string))", text: $budget)
-                        .keyboardType(.decimalPad)
-                }
-                
-                // Photo Upload Section
-                Section(header: Text(L10n(key: "jobForm.requirementsPhotos").string)) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Button(action: { showPhotoPicker = true }) {
-                            HStack {
-                                Image(systemName: "photo.badge.plus")
-                                    .foregroundColor(.blue)
-                                Text(L10n(key: "jobForm.addPhotos").string)
-                                    .foregroundColor(.blue)
-                                Spacer()
-                                if !selectedImages.isEmpty {
-                                    Text("(\(selectedImages.count))")
-                                        .foregroundColor(.secondary)
-                                }
-                            }
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        detailsSection
+
+                        photosSection
+
+                        if let errorMessage = errorMessage {
+                            DSBanner(kind: .error, message: errorMessage)
                         }
-                        
-                        if !selectedImages.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
-                                        PhotoPreviewCard(
-                                            image: image,
-                                            onRemove: {
-                                                selectedImages.remove(at: index)
-                                            }
-                                        )
-                                    }
-                                }
-                                .padding(.horizontal, 0)
-                            }
-                        }
-                        
-                        Text(L10n(key: "jobForm.addPhotosHint").string)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.top, DS.Space.m)
+                    .padding(.bottom, DS.Space.xxl)
                 }
-                
             }
-            .navigationTitle(L10n.Action.postJob.string)
+            .navigationTitle(localization.localized("postJob"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(L10n.Common.cancel.string) {
+                    Button(localization.localized("cancel")) {
                         dismiss()
                     }
                 }
@@ -136,7 +67,7 @@ struct JobFormView: View {
                         if isSubmitting {
                             ProgressView()
                         } else {
-                            Text(L10n.Common.submit.string)
+                            Text(localization.localized("submit"))
                                 .fontWeight(.semibold)
                         }
                     }
@@ -155,21 +86,156 @@ struct JobFormView: View {
                     selectedImages: $selectedImages,
                     isPresented: $showPhotoPicker,
                     maxPhotos: 5,
-                    title: L10n(key: "job.requirements").string
+                    title: "Job Requirements"
                 )
-            }
-            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button(L10n(key: "common.ok").string, role: .cancel) {}
-            } message: {
-                Text(errorMessage ?? "")
             }
         }
     }
-    
+
+    // MARK: - Sections
+
+    private var detailsSection: some View {
+        VStack(alignment: .leading, spacing: DS.Space.l) {
+            DSTextField(
+                label: localization.localized("title"),
+                systemImage: "textformat",
+                text: $title,
+                placeholder: localization.localized("title"),
+                autocapitalization: .sentences
+            )
+
+            DSTextEditor(
+                label: localization.localized("description"),
+                text: $description,
+                placeholder: localization.localized("description")
+            )
+
+            locationField
+
+            categoryField
+
+            DSTextField(
+                label: localization.localized("budget") + " (" + L10n.Common.optional.string + ")",
+                systemImage: "banknote",
+                text: $budget,
+                placeholder: "0",
+                keyboard: .decimalPad
+            )
+        }
+    }
+
+    private var locationField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(localization.localized("location"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+
+            Button(action: { showLocationPicker = true }) {
+                HStack(spacing: DS.Space.m) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(selectedLocationName.isEmpty ? Color.inkFaint : Color.brand)
+                        .frame(width: 20)
+
+                    Text(selectedLocationName.isEmpty ? "Select Location" : selectedLocationName)
+                        .font(.dsBody)
+                        .foregroundStyle(selectedLocationName.isEmpty ? Color.inkFaint : Color.ink)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.leading)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.forward")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.inkFaint)
+                        .flipsForRightToLeftLayoutDirection(true)
+                }
+                .padding(.horizontal, DS.Space.l)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                        .fill(Color.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                        .strokeBorder(Color.divider, lineWidth: 1)
+                )
+            }
+            .buttonStyle(DSPressableStyle())
+        }
+    }
+
+    private var categoryField: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(localization.localized("category"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: DS.Space.s) {
+                    ForEach(JobCategory.allCases, id: \.self) { category in
+                        DSChip(
+                            title: category.localized,
+                            systemImage: category.symbol,
+                            isSelected: selectedCategory == category
+                        ) {
+                            selectedCategory = selectedCategory == category ? nil : category
+                        }
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    private var photosSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Job Requirements Photos")
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+
+            VStack(alignment: .leading, spacing: DS.Space.m) {
+                Button(action: { showPhotoPicker = true }) {
+                    HStack(spacing: DS.Space.s) {
+                        Image(systemName: "photo.badge.plus")
+                        Text("Add Photos")
+                        if !selectedImages.isEmpty {
+                            Text("(\(selectedImages.count))")
+                        }
+                    }
+                }
+                .buttonStyle(DSTonalButtonStyle())
+
+                if !selectedImages.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: DS.Space.m) {
+                            ForEach(Array(selectedImages.enumerated()), id: \.offset) { index, image in
+                                PhotoPreviewCard(
+                                    image: image,
+                                    onRemove: {
+                                        selectedImages.remove(at: index)
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.top, 6)
+                        .padding(.trailing, 6)
+                    }
+                }
+
+                Text("Add photos to help contractors understand the job requirements")
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkMuted)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dsCard()
+        }
+    }
+
     private var isFormValid: Bool {
         !title.isEmpty && !description.isEmpty && !selectedLocationName.isEmpty && selectedCoordinate != nil
     }
-    
+
     private func handleSubmit() {
         guard let userId = authViewModel.currentUser?.uid,
               let coordinate = selectedCoordinate else { return }
@@ -194,7 +260,7 @@ struct JobFormView: View {
 
         Task {
             do {
-                let jobId = try await jobsRepo.create(job)
+                let jobId = try await JobsRepository.shared.create(job)
 
                 if !selectedImages.isEmpty {
                     let urls = try await PhotoUploadService.shared.uploadJobRequirementPhotos(
@@ -202,7 +268,7 @@ struct JobFormView: View {
                         images: selectedImages
                     )
                     if !urls.isEmpty {
-                        try await jobsRepo.attachPhotoURLs(jobId: jobId, urls: urls)
+                        try await JobsRepository.shared.attachPhotoURLs(jobId: jobId, urls: urls)
                     }
                 }
 
@@ -213,8 +279,35 @@ struct JobFormView: View {
             } catch {
                 await MainActor.run {
                     isSubmitting = false
-                    errorMessage = AppError(error).errorDescription
+                    errorMessage = error.localizedDescription
                 }
+            }
+        }
+    }
+
+    private func createJobWithoutPhotos(userId: String, coordinate: CLLocationCoordinate2D, budgetValue: Double?) {
+        let job = Job(
+            title: title,
+            description: description,
+            location: selectedLocationName,
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude,
+            datePosted: Date(),
+            createdBy: userId,
+            status: .open,
+            category: selectedCategory,
+            budget: budgetValue,
+            photoURLs: nil
+        )
+
+        FirestoreService.shared.createJob(job) { result in
+            self.isSubmitting = false
+
+            switch result {
+            case .success:
+                self.dismiss()
+            case .failure(let error):
+                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -224,9 +317,9 @@ struct JobFormView: View {
 class LocationSearchService: NSObject, ObservableObject {
     @Published var searchQuery = ""
     @Published var suggestions: [MKLocalSearchCompletion] = []
-    
+
     private let searchCompleter = MKLocalSearchCompleter()
-    
+
     override init() {
         super.init()
         searchCompleter.delegate = self
@@ -236,28 +329,28 @@ class LocationSearchService: NSObject, ObservableObject {
             span: MKCoordinateSpan(latitudeDelta: 3.0, longitudeDelta: 3.0)
         )
     }
-    
+
     func search(_ query: String) {
         searchQuery = query
         searchCompleter.queryFragment = query
     }
-    
+
     func getCoordinate(for completion: MKLocalSearchCompletion, completionHandler: @escaping (CLLocationCoordinate2D?, String?) -> Void) {
         let searchRequest = MKLocalSearch.Request(completion: completion)
         let search = MKLocalSearch(request: searchRequest)
-        
+
         search.start { response, error in
             if let error = error {
                 print("Error getting coordinate: \(error.localizedDescription)")
                 completionHandler(nil, nil)
                 return
             }
-            
+
             guard let mapItem = response?.mapItems.first else {
                 completionHandler(nil, nil)
                 return
             }
-            
+
             let coordinate = mapItem.placemark.coordinate
             let name = mapItem.name ?? completion.title
             completionHandler(coordinate, name)
@@ -271,7 +364,7 @@ extension LocationSearchService: MKLocalSearchCompleterDelegate {
             self.suggestions = completer.results
         }
     }
-    
+
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
         print("Search completer error: \(error.localizedDescription)")
     }
@@ -283,73 +376,73 @@ struct LocationPickerView: View {
     @Binding var selectedLocationName: String
     @Binding var selectedCoordinate: CLLocationCoordinate2D?
     @Environment(\.dismiss) var dismiss
-    
+
     @State private var searchText = ""
-    
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Search Bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    
-                    TextField(L10n(key: "jobForm.searchLocationPlaceholder").string, text: $searchText)
-                        .textFieldStyle(.plain)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Search Bar
+                    DSSearchBar(text: $searchText, placeholder: "Search for city, village, or address...")
+                        .padding(.horizontal, DS.Space.screen)
+                        .padding(.vertical, DS.Space.m)
                         .onChange(of: searchText) { _, newValue in
                             locationSearchService.search(newValue)
                         }
-                    
-                    if !searchText.isEmpty {
-                        Button(action: { searchText = "" }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .padding()
-                
-                // Suggestions List
-                if searchText.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "map.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        
-                        Text(L10n(key: "jobForm.searchLocationTitle").string)
-                            .font(.headline)
 
-                        Text(L10n(key: "jobForm.searchLocationSubtitle").string)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(40)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List(locationSearchService.suggestions, id: \.self) { suggestion in
-                        Button(action: {
-                            selectLocation(suggestion)
-                        }) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(suggestion.title)
-                                    .font(.body)
-                                    .foregroundColor(.primary)
-                                
-                                Text(suggestion.subtitle)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                    if searchText.isEmpty {
+                        DSEmptyState(
+                            systemImage: "map.fill",
+                            title: "Search for any location in Israel",
+                            message: "Cities, villages, neighborhoods, and addresses"
+                        )
+
+                        Spacer()
+                    } else {
+                        // Suggestions List
+                        ScrollView {
+                            VStack(spacing: DS.Space.s) {
+                                ForEach(locationSearchService.suggestions, id: \.self) { suggestion in
+                                    Button(action: {
+                                        selectLocation(suggestion)
+                                    }) {
+                                        HStack(spacing: DS.Space.m) {
+                                            Image(systemName: "mappin.circle.fill")
+                                                .font(.system(size: 17, weight: .medium))
+                                                .foregroundStyle(Color.brand)
+
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(suggestion.title)
+                                                    .font(.dsBody)
+                                                    .foregroundStyle(Color.ink)
+                                                    .multilineTextAlignment(.leading)
+
+                                                if !suggestion.subtitle.isEmpty {
+                                                    Text(suggestion.subtitle)
+                                                        .font(.dsCaption)
+                                                        .foregroundStyle(Color.inkMuted)
+                                                        .multilineTextAlignment(.leading)
+                                                }
+                                            }
+
+                                            Spacer()
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .dsCard(padding: DS.Space.m)
+                                    }
+                                    .buttonStyle(DSPressableStyle())
+                                }
                             }
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, DS.Space.screen)
+                            .padding(.bottom, DS.Space.xl)
                         }
                     }
-                    .listStyle(.plain)
                 }
             }
-            .navigationTitle(L10n(key: "jobForm.selectLocation").string)
+            .navigationTitle("Select Location")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -360,7 +453,7 @@ struct LocationPickerView: View {
             }
         }
     }
-    
+
     private func selectLocation(_ completion: MKLocalSearchCompletion) {
         locationSearchService.getCoordinate(for: completion) { coordinate, name in
             if let coordinate = coordinate, let name = name {
@@ -375,6 +468,5 @@ struct LocationPickerView: View {
 #Preview {
     JobFormView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager.shared)
-        .environmentObject(JobsRepository.shared)
+        .environmentObject(LocalizationManager())
 }

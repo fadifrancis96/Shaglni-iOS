@@ -2,111 +2,93 @@
 //  ReceivedOffersView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Job poster's inbox of contractor offers: status filter chips over
+//  cards pairing each offer with its job.
 //
 
 import SwiftUI
 
 struct ReceivedOffersView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var jobsRepo: JobsRepository
+    @EnvironmentObject var localization: LocalizationManager
     @State private var offersWithJobs: [OfferWithJob] = []
     @State private var isLoading = true
     @State private var selectedFilter: OfferStatus?
-    @State private var errorMessage: String?
-    
+
+    private let statusFilters: [OfferStatus] = [.pending, .accepted, .rejected, .counterOffer]
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Filter Chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        FilterChip(
-                            title: L10n.Filter.all.string,
-                            isSelected: selectedFilter == nil
-                        ) {
-                            selectedFilter = nil
-                        }
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
 
-                        FilterChip(
-                            title: OfferStatus.pending.localized,
-                            isSelected: selectedFilter == .pending
-                        ) {
-                            selectedFilter = .pending
-                        }
+                VStack(spacing: 0) {
+                    filterBar
 
-                        FilterChip(
-                            title: OfferStatus.accepted.localized,
-                            isSelected: selectedFilter == .accepted
-                        ) {
-                            selectedFilter = .accepted
-                        }
-
-                        FilterChip(
-                            title: OfferStatus.rejected.localized,
-                            isSelected: selectedFilter == .rejected
-                        ) {
-                            selectedFilter = .rejected
-                        }
-
-                        FilterChip(
-                            title: OfferStatus.counterOffer.localized,
-                            isSelected: selectedFilter == .counterOffer
-                        ) {
-                            selectedFilter = .counterOffer
-                        }
-                    }
-                    .padding()
-                }
-                
-                // Offers List
-                if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else if filteredOffers.isEmpty {
-                    Spacer()
-                    EmptyStateView(
-                        icon: "doc.text",
-                        title: L10n(key: "receivedOffers.empty.title").string,
-                        subtitle: L10n(key: "receivedOffers.empty.subtitle").string
-                    )
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredOffers) { offerWithJob in
-                                NavigationLink(
-                                    destination: OfferDetailView(
-                                        offer: offerWithJob.offer,
-                                        jobId: offerWithJob.job.id ?? offerWithJob.offer.jobId
-                                    )
-                                ) {
-                                    ReceivedOfferCardView(offerWithJob: offerWithJob)
+                    if isLoading {
+                        Spacer()
+                        ProgressView()
+                            .tint(Color.brand)
+                        Spacer()
+                    } else if filteredOffers.isEmpty {
+                        Spacer()
+                        DSEmptyState(
+                            systemImage: "tray",
+                            title: "No offers received",
+                            message: "Offers from contractors will appear here when they submit offers to your jobs"
+                        )
+                        Spacer()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: DS.Space.m) {
+                                ForEach(filteredOffers) { offerWithJob in
+                                    NavigationLink(
+                                        destination: OfferDetailView(
+                                            offer: offerWithJob.offer,
+                                            jobId: offerWithJob.job.id ?? offerWithJob.offer.jobId
+                                        )
+                                    ) {
+                                        ReceivedOfferCardView(offerWithJob: offerWithJob)
+                                    }
+                                    .buttonStyle(DSPressableStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(.horizontal, DS.Space.screen)
+                            .padding(.top, DS.Space.xs)
+                            .padding(.bottom, DS.Space.xxl)
                         }
-                        .padding(.bottom)
                     }
                 }
             }
             .navigationTitle(L10n.Action.receivedOffers.string)
             .navigationBarTitleDisplayMode(.inline)
-            .task {
-                await loadOffers()
+            .onAppear(perform: loadOffers)
+        }
+    }
+
+    // MARK: - Filter chips
+
+    private var filterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DS.Space.s) {
+                DSChip(
+                    title: L10n.Filter.all.string,
+                    isSelected: selectedFilter == nil
+                ) {
+                    selectedFilter = nil
+                }
+
+                ForEach(statusFilters, id: \.rawValue) { status in
+                    DSChip(
+                        title: status.localized,
+                        isSelected: selectedFilter == status
+                    ) {
+                        selectedFilter = status
+                    }
+                }
             }
-            .refreshable {
-                await loadOffers()
-            }
-            .onChange(of: jobsRepo.myPostedJobs) { _, _ in
-                Task { await loadOffers() }
-            }
-            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button(L10n(key: "common.ok").string, role: .cancel) {}
-            } message: {
-                Text(errorMessage ?? "")
-            }
+            .padding(.horizontal, DS.Space.screen)
+            .padding(.vertical, DS.Space.m)
         }
     }
 
@@ -117,155 +99,111 @@ struct ReceivedOffersView: View {
         return offersWithJobs
     }
 
-    private func loadOffers() async {
-        guard let userId = authViewModel.currentUser?.uid else {
+    private func loadOffers() {
+        guard let userId = authViewModel.currentUser?.uid else { return }
+
+        FirestoreService.shared.fetchOffersForJobPoster(userId: userId) { result in
             isLoading = false
-            return
-        }
-
-        isLoading = true
-        defer { isLoading = false }
-
-        do {
-            offersWithJobs = try await OffersRepository.shared.fetchOffersForJobPoster(userId, jobs: jobsRepo.myPostedJobs)
-        } catch {
-            errorMessage = AppError(error).errorDescription
+            switch result {
+            case .success(let fetchedOffers):
+                offersWithJobs = fetchedOffers
+            case .failure(let error):
+                print("Error loading offers: \(error.localizedDescription)")
+            }
         }
     }
 }
 
-struct ReceivedOfferCardView: View {
+// MARK: - Card
+
+/// Offer row for the job poster: job title, contractor identity, negotiation
+/// state notice, message preview and the price transition.
+private struct ReceivedOfferCardView: View {
     let offerWithJob: OfferWithJob
 
+    private var offer: Offer { offerWithJob.offer }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Job Title Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(spacing: DS.Space.m) {
+                DSAvatar(name: offer.contractorName, size: 40)
+
+                VStack(alignment: .leading, spacing: 2) {
                     Text(offerWithJob.job.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    Text(L10n(key: "receivedOffers.from").format(offerWithJob.offer.contractorName))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                        .lineLimit(1)
+                    Text(offer.contractorName)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkMuted)
+                        .lineLimit(1)
                 }
-                
+
                 Spacer()
-                
-                OfferStatusBadge(status: offerWithJob.offer.status)
+
+                DSStatusPill(status: offer.status)
             }
-            
-            // Counter Offer Alert
-            if offerWithJob.offer.status == .counterOffer && offerWithJob.offer.contractorAcceptedCounter == true {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text(L10n(key: "receivedOffers.contractorAcceptedCounter").string)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.green)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.green.opacity(0.1))
-                .cornerRadius(6)
-            } else if offerWithJob.offer.status == .counterOffer {
-                HStack {
-                    Image(systemName: "clock.fill")
-                        .foregroundColor(.orange)
-                    Text(L10n(key: "receivedOffers.waitingForContractor").string)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(6)
+
+            if offer.status == .counterOffer && offer.contractorAcceptedCounter == true {
+                DSBanner(kind: .success, message: "Contractor accepted your counter offer")
+            } else if offer.status == .counterOffer {
+                DSBanner(kind: .info, message: "Waiting for contractor response")
             }
-            
-            // Message
-            Text(offerWithJob.offer.message)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-            
-            // Price and Date
-            HStack {
+
+            if !offer.message.isEmpty {
+                Text(offer.message)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+
+            Divider().overlay(Color.divider)
+
+            HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text(Money.string(offerWithJob.offer.price))
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                    HStack(spacing: DS.Space.s) {
+                        DSPriceText(
+                            amount: offer.price,
+                            tint: offer.counterPrice == nil ? .brand : .inkFaint
+                        )
 
-                        if let counterPrice = offerWithJob.offer.counterPrice {
-                            Image(systemName: "arrow.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-
-                            Text(Money.string(counterPrice))
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .foregroundColor(.orange)
+                        if let counterPrice = offer.counterPrice {
+                            Image(systemName: "arrow.forward")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.inkFaint)
+                            DSPriceText(amount: counterPrice, tint: .warning)
                         }
                     }
-                    
-                    if offerWithJob.offer.counterPrice != nil {
-                        Text(L10n(key: "receivedOffers.yourCounterOffer").string)
-                            .font(.caption)
-                            .foregroundColor(.orange)
+
+                    if offer.counterPrice != nil {
+                        Text("Your counter offer")
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.warning)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(offerWithJob.offer.createdAt, style: .relative)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let respondedAt = offerWithJob.offer.respondedAt {
-                        Text("\(L10n(key: "offerCard.responded").string) \(respondedAt, style: .relative)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                    Text(offer.createdAt, style: .relative)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkFaint)
+
+                    if let respondedAt = offer.respondedAt {
+                        Text("Responded \(respondedAt, style: .relative)")
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.inkFaint)
                     }
                 }
             }
         }
-        .padding()
-        .background(
-            offerWithJob.offer.status == .counterOffer && offerWithJob.offer.contractorAcceptedCounter == true
-                ? Color.green.opacity(0.05)
-                : offerWithJob.offer.status == .counterOffer
-                    ? Color.orange.opacity(0.05)
-                    : Color(.systemGray6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                    offerWithJob.offer.status == .counterOffer && offerWithJob.offer.contractorAcceptedCounter == true
-                        ? Color.green.opacity(0.3)
-                        : offerWithJob.offer.status == .counterOffer
-                            ? Color.orange.opacity(0.3)
-                            : Color.clear,
-                    lineWidth: 1
-                )
-        )
-        .cornerRadius(12)
-        .padding(.horizontal)
+        .dsCard()
     }
 }
 
 #Preview {
     ReceivedOffersView()
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager.shared)
-        .environmentObject(JobsRepository.shared)
+        .environmentObject(LocalizationManager())
 }
-
-
-
-
-

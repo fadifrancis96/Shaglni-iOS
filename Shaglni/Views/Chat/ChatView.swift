@@ -16,19 +16,21 @@ struct ChatView: View {
     @State private var draft = ""
     @State private var sending = false
     @State private var listener: ListenerRegistration?
+    @FocusState private var inputFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(spacing: DS.Space.s) {
                         ForEach(messages) { msg in
                             MessageBubble(message: msg, isMine: msg.senderId == myUid)
                                 .id(msg.id)
                         }
                     }
-                    .padding()
+                    .padding(DS.Space.l)
                 }
+                .background(Color.bgCanvas)
                 .onChange(of: messages.count) { _, _ in
                     if let last = messages.last?.id {
                         withAnimation { proxy.scrollTo(last, anchor: .bottom) }
@@ -36,28 +38,41 @@ struct ChatView: View {
                 }
             }
 
-            Divider()
-
-            HStack(spacing: 8) {
+            // Input bar
+            HStack(spacing: DS.Space.s) {
                 TextField(L10n.Chat.placeholder.string, text: $draft, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
+                    .font(.dsBody)
                     .lineLimit(1...5)
+                    .focused($inputFocused)
+                    .padding(.horizontal, DS.Space.l)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .fill(Color.surfaceAlt)
+                    )
 
                 Button {
                     Task { await send() }
                 } label: {
-                    Image(systemName: sending ? "ellipsis" : "paperplane.fill")
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.accentColor)
-                        .clipShape(Circle())
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Color.onBrand)
+                        .frame(width: 40, height: 40)
+                        .background(Circle().fill(Color.brand))
+                        .opacity(canSend ? 1 : 0.4)
                 }
-                .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || sending)
+                .disabled(!canSend)
             }
-            .padding()
+            .padding(.horizontal, DS.Space.l)
+            .padding(.vertical, DS.Space.m)
+            .background(Color.surface)
+            .overlay(alignment: .top) {
+                Divider().overlay(Color.divider)
+            }
         }
         .navigationTitle(otherName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color.surface, for: .navigationBar)
         .onAppear { startListening() }
         .onDisappear { listener?.remove(); listener = nil }
         .task {
@@ -65,6 +80,10 @@ struct ChatView: View {
             guard let uid = myUid, let id = thread.id else { return }
             try? await chatRepo.markRead(jobId: id, userId: uid)
         }
+    }
+
+    private var canSend: Bool {
+        !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !sending
     }
 
     private var myUid: String? { authViewModel.currentUser?.uid }
@@ -107,18 +126,41 @@ private struct MessageBubble: View {
 
     var body: some View {
         HStack {
-            if isMine { Spacer(minLength: 40) }
-            VStack(alignment: isMine ? .trailing : .leading, spacing: 2) {
+            if isMine { Spacer(minLength: 48) }
+
+            VStack(alignment: isMine ? .trailing : .leading, spacing: 3) {
                 Text(message.text)
-                    .padding(.horizontal, 12).padding(.vertical, 8)
-                    .background(isMine ? Color.accentColor : Color(.systemGray5))
-                    .foregroundColor(isMine ? .white : .primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .font(.dsBody)
+                    .foregroundStyle(isMine ? Color.onBrand : Color.ink)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .background(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 18,
+                            bottomLeadingRadius: isMine ? 18 : 6,
+                            bottomTrailingRadius: isMine ? 6 : 18,
+                            topTrailingRadius: 18,
+                            style: .continuous
+                        )
+                        .fill(isMine ? Color.brand : Color.surface)
+                    )
+                    .overlay(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 18,
+                            bottomLeadingRadius: isMine ? 18 : 6,
+                            bottomTrailingRadius: isMine ? 6 : 18,
+                            topTrailingRadius: 18,
+                            style: .continuous
+                        )
+                        .strokeBorder(isMine ? Color.clear : Color.divider, lineWidth: 1)
+                    )
+
                 Text(message.createdAt, style: .time)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.inkFaint)
             }
-            if !isMine { Spacer(minLength: 40) }
+
+            if !isMine { Spacer(minLength: 48) }
         }
     }
 }

@@ -11,10 +11,10 @@ struct PhotoGalleryView: View {
     let photoURLs: [String]
     let title: String?
     let allowFullScreen: Bool
-    
+
     @State private var selectedPhotoIndex: Int?
     @State private var showFullScreen = false
-    
+
     init(
         photoURLs: [String],
         title: String? = nil,
@@ -24,18 +24,19 @@ struct PhotoGalleryView: View {
         self.title = title
         self.allowFullScreen = allowFullScreen
     }
-    
+
     var body: some View {
         if !photoURLs.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: DS.Space.m) {
                 if let title = title {
                     Text(title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                        .font(.dsCaptionBold)
+                        .foregroundStyle(Color.inkMuted)
+                        .textCase(.uppercase)
                 }
-                
+
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: DS.Space.m) {
                         ForEach(Array(photoURLs.enumerated()), id: \.offset) { index, url in
                             PhotoThumbnailView(
                                 url: url,
@@ -46,9 +47,10 @@ struct PhotoGalleryView: View {
                             )
                         }
                     }
-                    .padding(.horizontal)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dsCard()
             .sheet(isPresented: $showFullScreen) {
                 if let selectedIndex = selectedPhotoIndex {
                     FullScreenPhotoView(
@@ -69,25 +71,24 @@ struct PhotoThumbnailView: View {
     var body: some View {
         Button(action: onTap ?? {}) {
             ZStack {
-                RemoteThumbnail(urlString: url, size: 80, cornerRadius: 8)
+                RemoteThumbnail(urlString: url, size: 84, cornerRadius: DS.Radius.thumb)
                 if onTap != nil {
                     VStack {
                         Spacer()
                         HStack {
                             Spacer()
                             Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.caption2)
-                                .foregroundColor(.white)
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(Color.white)
                                 .padding(4)
-                                .background(Color.black.opacity(0.6))
-                                .clipShape(Circle())
+                                .background(Circle().fill(Color.black.opacity(0.6)))
                                 .padding(4)
                         }
                     }
                 }
             }
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(DSPressableStyle())
     }
 }
 
@@ -125,7 +126,7 @@ struct FullScreenPhotoView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(L10n.Common.done.string) { isPresented = false }
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                 }
             }
         }
@@ -142,7 +143,7 @@ struct FullScreenPhotoView: View {
             ],
             title: "Job Requirements"
         )
-        
+
         Spacer()
     }
     .padding()

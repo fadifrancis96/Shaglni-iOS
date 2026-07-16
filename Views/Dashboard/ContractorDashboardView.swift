@@ -2,184 +2,218 @@
 //  ContractorDashboardView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Contractor home: greeting, live stats, quick actions and fresh
+//  opportunities — all driven by the live repository listeners.
 //
 
 import SwiftUI
 
 struct ContractorDashboardView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var localization: LocalizationManager
     @EnvironmentObject var jobsRepo: JobsRepository
     @EnvironmentObject var offersRepo: OffersRepository
-    
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Welcome Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.welcome.string)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        if let userName = authViewModel.currentUserData?.displayName {
-                            Text(userName)
-                                .font(.title3)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top)
-                    
-                    // Quick Actions
-                    VStack(spacing: 16) {
-                        NavigationLink(destination: MyActiveJobsView()) {
-                            ActionCard(
-                                title: L10n.Action.myActiveJobs.string,
-                                subtitle: L10n(key: "dashboard.activeJobsSubtitle").string,
-                                icon: "hammer.fill",
-                                color: .orange
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        NavigationLink(destination: JobListView()) {
-                            ActionCard(
-                                title: L10n.Action.browseJobs.string,
-                                subtitle: L10n(key: "dashboard.browseJobsSubtitle").string,
-                                icon: "magnifyingglass.circle.fill",
-                                color: .blue
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        NavigationLink(destination: MyPortfolioView()) {
-                            ActionCard(
-                                title: L10n.Action.myPortfolio.string,
-                                subtitle: L10n(key: "dashboard.portfolioSubtitle").string,
-                                icon: "photo.stack.fill",
-                                color: .purple
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        NavigationLink(destination: ManageProfileView()) {
-                            ActionCard(
-                                title: L10n.Action.manageProfile.string,
-                                subtitle: L10n(key: "dashboard.manageProfileSubtitle").string,
-                                icon: "person.circle.fill",
-                                color: .green
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                    .padding(.horizontal)
-                    
-                    // Stats
-                    HStack(spacing: 16) {
-                        StatCard(
-                            title: L10n.OfferStatusL.pending.string,
-                            value: "\(pendingOffersCount)",
-                            icon: "clock.fill",
-                            color: .orange
-                        )
-                        
-                        StatCard(
-                            title: L10n.OfferStatusL.accepted.string,
-                            value: "\(acceptedOffersCount)",
-                            icon: "checkmark.circle.fill",
-                            color: .green
-                        )
-                    }
-                    .padding(.horizontal)
-                    
-                    // Available Jobs
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(L10n.Section.availableJobs.string)
-                                .font(.headline)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
 
-                            Spacer()
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        greetingHeader
 
-                            NavigationLink(destination: JobListView()) {
-                                Text(L10n.Action.viewAll.string)
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        if jobsRepo.isLoadingOpenJobs {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        } else if availableJobs.isEmpty {
-                            EmptyStateView(
-                                icon: "briefcase",
-                                title: L10n(key: "dashboard.noJobsAvailable").string,
-                                subtitle: L10n(key: "dashboard.checkBackLater").string
+                        HStack(spacing: DS.Space.m) {
+                            DSStatTile(
+                                value: "\(pendingOffersCount)",
+                                label: L10n.OfferStatusL.pending.string,
+                                systemImage: "clock.fill",
+                                tint: .warning, background: .warningSoft
                             )
-                        } else {
-                            ForEach(availableJobs.prefix(5)) { job in
-                                NavigationLink(destination: JobDetailView(job: job)) {
-                                    JobCardView(job: job)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                    }
-                    
-                    // Recent Offers
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(L10n.Section.myRecentOffers.string)
-                                .font(.headline)
-
-                            Spacer()
-
-                            NavigationLink(destination: MyOffersView()) {
-                                Text(L10n.Action.viewAll.string)
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        if myOffers.isEmpty {
-                            EmptyStateView(
-                                icon: "doc.text",
-                                title: L10n.Empty.noOffers.string,
-                                subtitle: L10n.Empty.submitOffers.string
+                            DSStatTile(
+                                value: "\(acceptedOffersCount)",
+                                label: L10n.OfferStatusL.accepted.string,
+                                systemImage: "checkmark.seal.fill",
+                                tint: .success, background: .successSoft
                             )
-                        } else {
-                            ForEach(myOffers.prefix(3)) { offer in
-                                OfferCardView(offer: offer)
-                            }
+                            DSStatTile(
+                                value: "\(activeJobsCount)",
+                                label: L10n.JobStatus.inProgress.string,
+                                systemImage: "hammer.fill",
+                                tint: .info, background: .infoSoft
+                            )
                         }
+
+                        quickActions
+
+                        availableJobs
+
+                        recentOffers
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.bottom, DS.Space.xxl)
                 }
-                .padding(.bottom)
             }
-            .navigationTitle(L10n.Tab.dashboard.string)
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
-    private var availableJobs: [Job] {
-        jobsRepo.openJobs
+    // MARK: - Sections
+
+    private var greetingHeader: some View {
+        HStack(spacing: DS.Space.m) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.Dash.greetingNow.string)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                Text(authViewModel.currentUserData?.displayName ?? "")
+                    .font(.dsTitle)
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            NavigationLink(destination: ManageProfileView()) {
+                DSAvatar(
+                    name: authViewModel.currentUserData?.displayName ?? "",
+                    urlString: nil,
+                    size: 46
+                )
+            }
+        }
+        .padding(.top, DS.Space.s)
     }
 
-    private var myOffers: [Offer] {
-        offersRepo.myOffers
+    private var quickActions: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Dash.quickActions.string)
+
+            NavigationLink(destination: MyActiveJobsView()) {
+                DashboardActionRow(
+                    title: L10n.Action.myActiveJobs.string,
+                    systemImage: "hammer.fill",
+                    tint: .warning, background: .warningSoft,
+                    badge: activeJobsCount > 0 ? "\(activeJobsCount)" : nil
+                )
+            }
+            .buttonStyle(DSPressableStyle())
+
+            NavigationLink(destination: MyPortfolioView()) {
+                DashboardActionRow(
+                    title: L10n.Action.myPortfolio.string,
+                    systemImage: "photo.stack.fill",
+                    tint: .accentWarm, background: .accentWarmSoft
+                )
+            }
+            .buttonStyle(DSPressableStyle())
+
+            NavigationLink(destination: ManageProfileView()) {
+                DashboardActionRow(
+                    title: L10n.Action.manageProfile.string,
+                    systemImage: "person.crop.circle.fill",
+                    tint: .info, background: .infoSoft
+                )
+            }
+            .buttonStyle(DSPressableStyle())
+        }
     }
+
+    private var availableJobs: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Section.availableJobs.string)
+                .overlay(alignment: .trailing) {
+                NavigationLink(destination: JobListView()) {
+                    Text(L10n.Action.viewAll.string)
+                        .font(.dsCaptionBold)
+                        .foregroundStyle(Color.brand)
+                }
+            }
+
+            if jobsRepo.isLoadingOpenJobs && jobsRepo.openJobs.isEmpty {
+                ForEach(0..<3, id: \.self) { _ in
+                    JobCardPlaceholder()
+                }
+            } else if jobsRepo.openJobs.isEmpty {
+                DSEmptyState(
+                    systemImage: "briefcase",
+                    title: L10n.Empty.noJobsFound.string,
+                    message: L10n.Empty.tryFilters.string
+                )
+                .dsCard()
+            } else {
+                ForEach(jobsRepo.openJobs.prefix(5)) { job in
+                    NavigationLink(destination: JobDetailView(job: job)) {
+                        JobCardView(job: job)
+                    }
+                    .buttonStyle(DSPressableStyle())
+                }
+            }
+        }
+    }
+
+    private var recentOffers: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Section.myRecentOffers.string)
+                .overlay(alignment: .trailing) {
+                    NavigationLink(destination: MyOffersView()) {
+                        Text(L10n.Action.viewAll.string)
+                            .font(.dsCaptionBold)
+                            .foregroundStyle(Color.brand)
+                    }
+                }
+
+            if offersRepo.myOffers.isEmpty {
+                DSEmptyState(
+                    systemImage: "tag",
+                    title: L10n.Empty.noOffers.string,
+                    message: L10n.Empty.submitOffers.string
+                )
+                .dsCard()
+            } else {
+                ForEach(offersRepo.myOffers.prefix(3)) { offer in
+                    OfferCardView(offer: offer)
+                }
+            }
+        }
+    }
+
+    // MARK: - Derived stats
 
     private var pendingOffersCount: Int {
-        myOffers.filter { $0.status == .pending }.count
+        offersRepo.myOffers.filter { $0.status == .pending }.count
     }
-    
+
     private var acceptedOffersCount: Int {
-        myOffers.filter { $0.status == .accepted }.count
+        offersRepo.myOffers.filter { $0.status == .accepted }.count
+    }
+
+    private var activeJobsCount: Int {
+        jobsRepo.myActiveJobs.filter { $0.status == .inProgress }.count
+    }
+}
+
+/// Skeleton stand-in while job lists load.
+struct JobCardPlaceholder: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(spacing: DS.Space.m) {
+                RoundedRectangle(cornerRadius: DS.Radius.thumb).fill(Color.surfaceAlt)
+                    .frame(width: 44, height: 44)
+                VStack(alignment: .leading, spacing: 6) {
+                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceAlt)
+                        .frame(width: 160, height: 14)
+                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceAlt)
+                        .frame(width: 90, height: 10)
+                }
+                Spacer()
+            }
+            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceAlt)
+                .frame(maxWidth: .infinity)
+                .frame(height: 10)
+        }
+        .dsCard()
+        .dsSkeleton(when: true)
     }
 }
 

@@ -32,18 +32,23 @@ struct ContentView: View {
 struct LoadingView: View {
     var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
-            VStack(spacing: 20) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.tint)
+            LinearGradient.brandHero.ignoresSafeArea()
+
+            VStack(spacing: DS.Space.xl) {
+                Image(systemName: "hammer.circle.fill")
+                    .font(.system(size: 72))
+                    .foregroundStyle(.white)
+
                 Text(L10n.appName.string)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .font(.dsHero)
+                    .foregroundStyle(.white)
+
                 ProgressView()
+                    .tint(.white)
+
                 Text(L10n.Loading.account.string)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.white.opacity(0.8))
             }
         }
     }
@@ -54,26 +59,33 @@ struct AccountLoadErrorView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
-            VStack(spacing: 20) {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 48))
-                    .foregroundStyle(.orange)
+            Color.bgCanvas.ignoresSafeArea()
+
+            VStack(spacing: DS.Space.l) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(Color.warning)
+                    .frame(width: 72, height: 72)
+                    .background(Circle().fill(Color.warningSoft))
+
                 Text(L10n.Auth.accountLoadFailedTitle.string)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.dsTitle2)
+                    .foregroundStyle(Color.ink)
+
                 Text(L10n.Auth.accountLoadFailedMessage.string)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                Button(role: .destructive) {
+                    .padding(.horizontal, DS.Space.xxl)
+
+                Button {
                     authViewModel.signOut()
                 } label: {
                     Text(L10n.Common.logout.string)
-                        .fontWeight(.semibold)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(DSTonalButtonStyle(tint: .danger, background: .dangerSoft))
+                .frame(maxWidth: 200)
+                .padding(.top, DS.Space.s)
             }
         }
     }

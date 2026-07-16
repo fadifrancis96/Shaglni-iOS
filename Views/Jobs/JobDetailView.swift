@@ -7,288 +7,72 @@
 
 import SwiftUI
 import MapKit
-import FirebaseFirestore
+import Combine
 
 struct JobDetailView: View {
     let job: Job
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var jobsRepo: JobsRepository
-    @EnvironmentObject var offersRepo: OffersRepository
+    @EnvironmentObject var localization: LocalizationManager
     @State private var showOfferForm = false
     @State private var offers: [Offer] = []
     @State private var isLoadingOffers = false
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
+    @State private var currentJobStatus: JobStatus
     @State private var showMarkInProgressConfirmation = false
     @State private var showMarkDoneConfirmation = false
-    @State private var offersListener: ListenerRegistration?
-    @State private var errorMessage: String?
+    @State private var isUpdatingStatus = false
+    @State private var acceptedOffer: Offer?
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) var scenePhase
 
-    /// Live view of the job, backed by the repository snapshot listeners.
-    /// Falls back to the value the view was constructed with.
-    private var liveJob: Job {
-        jobsRepo.myPostedJobs.first { $0.id == job.id }
-            ?? jobsRepo.openJobs.first { $0.id == job.id }
-            ?? jobsRepo.myActiveJobs.first { $0.id == job.id }
-            ?? job
+    init(job: Job) {
+        self.job = job
+        _currentJobStatus = State(initialValue: job.status)
     }
 
-    private var acceptedOffer: Offer? {
-        offers.first(where: { $0.status == .accepted })
+    private var isOwner: Bool {
+        authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(job.title)
-                            .font(.title2)
-                            .fontWeight(.bold)
+        ZStack {
+            Color.bgCanvas.ignoresSafeArea()
 
-                        Spacer()
+            ScrollView {
+                VStack(spacing: DS.Space.xl) {
+                    heroCard
 
-                        StatusBadge(status: liveJob.status)
+                    descriptionCard
+
+                    if let photoURLs = job.photoURLs, !photoURLs.isEmpty {
+                        PhotoGalleryView(
+                            photoURLs: photoURLs,
+                            title: "Job Requirements"
+                        )
                     }
 
-                    if let category = job.category {
-                        Label(category.localized, systemImage: "tag.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding()
+                    locationCard
 
-                Divider()
-
-                // Description
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(L10n.Field.description.string)
-                        .font(.headline)
-
-                    Text(job.description)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-
-                // Photos
-                if let photoURLs = job.photoURLs, !photoURLs.isEmpty {
-                    PhotoGalleryView(
-                        photoURLs: photoURLs,
-                        title: L10n(key: "job.requirements").string
-                    )
-                }
-
-                // Location
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(L10n.Field.location.string)
-                        .font(.headline)
-
-                    Label(job.location, systemImage: "mappin.circle.fill")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-
-                    // Map Preview
-                    if let coordinate = job.coordinate {
-                        Map(position: .constant(.region(MKCoordinateRegion(
-                            center: coordinate,
-                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                        )))) {
-                            Marker(job.title, coordinate: coordinate)
-                        }
-                        .frame(height: 200)
-                        .cornerRadius(12)
-                    }
-                }
-                .padding(.horizontal)
-
-                // Budget
-                if let budget = job.budget {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.Field.budget.string)
-                            .font(.headline)
-
-                        Text(Money.string(budget))
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.accentColor)
-                    }
-                    .padding(.horizontal)
-                }
-
-                // Date Posted
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(L10n(key: "jobDetail.posted").string)
-                        .font(.headline)
-
-                    Text(job.datePosted, style: .date)
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-
-                // Job Status Management (for job poster)
-                if authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy {
-                    Divider()
-                        .padding(.vertical)
-
-                    // Job Status Actions
-                    if liveJob.status == .open {
-                        // Check if there's an accepted offer
-                        if let accepted = acceptedOffer {
-                            VStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack {
-                                        Image(systemName: "checkmark.seal.fill")
-                                            .foregroundColor(.green)
-                                        Text(L10n(key: "jobDetail.offerAccepted").string)
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                    }
-
-                                    let displayPrice = accepted.finalPrice ?? accepted.counterPrice ?? accepted.price
-                                    HStack {
-                                        Text(L10n(key: "job.acceptedPrice").string + ":")
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                        Text(Money.string(displayPrice))
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.green)
-                                    }
-
-                                    Text(L10n(key: "jobDetail.byContractor").format(accepted.contractorName))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding()
-                                .background(Color.green.opacity(0.1))
-                                .cornerRadius(12)
-
-                                Button(action: { showMarkInProgressConfirmation = true }) {
-                                    HStack {
-                                        Image(systemName: "hammer.fill")
-                                        Text(L10n.Action.markInProgress.string)
-                                            .fontWeight(.semibold)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                }
-                            }
-                            .padding()
-                        }
-                    } else if liveJob.status == .inProgress {
-                        VStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "clock.fill")
-                                        .foregroundColor(.orange)
-                                    Text(L10n(key: "jobDetail.jobInProgress").string)
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.orange)
-                                }
-
-                                Text(L10n(key: "jobDetail.inProgressHint").string)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(12)
-
-                            Button(action: { showMarkDoneConfirmation = true }) {
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                    Text(L10n.Action.markDone.string)
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                            }
-                        }
-                        .padding()
-                    } else if liveJob.status == .completed {
-                        VStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .foregroundColor(.green)
-                                    Text(L10n(key: "jobDetail.jobCompleted").string)
-                                        .font(.headline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.green)
-                                }
-
-                                Text(L10n(key: "jobDetail.completedHint").string)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding()
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(12)
-                        }
-                        .padding()
+                    if let budget = job.budget {
+                        budgetCard(budget)
                     }
 
-                    Divider()
-                        .padding(.vertical)
+                    if isOwner {
+                        ownerStatusSection
 
-                    // Offers Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(L10n.Section.offersCount(offers.count))
-                            .font(.headline)
-                            .padding(.horizontal)
-
-                        if isLoadingOffers {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else if offers.isEmpty {
-                            EmptyStateView(
-                                icon: "doc.text",
-                                title: L10n.Empty.noOffers.string,
-                                subtitle: L10n(key: "jobDetail.waitForOffers").string
-                            )
-                        } else {
-                            ForEach(offers) { offer in
-                                NavigationLink(destination: OfferDetailView(offer: offer, jobId: job.id ?? "")) {
-                                    OfferCardView(offer: offer)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
+                        offersSection
                     }
                 }
-
-                // Submit Offer Button (for contractors)
-                if authViewModel.isContractor && liveJob.status == .open {
-                    Button(action: { showOfferForm = true }) {
-                        Text(L10n.Action.submitOffer.string)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                    }
-                    .padding()
-                }
+                .padding(.horizontal, DS.Space.screen)
+                .padding(.top, DS.Space.m)
+                .padding(.bottom, DS.Space.xxl)
             }
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             // Delete button for job owner
-            if authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy {
+            if isOwner {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(role: .destructive, action: { showDeleteConfirmation = true }) {
                         if isDeleting {
@@ -296,73 +80,372 @@ struct JobDetailView: View {
                                 .progressViewStyle(.circular)
                         } else {
                             Image(systemName: "trash")
-                                .foregroundColor(.red)
+                                .foregroundStyle(Color.danger)
                         }
                     }
                     .disabled(isDeleting)
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            // Submit Offer Button (for contractors)
+            if authViewModel.isContractor && currentJobStatus == .open {
+                VStack(spacing: 0) {
+                    Divider().overlay(Color.divider)
+
+                    Button(action: { showOfferForm = true }) {
+                        Text(L10n.Action.submitOffer.string)
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.vertical, DS.Space.m)
+                }
+                .background(Color.bgCanvas.ignoresSafeArea(edges: .bottom))
+            }
+        }
         .sheet(isPresented: $showOfferForm) {
             OfferFormView(job: job)
         }
-        .alert(L10n(key: "jobDetail.deleteJob").string, isPresented: $showDeleteConfirmation) {
-            Button(L10n.Common.cancel.string, role: .cancel) { }
-            Button(L10n.Common.delete.string, role: .destructive) {
+        .alert("Delete Job", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
                 deleteJob()
             }
         } message: {
-            Text(L10n(key: "jobDetail.deleteConfirmMessage").string)
+            Text("Are you sure you want to delete this job? This will also delete all associated offers. This action cannot be undone.")
         }
-        .alert(L10n.Action.markInProgress.string, isPresented: $showMarkInProgressConfirmation) {
-            Button(L10n.Common.cancel.string, role: .cancel) { }
-            Button(L10n.Action.markInProgress.string) {
+        .alert("Mark Job In Progress", isPresented: $showMarkInProgressConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Mark In Progress") {
                 markJobInProgress()
             }
         } message: {
-            Text(L10n(key: "jobDetail.markInProgressConfirmMessage").string)
+            Text("This will remove the job from public listings and mark it as in progress. Continue?")
         }
-        .alert(L10n.Action.markDone.string, isPresented: $showMarkDoneConfirmation) {
-            Button(L10n.Common.cancel.string, role: .cancel) { }
-            Button(L10n.Action.markDone.string) {
+        .alert("Mark Job as Done", isPresented: $showMarkDoneConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Mark as Done") {
                 markJobAsDone()
             }
         } message: {
-            Text(L10n(key: "jobDetail.markDoneConfirmMessage").string)
-        }
-        .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-            Button(L10n(key: "common.ok").string, role: .cancel) {}
-        } message: {
-            Text(errorMessage ?? "")
+            Text("Mark this job as completed? This action cannot be undone.")
         }
         .onAppear {
-            startOffersListener()
+            loadOffers()
+            refreshJobStatus()
         }
-        .onDisappear {
-            offersListener?.remove()
-            offersListener = nil
+        .onChange(of: scenePhase) { newPhase in
+            // Refresh when app becomes active
+            if newPhase == .active {
+                loadOffers()
+                refreshJobStatus()
+            }
+        }
+        .onChange(of: offers) { _ in
+            // Update accepted offer when offers change
+            acceptedOffer = offers.first(where: { $0.status == .accepted })
+        }
+        .refreshable {
+            // Pull to refresh
+            loadOffers()
+            refreshJobStatus()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("OfferStatusUpdated"))) { _ in
+            // Refresh when offer status changes
+            print("🔄 Received OfferStatusUpdated notification - refreshing offers and job status")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Small delay to ensure Firestore has updated
+                loadOffers()
+                refreshJobStatus()
+            }
         }
     }
 
-    private func startOffersListener() {
-        guard offersListener == nil, let jobId = job.id else { return }
+    // MARK: - Sections
+
+    private var heroCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .top, spacing: DS.Space.m) {
+                DSCategoryIcon(category: job.category ?? .other, size: 52)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(job.title)
+                        .font(.dsTitle2)
+                        .foregroundStyle(Color.ink)
+                        .multilineTextAlignment(.leading)
+
+                    HStack(spacing: DS.Space.s) {
+                        DSStatusPill(status: currentJobStatus)
+
+                        if let category = job.category {
+                            DSTag(title: category.localized, systemImage: "tag.fill")
+                        }
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            Divider().overlay(Color.divider)
+
+            HStack(spacing: 5) {
+                Image(systemName: "clock")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Posted")
+                Text(job.datePosted, style: .date)
+            }
+            .font(.dsCaption)
+            .foregroundStyle(Color.inkMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private var descriptionCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            Text(localization.localized("description"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+                .textCase(.uppercase)
+
+            Text(job.description)
+                .font(.dsSub)
+                .foregroundStyle(Color.ink)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private var locationCard: some View {
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            Text(localization.localized("location"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+                .textCase(.uppercase)
+
+            HStack(spacing: 6) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.brand)
+                Text(job.location)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.ink)
+                    .multilineTextAlignment(.leading)
+            }
+
+            // Map Preview
+            if let coordinate = job.coordinate {
+                Map(position: .constant(.region(MKCoordinateRegion(
+                    center: coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                )))) {
+                    Marker(job.title, coordinate: coordinate)
+                }
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    private func budgetCard(_ budget: Double) -> some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            Text(localization.localized("budget"))
+                .font(.dsCaptionBold)
+                .foregroundStyle(Color.inkMuted)
+                .textCase(.uppercase)
+
+            DSPriceText(amount: budget, font: .dsPriceLarge)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
+    // MARK: - Owner status management
+
+    @ViewBuilder
+    private var ownerStatusSection: some View {
+        if currentJobStatus == .open {
+            // Check if there's an accepted offer (check both offers array and acceptedOffer state)
+            let accepted = acceptedOffer ?? offers.first(where: { $0.status == .accepted })
+            if let accepted = accepted {
+                VStack(spacing: DS.Space.m) {
+                    acceptedOfferCard(accepted)
+
+                    Button(action: { showMarkInProgressConfirmation = true }) {
+                        Label(L10n.Action.markInProgress.string, systemImage: "hammer.fill")
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                }
+            }
+        } else if currentJobStatus == .inProgress {
+            VStack(spacing: DS.Space.m) {
+                statusInfoCard(
+                    systemImage: "clock.fill",
+                    title: "Job In Progress",
+                    message: "The job is currently being worked on. Mark as done when the work is completed.",
+                    tint: .warning,
+                    background: .warningSoft
+                )
+
+                Button(action: { showMarkDoneConfirmation = true }) {
+                    Label(L10n.Action.markDone.string, systemImage: "checkmark.circle.fill")
+                }
+                .buttonStyle(DSPrimaryButtonStyle())
+            }
+        } else if currentJobStatus == .completed {
+            statusInfoCard(
+                systemImage: "checkmark.seal.fill",
+                title: "Job Completed",
+                message: "This job has been marked as completed.",
+                tint: .success,
+                background: .successSoft
+            )
+        }
+    }
+
+    private func acceptedOfferCard(_ accepted: Offer) -> some View {
+        let displayPrice = accepted.finalPrice ?? accepted.counterPrice ?? accepted.price
+
+        return VStack(alignment: .leading, spacing: DS.Space.s) {
+            HStack(spacing: DS.Space.s) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.success)
+                Text("Offer Accepted")
+                    .font(.dsHeadline)
+                    .foregroundStyle(Color.success)
+            }
+
+            HStack {
+                Text("Accepted Price:")
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
+                Spacer()
+                DSPriceText(amount: displayPrice, tint: .success)
+            }
+
+            Text("By: \(accepted.contractorName)")
+                .font(.dsCaption)
+                .foregroundStyle(Color.inkMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Space.l)
+        .background(
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(Color.successSoft)
+        )
+    }
+
+    private func statusInfoCard(
+        systemImage: String,
+        title: String,
+        message: String,
+        tint: Color,
+        background: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: DS.Space.s) {
+            HStack(spacing: DS.Space.s) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint)
+                Text(title)
+                    .font(.dsHeadline)
+                    .foregroundStyle(tint)
+            }
+
+            Text(message)
+                .font(.dsCaption)
+                .foregroundStyle(Color.inkMuted)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(DS.Space.l)
+        .background(
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(background)
+        )
+    }
+
+    // MARK: - Offers
+
+    private var offersSection: some View {
+        VStack(spacing: DS.Space.m) {
+            DSSectionHeader(title: L10n.Section.offersCount(offers.count))
+
+            if isLoadingOffers {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, DS.Space.xl)
+            } else if offers.isEmpty {
+                DSEmptyState(
+                    systemImage: "doc.text",
+                    title: L10n.Empty.noOffers.string,
+                    message: "Wait for contractors to submit offers"
+                )
+                .dsCard()
+            } else {
+                ForEach(offers) { offer in
+                    NavigationLink(destination: OfferDetailView(offer: offer, jobId: job.id ?? "")) {
+                        OfferCardView(offer: offer)
+                    }
+                    .buttonStyle(DSPressableStyle())
+                }
+            }
+        }
+    }
+
+    // MARK: - Data
+
+    private func loadOffers() {
+        guard let jobId = job.id else { return }
         guard authViewModel.isJobPoster && authViewModel.currentUser?.uid == job.createdBy else { return }
 
         isLoadingOffers = true
-        offersListener = offersRepo.listen(jobId: jobId) { fetchedOffers in
+        FirestoreService.shared.fetchOffersForJob(jobId: jobId) { result in
             isLoadingOffers = false
-            offers = fetchedOffers
+            switch result {
+            case .success(let fetchedOffers):
+                offers = fetchedOffers
+                acceptedOffer = fetchedOffers.first(where: { $0.status == .accepted })
+                print("📋 Loaded \(fetchedOffers.count) offers. Accepted offer: \(acceptedOffer != nil ? "Yes" : "No")")
+                if let accepted = acceptedOffer {
+                    print("✅ Found accepted offer from \(accepted.contractorName) for ₪\(accepted.price)")
+                }
+            case .failure(let error):
+                print("Error loading offers: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func refreshJobStatus() {
+        guard let jobId = job.id else { return }
+
+        FirestoreService.shared.fetchJob(jobId: jobId) { result in
+            switch result {
+            case .success(let updatedJob):
+                currentJobStatus = updatedJob.status
+                print("✅ Job status refreshed: \(updatedJob.status.rawValue)")
+            case .failure(let error):
+                print("❌ Error refreshing job status: \(error.localizedDescription)")
+            }
         }
     }
 
     private func markJobInProgress() {
         guard let jobId = job.id else { return }
 
-        Task {
-            do {
-                try await jobsRepo.updateStatus(jobId: jobId, status: .inProgress)
-            } catch {
-                errorMessage = AppError(error).errorDescription
+        isUpdatingStatus = true
+        FirestoreService.shared.updateJobStatus(jobId: jobId, status: .inProgress) { result in
+            isUpdatingStatus = false
+            switch result {
+            case .success:
+                currentJobStatus = .inProgress
+                refreshJobStatus()
+            case .failure(let error):
+                print("Error updating job status: \(error.localizedDescription)")
             }
         }
     }
@@ -370,11 +453,21 @@ struct JobDetailView: View {
     private func markJobAsDone() {
         guard let jobId = job.id else { return }
 
-        Task {
-            do {
-                try await jobsRepo.updateStatus(jobId: jobId, status: .completed)
-            } catch {
-                errorMessage = AppError(error).errorDescription
+        isUpdatingStatus = true
+        FirestoreService.shared.updateJobStatus(jobId: jobId, status: .completed) { result in
+            isUpdatingStatus = false
+            switch result {
+            case .success:
+                currentJobStatus = .completed
+                refreshJobStatus()
+
+                // Notify contractor that job is completed
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("JobCompleted"),
+                    object: jobId
+                )
+            case .failure(let error):
+                print("Error updating job status: \(error.localizedDescription)")
             }
         }
     }
@@ -383,14 +476,14 @@ struct JobDetailView: View {
         guard let jobId = job.id else { return }
 
         isDeleting = true
-        Task {
-            do {
-                try await jobsRepo.delete(jobId: jobId)
-                isDeleting = false
+        FirestoreService.shared.deleteJob(jobId: jobId) { result in
+            isDeleting = false
+            switch result {
+            case .success:
                 dismiss()
-            } catch {
-                isDeleting = false
-                errorMessage = AppError(error).errorDescription
+            case .failure(let error):
+                print("Error deleting job: \(error.localizedDescription)")
+                // Could add an error alert here if needed
             }
         }
     }
@@ -412,8 +505,6 @@ struct JobDetailView: View {
             budget: 500
         ))
         .environmentObject(AuthViewModel())
-        .environmentObject(LocalizationManager.shared)
-        .environmentObject(JobsRepository.shared)
-        .environmentObject(OffersRepository.shared)
+        .environmentObject(LocalizationManager())
     }
 }

@@ -17,60 +17,80 @@ struct LoginView: View {
     @State private var resetStatus: String?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 30) {
-                VStack(spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.tint)
-                    L10n.welcome.text
-                        .font(.title).fontWeight(.bold)
-                    L10n.Common.signIn.text
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.top, 40)
+        ZStack {
+            Color.bgCanvas.ignoresSafeArea()
 
-                VStack(spacing: 20) {
-                    LabeledField(title: L10n.Common.email.string) {
-                        TextField(L10n.Common.email.string, text: $email)
-                            .textFieldStyle(.roundedBorder)
-                            .textInputAutocapitalization(.never)
-                            .keyboardType(.emailAddress)
-                            .autocorrectionDisabled()
+            ScrollView {
+                VStack(spacing: DS.Space.xxl) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(L10n.AuthUI.welcomeBack.string)
+                            .font(.dsTitle)
+                            .foregroundStyle(Color.ink)
+                        Text(L10n.AuthUI.loginSubtitle.string)
+                            .font(.dsSub)
+                            .foregroundStyle(Color.inkMuted)
                     }
-                    LabeledField(title: L10n.Common.password.string) {
-                        SecureField(L10n.Common.password.string, text: $password)
-                            .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, DS.Space.xl)
+
+                    // Form
+                    VStack(spacing: DS.Space.l) {
+                        DSTextField(
+                            label: L10n.Common.email.string,
+                            systemImage: "envelope",
+                            text: $email,
+                            keyboard: .emailAddress,
+                            contentType: .emailAddress
+                        )
+                        DSTextField(
+                            label: L10n.Common.password.string,
+                            systemImage: "lock",
+                            text: $password,
+                            isSecure: true,
+                            contentType: .password
+                        )
+
+                        Button { showResetSheet = true } label: {
+                            Text(L10n.Action.forgotPassword.string)
+                                .font(.dsCaptionBold)
+                                .foregroundStyle(Color.brand)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
 
                     if let errorMessage {
-                        Text(errorMessage)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
+                        DSBanner(kind: .error, message: errorMessage)
                     }
 
+                    // Submit
                     Button(action: handleLogin) {
                         if isLoading {
-                            ProgressView().progressViewStyle(.circular).tint(.white)
+                            ProgressView().tint(Color.onBrand)
                         } else {
-                            L10n.Common.signIn.text.fontWeight(.semibold)
+                            Text(L10n.Common.signIn.string)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(isFormValid ? Color.accentColor : Color.gray)
-                    .foregroundColor(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .buttonStyle(DSPrimaryButtonStyle())
                     .disabled(!isFormValid || isLoading)
+                    .opacity(isFormValid ? 1 : 0.5)
 
-                    Button { showResetSheet = true } label: {
-                        L10n.Action.forgotPassword.text.font(.footnote)
+                    // Footer → register
+                    NavigationLink {
+                        RegisterView()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(L10n.AuthUI.noAccount.string)
+                                .foregroundStyle(Color.inkMuted)
+                            Text(L10n.Common.signUp.string)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.brand)
+                        }
+                        .font(.dsSub)
                     }
+                    .padding(.bottom, DS.Space.xl)
                 }
-                .padding(.horizontal, 30)
-                Spacer()
+                .padding(.horizontal, DS.Space.screen)
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -99,19 +119,6 @@ struct LoginView: View {
     }
 }
 
-/// Reusable labeled field used across the auth forms.
-struct LabeledField<Content: View>: View {
-    let title: String
-    @ViewBuilder var content: () -> Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.subheadline).fontWeight(.medium)
-            content()
-        }
-    }
-}
-
 /// Password-reset sheet. Always reports a generic success so we don't leak whether
 /// the email was registered.
 struct ResetPasswordSheet: View {
@@ -124,17 +131,22 @@ struct ResetPasswordSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField(L10n.Common.email.string, text: $email)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                }
-                if let status {
-                    Section { Text(status).foregroundStyle(.secondary) }
-                }
-                Section {
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                VStack(spacing: DS.Space.xl) {
+                    DSTextField(
+                        label: L10n.Common.email.string,
+                        systemImage: "envelope",
+                        text: $email,
+                        keyboard: .emailAddress,
+                        contentType: .emailAddress
+                    )
+
+                    if let status {
+                        DSBanner(kind: .success, message: status)
+                    }
+
                     Button {
                         working = true
                         Task {
@@ -144,13 +156,18 @@ struct ResetPasswordSheet: View {
                         }
                     } label: {
                         if working {
-                            ProgressView()
+                            ProgressView().tint(Color.onBrand)
                         } else {
-                            L10n.Action.sendResetEmail.text
+                            Text(L10n.Action.sendResetEmail.string)
                         }
                     }
+                    .buttonStyle(DSPrimaryButtonStyle())
                     .disabled(email.isEmpty || working)
+                    .opacity(email.isEmpty ? 0.5 : 1)
+
+                    Spacer()
                 }
+                .padding(DS.Space.screen)
             }
             .navigationTitle(L10n.Action.forgotPassword.string)
             .navigationBarTitleDisplayMode(.inline)
@@ -160,6 +177,7 @@ struct ResetPasswordSheet: View {
                 }
             }
         }
+        .presentationDetents([.medium])
     }
 }
 

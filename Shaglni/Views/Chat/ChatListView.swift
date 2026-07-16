@@ -13,16 +13,22 @@ struct ChatListView: View {
         NavigationStack {
             Group {
                 if chatRepo.myThreads.isEmpty {
-                    EmptyStateView(
-                        icon: "bubble.left.and.bubble.right",
-                        title: L10n.Empty.noChats.string,
-                        subtitle: L10n.Empty.noChatsSubtitle.string
-                    )
+                    ZStack {
+                        Color.bgCanvas.ignoresSafeArea()
+                        DSEmptyState(
+                            systemImage: "bubble.left.and.bubble.right",
+                            title: L10n.Empty.noChats.string,
+                            message: L10n.Empty.noChatsSubtitle.string
+                        )
+                    }
                 } else {
                     List(chatRepo.myThreads) { thread in
                         NavigationLink(value: thread) { ChatThreadRow(thread: thread) }
+                            .listRowBackground(Color.bgCanvas)
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.bgCanvas)
                 }
             }
             .navigationTitle(L10n.Tab.chat.string)
@@ -38,33 +44,40 @@ private struct ChatThreadRow: View {
     let thread: ChatThread
 
     var body: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(Color.accentColor.opacity(0.2))
-                .frame(width: 44, height: 44)
-                .overlay(Image(systemName: "person.fill").foregroundColor(.accentColor))
+        HStack(spacing: DS.Space.m) {
+            DSAvatar(name: otherName, size: 48)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(otherName).font(.headline)
-                Text(thread.jobTitle).font(.caption).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(otherName)
+                    .font(.dsHeadline)
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(1)
+
+                DSTag(title: thread.jobTitle, systemImage: "briefcase.fill")
+
                 if !thread.lastMessage.isEmpty {
                     Text(thread.lastMessage)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.dsSub)
+                        .foregroundStyle(unread > 0 ? Color.ink : Color.inkMuted)
+                        .fontWeight(unread > 0 ? .medium : .regular)
                         .lineLimit(1)
                 }
             }
+
             Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
+
+            VStack(alignment: .trailing, spacing: 6) {
                 Text(thread.lastMessageAt, style: .time)
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkFaint)
+
                 if unread > 0 {
                     Text("\(unread)")
-                        .font(.caption2).fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Color.accentColor)
-                        .clipShape(Capsule())
+                        .font(.dsMicro)
+                        .foregroundStyle(Color.onBrand)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.brand))
                 }
             }
         }

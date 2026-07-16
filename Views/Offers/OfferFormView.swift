@@ -2,7 +2,8 @@
 //  OfferFormView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Contractor's offer submission sheet: job summary, price and message
+//  inputs, and a single prominent submit action.
 //
 
 import SwiftUI
@@ -10,46 +11,59 @@ import SwiftUI
 struct OfferFormView: View {
     let job: Job
     @EnvironmentObject var authViewModel: AuthViewModel
-    @EnvironmentObject var offersRepo: OffersRepository
+    @EnvironmentObject var localization: LocalizationManager
     @Environment(\.dismiss) var dismiss
-    
+
     @State private var price = ""
     @State private var message = ""
     @State private var isSubmitting = false
     @State private var errorMessage: String?
-    
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section(header: Text(L10n(key: "offerForm.job").string)) {
-                    Text(job.title)
-                        .font(.headline)
-                    
-                    Text(job.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(3)
-                }
-                
-                Section(header: Text(L10n(key: "offerForm.yourOffer").string)) {
-                    TextField(L10n.Field.price.string, text: $price)
-                        .keyboardType(.decimalPad)
-                    
-                    TextEditor(text: $message)
-                        .frame(minHeight: 100)
-                        .overlay(
-                            Group {
-                                if message.isEmpty {
-                                    Text(L10n.Field.message.string)
-                                        .foregroundColor(.secondary)
-                                        .padding(.leading, 4)
-                                        .padding(.top, 8)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                }
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        jobCard
+
+                        VStack(spacing: DS.Space.l) {
+                            DSTextField(
+                                label: L10n.Field.price.string,
+                                systemImage: "banknote",
+                                text: $price,
+                                placeholder: L10n.Field.price.string,
+                                keyboard: .decimalPad
+                            )
+
+                            DSTextEditor(
+                                label: L10n.Field.message.string,
+                                text: $message,
+                                placeholder: L10n.Field.message.string
+                            )
+                        }
+
+                        if let errorMessage = errorMessage {
+                            DSBanner(kind: .error, message: errorMessage)
+                        }
+
+                        Button(action: handleSubmit) {
+                            if isSubmitting {
+                                ProgressView()
+                                    .tint(Color.onBrand)
+                            } else {
+                                Text(L10n.Common.submit.string)
                             }
-                        )
+                        }
+                        .buttonStyle(DSPrimaryButtonStyle())
+                        .disabled(!isFormValid || isSubmitting)
+                        .opacity(!isFormValid || isSubmitting ? 0.5 : 1)
+                    }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.top, DS.Space.l)
+                    .padding(.bottom, DS.Space.xxl)
                 }
-                
             }
             .navigationTitle(L10n.Action.submitOffer.string)
             .navigationBarTitleDisplayMode(.inline)
@@ -58,41 +72,59 @@ struct OfferFormView: View {
                     Button(L10n.Common.cancel.string) {
                         dismiss()
                     }
+                    .foregroundStyle(Color.inkMuted)
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: handleSubmit) {
-                        if isSubmitting {
-                            ProgressView()
-                        } else {
-                            Text(L10n.Common.submit.string)
-                                .fontWeight(.semibold)
-                        }
-                    }
-                    .disabled(!isFormValid || isSubmitting)
-                }
-            }
-            .alert(L10n.Common.error.string, isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
-                Button(L10n(key: "common.ok").string, role: .cancel) {}
-            } message: {
-                Text(errorMessage ?? "")
             }
         }
     }
 
+    // MARK: - Job summary
+
+    private var jobCard: some View {
+        HStack(alignment: .top, spacing: DS.Space.m) {
+            if let category = job.category {
+                DSCategoryIcon(category: category)
+            }
+
+            VStack(alignment: .leading, spacing: DS.Space.xs) {
+                Text(job.title)
+                    .font(.dsHeadline)
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Text(job.description)
+                    .font(.dsCaption)
+                    .foregroundStyle(Color.inkMuted)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+
+                if let budget = job.budget {
+                    HStack(spacing: DS.Space.xs) {
+                        Text(L10n.Field.budget.string)
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.inkFaint)
+                        DSPriceText(amount: budget)
+                    }
+                    .padding(.top, 2)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dsCard()
+    }
+
     private var isFormValid: Bool {
-        !price.isEmpty && !message.isEmpty && (Double(price) ?? 0) > 0
+        !price.isEmpty && !message.isEmpty && Double(price) != nil
     }
 
     private func handleSubmit() {
         guard let userId = authViewModel.currentUser?.uid,
               let userName = authViewModel.currentUserData?.displayName,
-              let jobId = job.id else { return }
-
-        guard let priceValue = Double(price), priceValue > 0 else {
-            errorMessage = AppError.validation("Price must be greater than zero").errorDescription
-            return
-        }
+              let jobId = job.id,
+              let priceValue = Double(price) else { return }
 
         isSubmitting = true
         errorMessage = nil
@@ -107,14 +139,14 @@ struct OfferFormView: View {
             createdAt: Date()
         )
 
-        Task {
-            do {
-                try await offersRepo.submit(offer, jobId: jobId)
-                isSubmitting = false
+        FirestoreService.shared.submitOffer(offer, jobId: jobId) { result in
+            isSubmitting = false
+
+            switch result {
+            case .success:
                 dismiss()
-            } catch {
-                isSubmitting = false
-                errorMessage = AppError(error).errorDescription
+            case .failure(let error):
+                errorMessage = error.localizedDescription
             }
         }
     }
@@ -131,6 +163,5 @@ struct OfferFormView: View {
         status: .open
     ))
     .environmentObject(AuthViewModel())
-    .environmentObject(LocalizationManager.shared)
-    .environmentObject(OffersRepository.shared)
+    .environmentObject(LocalizationManager())
 }

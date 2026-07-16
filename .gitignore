@@ -14,6 +14,7 @@ xcuserdata/
 # SPM
 .swiftpm/
 .build/
+build-dd/
 
 # Claude Code session worktrees
 .claude/worktrees/

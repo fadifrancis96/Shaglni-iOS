@@ -14,11 +14,11 @@ struct JobMapView: View {
     @State private var selectedJob: Job?
     @State private var position: MapCameraPosition = .automatic
     @State private var mapStyle: MapStyle = .standard
-    
+
     private var jobsWithCoordinates: [Job] {
         jobs.filter { $0.coordinate != nil }
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
@@ -26,13 +26,14 @@ struct JobMapView: View {
                 selectedJobCard
                 mapStyleButton
             }
-            .navigationTitle(L10n(key: "jobMap.title").format(jobs.count))
+            .navigationTitle("Jobs Map (\(jobs.count))")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(L10n.Common.done.string) {
                         dismiss()
                     }
+                    .foregroundStyle(Color.brand)
                 }
             }
             .onChange(of: selectedJob) { oldValue, newValue in
@@ -43,7 +44,7 @@ struct JobMapView: View {
             }
         }
     }
-    
+
     private var mapView: some View {
         Map(position: $position) {
             ForEach(jobsWithCoordinates) { job in
@@ -67,13 +68,13 @@ struct JobMapView: View {
             // Don't dismiss on map tap - only dismiss via X button
         }
     }
-    
+
     private func selectJob(_ job: Job, at coordinate: CLLocationCoordinate2D) {
         // If tapping the same job, don't do anything
         if selectedJob?.id == job.id {
             return
         }
-        
+
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             selectedJob = job
             position = .region(MKCoordinateRegion(
@@ -82,128 +83,116 @@ struct JobMapView: View {
             ))
         }
     }
-    
+
     @ViewBuilder
     private var selectedJobCard: some View {
         if let job = selectedJob {
             jobCardView(for: job)
         }
     }
-    
+
     private func jobCardView(for job: Job) -> some View {
         VStack(spacing: 0) {
-            RoundedRectangle(cornerRadius: 3)
-                .fill(Color.secondary.opacity(0.3))
+            Capsule()
+                .fill(Color.divider)
                 .frame(width: 40, height: 5)
-                .padding(.top, 8)
-            
-            VStack(alignment: .leading, spacing: 12) {
+                .padding(.top, DS.Space.s)
+
+            VStack(alignment: .leading, spacing: DS.Space.m) {
                 jobHeader(for: job)
-                
+
                 if let category = job.category {
-                    categoryBadge(category)
+                    DSTag(
+                        title: category.localized,
+                        systemImage: category.symbol,
+                        tint: category.tint,
+                        background: category.tint.opacity(0.14)
+                    )
                 }
-                
+
                 Text(job.description)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                    .font(.dsSub)
+                    .foregroundStyle(Color.inkMuted)
                     .lineLimit(3)
-                
+                    .multilineTextAlignment(.leading)
+
                 if let budget = job.budget {
                     budgetView(budget)
                 }
-                
+
                 viewDetailsButton(for: job)
             }
-            .padding()
+            .padding(DS.Space.l)
         }
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.2), radius: 20, y: -5)
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(Color.surface)
         )
-        .padding(.horizontal)
-        .padding(.bottom, 8)
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .strokeBorder(Color.divider, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: -5)
+        .padding(.horizontal, DS.Space.screen)
+        .padding(.bottom, DS.Space.s)
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
-    
+
     private func jobHeader(for job: Job) -> some View {
-        HStack {
+        HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(job.title)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                
+                    .font(.dsTitle2)
+                    .foregroundStyle(Color.ink)
+                    .multilineTextAlignment(.leading)
+
                 HStack(spacing: 4) {
-                    Image(systemName: "mappin.circle.fill")
-                        .foregroundColor(.red)
-                        .font(.caption)
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.brand)
                     Text(job.location)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkMuted)
                 }
             }
-            
+
             Spacer()
-            
-            Button(action: {
+
+            Button {
                 withAnimation {
                     selectedJob = nil
                 }
-            }) {
+            } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 22))
+                    .foregroundStyle(Color.inkFaint)
             }
         }
     }
-    
-    private func categoryBadge(_ category: JobCategory) -> some View {
-        HStack {
-            Image(systemName: "tag.fill")
-                .font(.caption)
-            Text(category.localized)
-                .font(.caption)
-        }
-        .foregroundColor(.blue)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.blue.opacity(0.1))
-        .cornerRadius(6)
-    }
-    
+
     private func budgetView(_ budget: Double) -> some View {
-        HStack {
-            Image(systemName: "dollarsign.circle.fill")
-                .foregroundColor(.green)
-            Text("\(L10n.Field.budget.string): \(Money.string(budget))")
-                .font(.subheadline)
-                .fontWeight(.semibold)
+        HStack(alignment: .firstTextBaseline) {
+            Text(L10n.Field.budget.string)
+                .font(.dsCaption)
+                .foregroundStyle(Color.inkMuted)
+            Spacer()
+            DSPriceText(amount: budget)
         }
+        .dsInset()
     }
-    
+
     private func viewDetailsButton(for job: Job) -> some View {
         NavigationLink(destination: JobDetailView(job: job)) {
-            HStack {
-                Text(L10n.Action.viewDetails.string)
-                    .font(.headline)
-                Spacer()
-                Image(systemName: "arrow.right.circle.fill")
+            HStack(spacing: DS.Space.s) {
+                Text("View Full Details")
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .flipsForRightToLeftLayoutDirection(true)
             }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: [Color.blue, Color.blue.opacity(0.8)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(12)
         }
+        .buttonStyle(DSPrimaryButtonStyle())
     }
-    
+
     @ViewBuilder
     private var mapStyleButton: some View {
         if selectedJob == nil {
@@ -212,21 +201,20 @@ struct JobMapView: View {
                     Spacer()
                     Menu {
                         Button(action: { mapStyle = .standard }) {
-                            Label(L10n(key: "jobMap.styleStandard").string, systemImage: "map")
+                            Label("Standard", systemImage: "map")
                         }
                         Button(action: { mapStyle = .hybrid }) {
-                            Label(L10n(key: "jobMap.styleSatellite").string, systemImage: "globe")
+                            Label("Satellite", systemImage: "globe")
                         }
                     } label: {
                         Image(systemName: "map.fill")
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .padding(12)
-                            .background(Color.blue)
-                            .clipShape(Circle())
-                            .shadow(radius: 4)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Color.onBrand)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.brand))
+                            .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                     }
-                    .padding()
+                    .padding(DS.Space.l)
                 }
                 Spacer()
             }
@@ -235,94 +223,52 @@ struct JobMapView: View {
 }
 
 // MARK: - Custom Job Marker View
-struct JobMarkerView: View {
+private struct JobMarkerView: View {
     let job: Job
     let isSelected: Bool
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
                 if isSelected {
                     Circle()
-                        .fill(Color.blue.opacity(0.2))
+                        .fill(Color.brand.opacity(0.2))
                         .frame(width: 60, height: 60)
                         .scaleEffect(isSelected ? 1.0 : 0.8)
                         .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: isSelected)
                 }
-                
+
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [categoryColor, categoryColor.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(markerColor)
                     .frame(width: isSelected ? 50 : 40, height: isSelected ? 50 : 40)
-                    .shadow(color: categoryColor.opacity(0.5), radius: isSelected ? 8 : 4)
-                
-                Image(systemName: categoryIcon)
-                    .font(.system(size: isSelected ? 20 : 16))
-                    .foregroundColor(.white)
-                    .fontWeight(.semibold)
+                    .overlay(Circle().strokeBorder(Color.surface, lineWidth: 2))
+                    .shadow(color: markerColor.opacity(0.5), radius: isSelected ? 8 : 4)
+
+                Image(systemName: markerSymbol)
+                    .font(.system(size: isSelected ? 20 : 16, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.onBrand : Color.white)
             }
-            
+
             Triangle()
-                .fill(categoryColor)
+                .fill(markerColor)
                 .frame(width: 12, height: 8)
                 .offset(y: -4)
         }
         .scaleEffect(isSelected ? 1.1 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
     }
-    
-    private var categoryColor: Color {
-        guard let category = job.category else { return .blue }
-        switch category {
-        case .plumbing: return .blue
-        case .electrical: return .yellow
-        case .carpentry: return .brown
-        case .painting: return .purple
-        case .cleaning: return .green
-        case .landscaping: return .mint
-        case .hvac: return .cyan
-        case .roofing: return .red
-        case .flooring: return .orange
-        case .masonry: return .gray
-        case .welding: return .indigo
-        case .automotive: return .black
-        case .appliance: return .teal
-        case .pest: return .pink
-        case .moving: return .blue
-        case .other: return .secondary
-        }
+
+    private var markerColor: Color {
+        isSelected ? Color.brand : (job.category?.tint ?? .brand)
     }
-    
-    private var categoryIcon: String {
-        guard let category = job.category else { return "briefcase.fill" }
-        switch category {
-        case .plumbing: return "wrench.and.screwdriver.fill"
-        case .electrical: return "bolt.fill"
-        case .carpentry: return "hammer.fill"
-        case .painting: return "paintbrush.fill"
-        case .cleaning: return "sparkles"
-        case .landscaping: return "leaf.fill"
-        case .hvac: return "fan.fill"
-        case .roofing: return "house.fill"
-        case .flooring: return "square.grid.3x3.fill"
-        case .masonry: return "building.2.fill"
-        case .welding: return "flame.fill"
-        case .automotive: return "car.fill"
-        case .appliance: return "refrigerator.fill"
-        case .pest: return "ant.fill"
-        case .moving: return "shippingbox.fill"
-        case .other: return "briefcase.fill"
-        }
+
+    private var markerSymbol: String {
+        job.category?.symbol ?? "briefcase.fill"
     }
 }
 
 // Triangle shape for marker pointer
-struct Triangle: Shape {
+private struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
@@ -330,27 +276,6 @@ struct Triangle: Shape {
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
         path.closeSubpath()
         return path
-    }
-}
-
-// Helper extension for custom corner radius
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-}
-
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-    
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
     }
 }
 

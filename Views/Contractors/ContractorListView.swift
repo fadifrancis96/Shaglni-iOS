@@ -2,159 +2,192 @@
 //  ContractorListView.swift
 //  Shaglni
 //
-//  Created on October 2025
+//  Browse contractors: search bar + cards with avatar, rating,
+//  availability and skills. Built entirely on the design system.
 //
 
 import SwiftUI
 
 struct ContractorListView: View {
-    @EnvironmentObject var contractorsRepo: ContractorsRepository
+    @EnvironmentObject var localization: LocalizationManager
+    @State private var contractors: [ContractorProfile] = []
+    @State private var isLoading = true
     @State private var searchText = ""
     @State private var selectedSkill: String?
-    
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Search Bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    
-                    TextField(L10n.Search.contractors.string, text: $searchText)
-                        .textFieldStyle(.plain)
-                    
-                    if !searchText.isEmpty {
-                        Button(action: { searchText = "" }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .padding()
-                
-                // Contractors List
-                if filteredContractors.isEmpty {
-                    Spacer()
-                    EmptyStateView(
-                        icon: "person.3",
-                        title: L10n.Empty.noContractors.string,
-                        subtitle: L10n.Empty.tryAdjustSearch.string
-                    )
-                    Spacer()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(filteredContractors) { contractor in
-                                NavigationLink(destination: ContractorProfileView(contractor: contractor)) {
-                                    ContractorCardView(contractor: contractor)
+            ZStack {
+                Color.bgCanvas.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: DS.Space.xl) {
+                        DSSearchBar(text: $searchText, placeholder: L10n.Search.contractors.string)
+
+                        if isLoading {
+                            loadingPlaceholder
+                        } else if filteredContractors.isEmpty {
+                            DSEmptyState(
+                                systemImage: "person.3",
+                                title: L10n.Empty.noContractors.string,
+                                message: L10n.Empty.tryAdjustSearch.string
+                            )
+                        } else {
+                            LazyVStack(spacing: DS.Space.m) {
+                                ForEach(filteredContractors) { contractor in
+                                    NavigationLink(destination: ContractorProfileView(contractor: contractor)) {
+                                        ContractorCardView(contractor: contractor)
+                                    }
+                                    .buttonStyle(DSPressableStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .padding(.bottom)
                     }
+                    .padding(.horizontal, DS.Space.screen)
+                    .padding(.vertical, DS.Space.l)
                 }
             }
             .navigationTitle(L10n.Tab.contractors.string)
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear(perform: loadContractors)
         }
     }
 
+    private var loadingPlaceholder: some View {
+        VStack(spacing: DS.Space.m) {
+            ForEach(0..<4, id: \.self) { _ in
+                ContractorCardView(contractor: .skeletonSample)
+            }
+        }
+        .dsSkeleton(when: true)
+    }
+
     private var filteredContractors: [ContractorProfile] {
-        contractorsRepo.allContractors.filter { contractor in
+        contractors.filter { contractor in
             searchText.isEmpty ||
             contractor.displayName.localizedCaseInsensitiveContains(searchText) ||
             contractor.bio.localizedCaseInsensitiveContains(searchText) ||
             contractor.skills.contains { $0.localizedCaseInsensitiveContains(searchText) }
         }
     }
+
+    private func loadContractors() {
+        print("Loading contractors...")
+        FirestoreService.shared.fetchAllContractors { result in
+            isLoading = false
+            switch result {
+            case .success(let fetchedContractors):
+                print("Successfully loaded \(fetchedContractors.count) contractors")
+                contractors = fetchedContractors
+                // Debug: Print first contractor if available
+                if let first = fetchedContractors.first {
+                    print("First contractor: \(first.displayName), userId: \(first.userId)")
+                }
+            case .failure(let error):
+                print("Error loading contractors: \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
-struct ContractorCardView: View {
+private extension ContractorProfile {
+    /// Placeholder used only for redacted skeleton rows while loading.
+    static var skeletonSample: ContractorProfile {
+        ContractorProfile(
+            userId: "",
+            displayName: "Contractor Name",
+            bio: "",
+            skills: ["Skill", "Skill", "Skill"],
+            rating: 4.5,
+            completedJobsCount: 12,
+            contactEmail: nil,
+            phone: nil,
+            website: nil,
+            profilePicture: nil,
+            location: "City",
+            latitude: nil,
+            longitude: nil,
+            availableForWork: true
+        )
+    }
+}
+
+private struct ContractorCardView: View {
     let contractor: ContractorProfile
-    
+    @EnvironmentObject var localization: LocalizationManager
+
+    private let maxVisibleSkills = 3
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                // Profile Picture
-                Circle()
-                    .fill(Color.blue.opacity(0.2))
-                    .frame(width: 60, height: 60)
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    )
-                
+        VStack(alignment: .leading, spacing: DS.Space.m) {
+            HStack(alignment: .top, spacing: DS.Space.m) {
+                DSAvatar(name: contractor.displayName, urlString: contractor.profilePicture, size: 52)
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(contractor.displayName)
-                        .font(.headline)
-                    
-                    if let location = contractor.location {
-                        Label(location, systemImage: "mappin.circle")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    HStack(spacing: 4) {
-                        if let rating = contractor.rating {
-                            HStack(spacing: 2) {
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
-                                Text(String(format: "%.1f", rating))
-                            }
-                            .font(.caption)
+                        .font(.dsHeadline)
+                        .foregroundStyle(Color.ink)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.leading)
+
+                    if let location = contractor.location, !location.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.system(size: 11))
+                            Text(location)
+                                .lineLimit(1)
                         }
-                        
-                        Text(L10n(key: "contractorList.jobsCount").format(contractor.completedJobsCount))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        .font(.dsCaption)
+                        .foregroundStyle(Color.inkMuted)
+                    }
+
+                    HStack(spacing: DS.Space.s) {
+                        if let rating = contractor.rating {
+                            DSRatingStars(rating: rating, size: 11)
+                        }
+                        Text("\(contractor.completedJobsCount) \(localization.localized("completedJobs"))")
+                            .font(.dsCaption)
+                            .foregroundStyle(Color.inkFaint)
+                            .lineLimit(1)
                     }
                 }
-                
-                Spacer()
-                
-                if contractor.availableForWork {
-                    Text(L10n(key: "contractorList.available").string)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green)
-                        .cornerRadius(6)
+
+                Spacer(minLength: DS.Space.s)
+
+                VStack(alignment: .trailing, spacing: DS.Space.s) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.inkFaint)
+                        .flipsForRightToLeftLayoutDirection(true)
+
+                    if contractor.availableForWork {
+                        DSTag(
+                            title: localization.localized("availableForWork"),
+                            systemImage: "checkmark.circle.fill",
+                            tint: .success,
+                            background: .successSoft
+                        )
+                    }
                 }
             }
-            
-            // Skills
+
             if !contractor.skills.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(contractor.skills.prefix(4), id: \.self) { skill in
-                            Text(skill)
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.blue.opacity(0.1))
-                                .foregroundColor(.blue)
-                                .cornerRadius(6)
-                        }
+                HStack(spacing: DS.Space.s) {
+                    ForEach(contractor.skills.prefix(maxVisibleSkills), id: \.self) { skill in
+                        DSTag(title: skill, tint: .brand, background: .brandSoft)
                     }
+                    if contractor.skills.count > maxVisibleSkills {
+                        DSTag(title: "+\(contractor.skills.count - maxVisibleSkills)")
+                    }
+                    Spacer(minLength: 0)
                 }
             }
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-        .padding(.horizontal)
+        .dsCard()
     }
 }
 
 #Preview {
     ContractorListView()
-        .environmentObject(LocalizationManager.shared)
-        .environmentObject(ContractorsRepository.shared)
+        .environmentObject(LocalizationManager())
 }
