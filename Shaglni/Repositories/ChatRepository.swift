@@ -71,15 +71,21 @@ final class ChatRepository: ObservableObject {
 
     // MARK: - Messages
 
+    /// Streams the NEWEST `messageLimit` messages. The query runs descending so the
+    /// limit keeps the most recent ones, then the batch is reversed back to ascending
+    /// for display. Older history beyond the cap needs cursor paging when we add it.
+    nonisolated static let messageLimit = 200
+
     nonisolated func listenMessages(jobId: String, onChange: @escaping @MainActor ([ChatMessage]) -> Void) -> ListenerRegistration {
         db.collection("chats").document(jobId).collection("messages")
-            .order(by: "createdAt", descending: false)
+            .order(by: "createdAt", descending: true)
+            .limit(to: Self.messageLimit)
             .addSnapshotListener { snapshot, error in
                 if let error = error {
                     AppLogger.chat.error("messages listener: \(error.localizedDescription, privacy: .public)")
                     return
                 }
-                let messages = snapshot?.decoded(as: ChatMessage.self) ?? []
+                let messages: [ChatMessage] = (snapshot?.decoded(as: ChatMessage.self) ?? []).reversed()
                 Task { @MainActor in onChange(messages) }
             }
     }
